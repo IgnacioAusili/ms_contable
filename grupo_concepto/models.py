@@ -22,7 +22,7 @@ class GrupoConcepto(models.Model):
         if self.pk is not None:
             original = type(self).objects.get(pk=self.pk)
 
-            if self.denominacion_id != original.denominacion_id:
+            if self.denominacion != original.denominacion:
                 raise ValueError(
                     "La denominación de un grupo de concepto es inmutable."
                 )

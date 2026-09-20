@@ -39,5 +39,7 @@ class CategoriaLaboral(models.Model):
                     "La categoría no se puede cambiar de empresa."
                 )
 
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.denominacion
