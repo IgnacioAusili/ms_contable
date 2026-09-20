@@ -40,13 +40,10 @@ INSTALLED_APPS = [
 
     "categoria_laboral",
     "concepto",
-    "detalle_liquidacion",
     "empleado",
     "empresa",
     "grupo_concepto",
     "liquidacion",
-    "liquidacion_empleado",
-    "version_concepto",
 ]
 
 MIDDLEWARE = [

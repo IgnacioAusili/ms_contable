@@ -1,0 +1,87 @@
+from .models import VersionConcepto
+
+
+def actualizar_concepto(
+    concepto,
+    *,
+    denominacion,
+    codigo_arca,
+    categoria,
+    tipo,
+    unidad,
+    grupo,
+):
+    version_actual = (
+        VersionConcepto.objects
+        .filter(concepto=concepto)
+        .order_by("-version")
+        .first()
+    )
+
+    if version_actual is None:
+        return crear_version_concepto(
+            concepto,
+            denominacion=denominacion,
+            codigo_arca=codigo_arca,
+            categoria=categoria,
+            tipo=tipo,
+            unidad=unidad,
+            grupo=grupo,
+        )
+
+    cambios = (
+        version_actual.denominacion != denominacion
+        or version_actual.codigo_arca != codigo_arca
+        or version_actual.categoria != categoria
+        or version_actual.tipo != tipo
+        or version_actual.unidad != unidad
+        or version_actual.grupo_id != grupo.id
+    )
+
+    if not cambios:
+        return version_actual
+
+    return crear_version_concepto(
+        concepto,
+        denominacion=denominacion,
+        codigo_arca=codigo_arca,
+        categoria=categoria,
+        tipo=tipo,
+        unidad=unidad,
+        grupo=grupo,
+    )
+
+
+def crear_version_concepto(
+    concepto,
+    *,
+    denominacion,
+    codigo_arca,
+    categoria,
+    tipo,
+    unidad,
+    grupo,
+):
+    ultima_version = (
+        VersionConcepto.objects
+        .filter(concepto=concepto)
+        .order_by("-version")
+        .first()
+    )
+
+    siguiente_version = (
+        ultima_version.version + 1
+        if ultima_version
+        else 1
+    )
+
+    return VersionConcepto.objects.create(
+        concepto=concepto,
+        version=siguiente_version,
+        denominacion=denominacion,
+        codigo_arca=codigo_arca,
+        categoria=categoria,
+        tipo=tipo,
+        unidad=unidad,
+        grupo=grupo,
+    )

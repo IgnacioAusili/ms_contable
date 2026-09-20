@@ -1,0 +1,87 @@
+from django import forms
+from django.forms.models import BaseInlineFormSet
+from django.db.models import OuterRef, Subquery
+from empleado.models import Empleado
+from concepto.models import VersionConcepto
+from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion
+
+
+class LiquidacionForm(forms.ModelForm):
+    class Meta:
+        model = Liquidacion
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Una vez creada, la empresa no se puede cambiar.
+        if self.instance and self.instance.pk:
+            self.fields["empresa"].disabled = True
+
+
+class LiquidacionEmpleadoInlineForm(forms.ModelForm):
+    class Meta:
+        model = LiquidacionEmpleado
+        fields = "__all__"
+
+    def __init__(self, *args, empresa=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if empresa:
+            self.fields["empleado"].queryset = Empleado.objects.filter(
+                empresa=empresa
+            )
+        else:
+            self.fields["empleado"].queryset = Empleado.objects.none()
+
+
+        # Una vez creado, el empleado no se puede cambiar.
+        if self.instance.pk:
+            self.fields["empleado"].disabled = True
+
+
+class LiquidacionEmpleadoInlineFormSet(BaseInlineFormSet):
+    def get_form_kwargs(self, index):
+        kwargs = super().get_form_kwargs(index)
+
+        if self.instance.empresa_id:
+            kwargs["empresa"] = self.instance.empresa
+        else:
+            kwargs["empresa"] = None
+
+        return kwargs
+
+
+class DetalleLiquidacionForm(forms.ModelForm):
+    class Meta:
+        model = DetalleLiquidacion
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Una vez creado, no se puede cambiar el concepto.
+        if self.instance and self.instance.pk:
+            self.fields["concepto"].disabled = True
+
+
+class DetalleLiquidacionFormSet(BaseInlineFormSet):
+    def add_fields(self, form, index):
+        super().add_fields(form, index)
+
+        empresa = self.instance.liquidacion.empresa
+
+        ultima_version = (
+            VersionConcepto.objects
+            .filter(concepto=OuterRef("concepto"))
+            .order_by("-version")
+            .values("pk")[:1]
+        )
+
+        form.fields["concepto"].queryset = (
+            VersionConcepto.objects
+            .filter(
+                concepto__empresa=empresa,
+                pk=Subquery(ultima_version),
+            )
+        )

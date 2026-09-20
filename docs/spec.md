@@ -76,6 +76,8 @@ erDiagram
 
     LIQUIDACION_EMPLEADO ||--|{ DETALLE_LIQUIDACION : contiene
     VERSION_CONCEPTO ||--o{ DETALLE_LIQUIDACION : aplicado
+
+    DETALLE_LIQUIDACION ||--o{ DETALLE_LIQUIDACION : utiliza
     
     EMPRESA {
         int id PK
@@ -187,10 +189,12 @@ erDiagram
 
     DETALLE_LIQUIDACION {
         int id PK
-        decimal unidades
+        decimal unidades "NOT_NULL"
+        %% DJANGO BLANK: false
+        string expresion_base "NOT_NULL"
         %% puede estar expresado en terminos de otros conceptos
-        decimal base
+        decimal base "NOT_NULL"
         %% DJANGO HELP_TEXT: unidades * base
-        decimal importe
+        decimal importe "NOT_NULL"
     }
 ```

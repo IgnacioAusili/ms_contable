@@ -1,0 +1,17 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block submit_buttons_bottom %}
+    <div class="submit-row">
+        <input
+            type="submit"
+            value="Guardar"
+            class="default"
+            name="_continue"
+        >
+        {% if change and has_delete_permission and not is_popup %}
+            {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
+            <a href="{% add_preserved_filters delete_url %}" class="deletelink">Eliminar</a>
+        {% endif %}
+    </div>
+{% endblock %}
