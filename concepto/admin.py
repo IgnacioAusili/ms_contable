@@ -3,15 +3,95 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.db import transaction
 from django.db.models import Prefetch
+from grupo_concepto.models import GrupoConcepto
 from .models import Concepto, VersionConcepto
 from .forms import ConceptoAdminForm
 from .services import actualizar_concepto
 
 
+class CategoriaFilter(admin.SimpleListFilter):
+    title = "categoría"
+    parameter_name = "categoria"
+
+    def lookups(self, request, model_admin):
+        field = VersionConcepto._meta.get_field("categoria")
+
+        return list(dict(field.choices).items())
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        versiones = (
+            VersionConcepto.objects
+            .vigente()
+            .filter(categoria=self.value())
+        )
+
+        return queryset.filter(
+            versiones__in=versiones
+        )
+
+
+class GrupoFilter(admin.SimpleListFilter):
+    title = "grupo"
+    parameter_name = "grupo"
+
+    def lookups(self, request, model_admin):
+        return (
+            GrupoConcepto.objects
+            .order_by("denominacion")
+            .values_list("pk", "denominacion")
+        )
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        version_vigente = (
+            VersionConcepto.objects
+            .vigente()
+            .filter(grupo_id=self.value())
+        )
+
+        return queryset.filter(
+            versiones__in=version_vigente
+        )
+
+
+class TipoFilter(admin.SimpleListFilter):
+    title = "tipo"
+    parameter_name = "tipo"
+
+    def lookups(self, request, model_admin):
+        field = VersionConcepto._meta.get_field("tipo")
+
+        return list(dict(field.choices).items())
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        versiones = (
+            VersionConcepto.objects
+            .vigente()
+            .filter(tipo=self.value())
+        )
+
+        return queryset.filter(
+            versiones__in=versiones
+        )
+
+
 class VersionConceptoInline(admin.TabularInline):
     model = VersionConcepto
-    extra = 0
+
     can_delete = False
+    max_num = 0
+    extra = 0
+
+    verbose_name = "Versión anterior"
+    verbose_name_plural = "Historial de versiones"
 
     fields = (
         "version",
@@ -30,6 +110,10 @@ class VersionConceptoInline(admin.TabularInline):
 class ConceptoAdmin(admin.ModelAdmin):
     form = ConceptoAdminForm
     inlines = [VersionConceptoInline]
+
+    list_filter = (CategoriaFilter,GrupoFilter,TipoFilter,'empresa')
+    preserve_filters = True
+    ordering = ('empresa',)
     actions = None
 
     list_display = (
@@ -43,10 +127,12 @@ class ConceptoAdmin(admin.ModelAdmin):
         "unidad",
     )
 
+    change_form_template = "admin/concepto/change_form.html"
+
     def _version_vigente(self, obj):
         return (
-            obj.versiones_ordenadas[0]
-            if obj.versiones_ordenadas
+            obj.version_vigente[0]  # Prefetch(..., ) siempre devuelve una colección
+            if obj.version_vigente
             else None
         )
 
@@ -81,10 +167,7 @@ class ConceptoAdmin(admin.ModelAdmin):
         return version.grupo if version else "-"
 
     def get_queryset(self, request):
-        versiones = (
-            VersionConcepto.objects
-            .order_by("-version")
-        )
+        versiones = VersionConcepto.objects.vigente()
 
         return (
             super()
@@ -94,7 +177,7 @@ class ConceptoAdmin(admin.ModelAdmin):
                 Prefetch(
                     "versiones",
                     queryset=versiones,
-                    to_attr="versiones_ordenadas",
+                    to_attr="version_vigente",
                 )
             )
         )

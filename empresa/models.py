@@ -1,4 +1,5 @@
 from django.db import models
+from empleado.validators import validar_cuit
 
 
 class Empresa(models.Model):
@@ -8,6 +9,7 @@ class Empresa(models.Model):
         max_length=11,
         null=False,
         blank=False,
+        validators=[validar_cuit],
     )
     nombre = models.CharField(
         max_length=255,

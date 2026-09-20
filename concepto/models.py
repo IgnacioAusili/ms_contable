@@ -1,5 +1,6 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.db.models import OuterRef, Subquery
+from django.core.validators import MinValueValidator, RegexValidator
 
 
 class ConceptoQuerySet(models.QuerySet):
@@ -55,6 +56,18 @@ class VersionConceptoQuerySet(models.QuerySet):
     def eliminados(self):
         return self.filter(concepto__eliminado=True)
 
+    def vigente(self):
+        ultima_version = (
+            VersionConcepto.objects
+            .filter(concepto=OuterRef("concepto"))
+            .order_by("-version")
+            .values("pk")[:1]
+        )
+
+        return self.filter(
+            pk=Subquery(ultima_version)
+        )
+
 
 class VersionConceptoManager(models.Manager.from_queryset(VersionConceptoQuerySet)):
     def get_queryset(self):
@@ -109,10 +122,17 @@ class VersionConcepto(models.Model):
         blank=False,
     )
 
+    # ARCA define el Código de concepto de sueldo ARCA como un campo alfanumérico de longitud 6
     codigo_arca = models.CharField(
-        max_length=255,
+        max_length=6,
         null=False,
         blank=False,
+        validators=[
+            RegexValidator(
+                regex=r"^[A-Za-z0-9]{6}$",
+                message="El código ARCA debe contener exactamente 6 caracteres alfanuméricos.",
+            ),
+        ],
     )
 
     categoria = models.CharField(

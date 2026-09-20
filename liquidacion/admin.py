@@ -76,7 +76,12 @@ class LiquidacionAdmin(admin.ModelAdmin):
 
     list_filter = ('empresa', 'estado',)
 
-    change_form_template = "admin/liquidacion/liquidacion/change_form.html"
+    search_fields = ('periodo',)
+    search_help_text = "Busqueda por periodo (fecha, año, mes, etc)"
+
+    ordering = ('empresa', 'periodo',)
+
+    change_form_template = "admin/liquidacion/change_form.html"
 
 
 class DetalleLiquidacionInline(admin.TabularInline):
@@ -133,7 +138,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
     readonly_fields = fields
 
-    change_form_template = "admin/liquidacion/liquidacion/change_form.html"
+    change_form_template = "admin/liquidacion/change_form.html"
 
     # Ocultar LiquidacionEmpleado de las vistas globales
     def has_module_permission(self, request):

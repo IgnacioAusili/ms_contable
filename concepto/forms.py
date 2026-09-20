@@ -18,7 +18,8 @@ class ConceptoAdminForm(forms.ModelForm):
     codigo_arca = forms.CharField(
         label="Código ARCA",
         max_length=VersionConcepto._meta.get_field("codigo_arca").max_length,
-        help_text="Referencia a un concepto de ARCA",
+        validators=VersionConcepto._meta.get_field("codigo_arca").validators,
+        help_text="Codigo del Concepto de ARCA al que se parametriza el concepto de la empresa",
     )
 
     categoria = forms.ChoiceField(
@@ -56,8 +57,8 @@ class ConceptoAdminForm(forms.ModelForm):
 
             version = (
                 VersionConcepto.objects
+                .vigente()
                 .filter(concepto=self.instance)
-                .order_by("-version")
                 .first()
             )
 

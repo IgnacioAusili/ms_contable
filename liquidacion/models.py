@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class Liquidacion(models.Model):
@@ -16,8 +17,8 @@ class Liquidacion(models.Model):
         related_name="liquidaciones",
     )
 
-    # Validar que el dia sea siempre el 1ro del mes p liquidaciones mensuales?
-    # Agregar campo para definir si la liquidacion es mensual, quincenal, semanal, etc? Por ahora se asume que son mensuales
+    # Decision deliberada: Esta fecha puede ser del futuro puesto que puede ser válido preparar una liquidación anticipadamente.
+    # TODO - Agregar campo para definir si la liquidacion es mensual, quincenal, semanal, etc? Por ahora se asume que son mensuales
     periodo = models.DateField(
         null=False,
         blank=False,
@@ -33,6 +34,7 @@ class Liquidacion(models.Model):
         choices=Estado.choices,
         null=False,
         blank=False,
+        editable=False
     )
 
     domicilio_empresa = models.CharField(
@@ -54,8 +56,28 @@ class Liquidacion(models.Model):
             ),
         ]
 
+    def clean(self):
+        super().clean()
+
+        if self.periodo.day != 1:
+            raise ValidationError(
+                "El periodo de liquidacion debe comenzar en el primer dia del rango."
+            )
+
+        if self.periodo and self.fecha_pago:
+            if (self.fecha_pago.year != self.periodo.year
+                or self.fecha_pago.month != self.periodo.month
+            ):
+                raise ValidationError({
+                    "fecha_pago": (
+                        "La fecha de pago debe estar dentro del período "
+                        "de la liquidación."
+                    )
+                })
+
     def save(self, *args, **kwargs):
         if self.pk is None:
+            self.estado = self.Estado.BORRADOR
             self.domicilio_empresa = self.empresa.domicilio
         else:
             original = type(self).objects.get(pk=self.pk)
@@ -185,6 +207,18 @@ class LiquidacionEmpleado(models.Model):
             ),
         ]
 
+    def clean(self):
+        super().clean()
+
+        if (
+            self.liquidacion_id
+            and self.empleado_id
+            and self.liquidacion.empresa_id != self.empleado.empresa_id
+        ):
+            raise ValidationError(
+                "El empleado no pertenece a la empresa de la liquidación."
+            )
+
     def save(self, *args, **kwargs):
         if self.pk is None:
             self.categoria = self.empleado.categoria_laboral.denominacion
@@ -208,7 +242,7 @@ class LiquidacionEmpleado(models.Model):
         return f"{self.liquidacion.periodo} - {self.empleado.apellidos}, {self.empleado.nombres}"
 
 
-# Validar que si la liquidacion esta cerrada, este detalle tampoco se pueda modificar
+# TODO - Validar que si la liquidacion esta cerrada, este detalle tampoco se pueda modificar
 class DetalleLiquidacion(models.Model):
     id = models.BigAutoField(
         primary_key=True,
@@ -261,6 +295,18 @@ class DetalleLiquidacion(models.Model):
     class Meta:
         verbose_name = "detalle liquidación"
         verbose_name_plural = "detalles de liquidación"
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.liquidacion_empleado_id
+            and self.concepto_id
+            and self.liquidacion_empleado.liquidacion.empresa_id != self.concepto.concepto.empresa_id
+        ):
+            raise ValidationError(
+                "El concepto asociado no pertenece a la empresa de la liquidación."
+            )
 
     def save(self, *args, **kwargs):
         if self.pk is not None:
