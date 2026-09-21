@@ -1,0 +1,32 @@
+#site-name a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#site-name a::before {
+    content: "";
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: url("../images/logo-160.svg") center / contain no-repeat;
+}
+
+#footer {
+    padding: 12px 25px;
+    background: var(--body-bg);
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.footer-separator {
+    opacity: 0.75;
+    font-size: 16px;
+}
