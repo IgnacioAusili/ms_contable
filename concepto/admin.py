@@ -1,12 +1,13 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.db import transaction
 from django.db.models import Prefetch
 from grupo_concepto.models import GrupoConcepto
+from .exceptions import ConceptoEnUsoEnLiquidacionAbierta
 from .models import Concepto, VersionConcepto
 from .forms import ConceptoAdminForm
-from .services import actualizar_concepto
+from .services import actualizar_concepto, eliminar_concepto
 
 
 class CategoriaFilter(admin.SimpleListFilter):
@@ -117,9 +118,8 @@ class ConceptoAdmin(admin.ModelAdmin):
     actions = None
 
     list_display = (
-        "id",
-        "empresa",
         "denominacion",
+        "empresa",
         "grupo",
         "codigo_arca",
         "categoria",
@@ -200,8 +200,19 @@ class ConceptoAdmin(admin.ModelAdmin):
         concepto = self.get_object(request, object_id)
 
         if concepto is not None:
-            concepto.eliminado = True
-            concepto.save(update_fields=["eliminado"])
+            try:
+                eliminar_concepto(concepto)
+            except ConceptoEnUsoEnLiquidacionAbierta as e:
+                self.message_user(
+                    request,
+                    str(e),
+                    level=messages.ERROR,
+                )
+                return redirect(
+                    reverse(
+                        f"admin:{self.opts.app_label}_{self.opts.model_name}_changelist"
+                    )
+                )
 
         return redirect(
             reverse(

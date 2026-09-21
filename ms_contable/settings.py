@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "empresa",
     "grupo_concepto",
     "liquidacion",
+    "plantilla_liquidacion",
 ]
 
 MIDDLEWARE = [

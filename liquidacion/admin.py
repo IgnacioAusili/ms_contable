@@ -66,7 +66,7 @@ class LiquidacionAdmin(admin.ModelAdmin):
     actions = None
 
     list_display = (
-        "empresa",
+        "__str__",
         "periodo",
         "fecha_pago",
         "estado",

@@ -10,6 +10,9 @@ class ConceptoQuerySet(models.QuerySet):
     def eliminados(self):
         return self.filter(eliminado=True)
 
+    def delete(self):
+        self.update(eliminado=True)
+
 
 class ConceptoManager(models.Manager.from_queryset(ConceptoQuerySet)):
     def get_queryset(self):
@@ -44,6 +47,13 @@ class Concepto(models.Model):
                 )
 
         super().save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        self.eliminado = True
+        self.save(
+            using=using,
+            update_fields=["eliminado"],
+        )
 
     def __str__(self):
         return f"Concepto {self.pk}"

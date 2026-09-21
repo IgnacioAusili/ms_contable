@@ -1,4 +1,23 @@
 from .models import VersionConcepto
+from django.db import transaction
+from liquidacion.models import DetalleLiquidacion, Liquidacion
+from plantilla_liquidacion.models import DetallePlantillaLiquidacion
+from .exceptions import ConceptoEnUsoEnLiquidacionAbierta
+
+
+@transaction.atomic
+def eliminar_concepto(concepto):
+    if DetalleLiquidacion.objects.filter(
+        concepto__concepto=concepto,
+        liquidacion_empleado__liquidacion__estado=Liquidacion.Estado.BORRADOR,
+    ).exists():
+        raise ConceptoEnUsoEnLiquidacionAbierta()
+
+    DetallePlantillaLiquidacion.objects.filter(
+        concepto__concepto=concepto,
+    ).delete()
+
+    concepto.delete()
 
 
 def actualizar_concepto(

@@ -71,17 +71,18 @@ class DetalleLiquidacionFormSet(BaseInlineFormSet):
 
         empresa = self.instance.liquidacion.empresa
 
-        ultima_version = (
+        queryset = (
             VersionConcepto.objects
-            .filter(concepto=OuterRef("concepto"))
-            .order_by("-version")
-            .values("pk")[:1]
+            .filter(concepto__empresa=empresa)
+            .vigente()
         )
 
-        form.fields["concepto"].queryset = (
-            VersionConcepto.objects
-            .filter(
-                concepto__empresa=empresa,
-                pk=Subquery(ultima_version),
+        # Si el detalle ya existe, mostrar en base a su versión histórica,
+        # aunque el concepto haya sido eliminado. Puede pasar para liquidaciones cerradas
+        if form.instance.pk:
+            queryset = queryset | (
+                VersionConcepto.todos
+                .filter(pk=form.instance.concepto_id)
             )
-        )
+
+        form.fields["concepto"].queryset = queryset.distinct()

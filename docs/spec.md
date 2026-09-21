@@ -40,6 +40,7 @@ flowchart LR
     CRUD_Categoria_Laboral([CRUD_Categoria_Laboral])
     CRUD_Empleado([CRUD_Empleado])
 
+    Generar_Plantillas([Generar_Plantillas])
     Generar_Liquidacion([Generar_Liquidacion])
     Liquidar_Empleado([Liquidar_Empleado])
 
@@ -49,6 +50,7 @@ flowchart LR
 
     Generar_TXT_LSD_ARCA([Generar_TXT_LSD_ARCA])
 
+    Generar_Liquidacion -.->|include| Generar_Plantillas
     Generar_Liquidacion -.->|include| Liquidar_Empleado
     Liquidar_Empleado -.->|include| Generar_Recibo_Sueldo
     Generar_Recibo_Sueldo -.->|include| Exportar_Recibo_PDF
@@ -63,6 +65,10 @@ flowchart LR
 erDiagram
     CONCEPTO ||--|{ VERSION_CONCEPTO : tiene
     VERSION_CONCEPTO }o--|| GRUPO_CONCEPTO : pertenece_a
+
+    EMPRESA ||--o{ PLANTILLA_LIQUIDACION : tiene
+    PLANTILLA_LIQUIDACION || --o{ DETALLE_PLANTILLA_LIQUIDACION : "se compone de"
+    DETALLE_PLANTILLA_LIQUIDACION }o -- || VERSION_CONCEPTO : referente_a
 
     EMPRESA ||--o{ CONCEPTO : define
     EMPRESA ||--o{ CATEGORIA_LABORAL : tiene
@@ -88,6 +94,20 @@ erDiagram
         %% Reglas de Negocio: immutable 
         string nombre "NOT_NULL"
         string domicilio "NOT_NULL"
+    }
+
+    PLANTILLA_LIQUIDACION {
+        int id PK
+        %% DJANGO BLANK: false 
+        %% DJANGO UniqueConstraint: fields=["empresa", "denominacion"]
+        string denominacion "NOT_NULL"
+    }
+
+    DETALLE_PLANTILLA_LIQUIDACION {
+        int id PK
+        decimal unidades "NOT_NULL"
+        %% DJANGO BLANK: false
+        string expresion_base "NOT_NULL"
     }
 
     CATEGORIA_LABORAL {
