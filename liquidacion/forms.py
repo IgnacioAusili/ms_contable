@@ -1,6 +1,5 @@
 from django import forms
 from django.forms.models import BaseInlineFormSet
-from django.db.models import OuterRef, Subquery
 from empleado.models import Empleado
 from concepto.models import VersionConcepto
 from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion
@@ -33,7 +32,6 @@ class LiquidacionEmpleadoInlineForm(forms.ModelForm):
             )
         else:
             self.fields["empleado"].queryset = Empleado.objects.none()
-
 
         # Una vez creado, el empleado no se puede cambiar.
         if self.instance.pk:

@@ -296,6 +296,13 @@ class DetalleLiquidacion(models.Model):
         verbose_name = "detalle liquidación"
         verbose_name_plural = "detalles de liquidación"
 
+        constraints = [
+            models.UniqueConstraint(
+                fields=["liquidacion_empleado", "concepto"],
+                name="unique_concepto_por_liquidacion_empleado",
+            ),
+        ]
+
     def clean(self):
         super().clean()
 

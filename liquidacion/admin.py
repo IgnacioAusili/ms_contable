@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 from django.utils.html import format_html
 from django.http import JsonResponse
 from django.urls import path
+from plantilla_liquidacion.models import PlantillaLiquidacion
 from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion
 from .forms import LiquidacionForm, LiquidacionEmpleadoInlineForm, LiquidacionEmpleadoInlineFormSet, DetalleLiquidacionForm, DetalleLiquidacionFormSet
 
@@ -147,16 +149,55 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
     class Media:
         js = ("liquidacion/admin/detalle_liquidacion.js",)
 
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None,):
+        extra_context = extra_context or {}
+
+        if object_id:
+            obj = self.get_object(request, object_id)
+
+            if obj:
+                extra_context["plantillas"] = (
+                    PlantillaLiquidacion.objects
+                    .filter(empresa=obj.liquidacion.empresa)
+                    .order_by("denominacion")
+                )
+
+        return super().changeform_view(request, object_id, form_url, extra_context,)
+
     def get_urls(self):
         urls = super().get_urls()
+
         custom = [
+            path(
+                "plantilla/<int:plantilla_id>/detalles/",
+                self.admin_site.admin_view(self.plantilla_detalles_view),
+                name="liquidacion_plantilla_detalles",
+            ),
             path(
                 "concepto-unidad/<int:concepto_id>/",
                 self.admin_site.admin_view(self.concepto_unidad_view),
                 name="liquidacion_concepto_unidad",
             ),
         ]
+
         return custom + urls
+
+    def plantilla_detalles_view(self, request, plantilla_id):
+        plantilla = get_object_or_404(
+            PlantillaLiquidacion,
+            pk=plantilla_id,
+        )
+
+        detalles = [
+            {
+                "concepto": detalle.concepto_id,
+                "unidades": str(detalle.unidades),
+                "expresion_base": detalle.expresion_base,
+            }
+            for detalle in plantilla.detalles.all()
+        ]
+
+        return JsonResponse({"detalles": detalles})
 
     def concepto_unidad_view(self, request, concepto_id):
         VersionConceptoModel = DetalleLiquidacion._meta.get_field("concepto").related_model
