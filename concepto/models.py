@@ -119,7 +119,7 @@ class VersionConcepto(models.Model):
 
     concepto = models.ForeignKey(
         "concepto.Concepto",
-        on_delete=models.DO_NOTHING, # soft delete
+        on_delete=models.DO_NOTHING,  # soft delete
         related_name="versiones",
     )
 
@@ -127,6 +127,8 @@ class VersionConcepto(models.Model):
         "grupo_concepto.GrupoConcepto",
         on_delete=models.PROTECT,
         related_name="versiones_concepto",
+        null=True,
+        blank=True,
     )
 
     version = models.PositiveIntegerField(

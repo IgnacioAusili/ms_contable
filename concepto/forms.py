@@ -13,6 +13,7 @@ class ConceptoAdminForm(forms.ModelForm):
     grupo = forms.ModelChoiceField(
         label="Grupo de concepto",
         queryset=GrupoConcepto.objects.all(),
+        required=False,
     )
 
     codigo_arca = forms.CharField(

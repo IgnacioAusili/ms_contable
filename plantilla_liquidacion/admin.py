@@ -43,13 +43,18 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
 
     list_per_page = 10
     list_display = ('denominacion', 'empresa',)
-    readonly_fields = ('empresa',)
     list_filter = ('empresa',)
     search_fields = ('denominacion',)
     search_help_text = "Buscar por denominacion"
     preserve_filters = True
     list_select_related = ('empresa',)
     ordering = ('denominacion', 'empresa',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return ("empresa",)
+
+        return ()
 
     change_form_template = "admin/plantilla_liquidacion/change_form.html"
 
@@ -76,4 +81,3 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
             return JsonResponse({"unidad": ""})
 
         return JsonResponse({"unidad": concepto.get_unidad_display()})
-

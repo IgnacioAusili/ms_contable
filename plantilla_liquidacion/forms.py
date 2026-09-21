@@ -22,19 +22,20 @@ class DetallePlantillaLiquidacionFormSet(BaseInlineFormSet):
     def add_fields(self, form, index):
         super().add_fields(form, index)
 
-        empresa = self.instance.empresa
+        if self.instance and self.instance.pk:
+            empresa = self.instance.empresa
 
-        ultima_version = (
-            VersionConcepto.objects
-            .filter(concepto=OuterRef("concepto"))
-            .order_by("-version")
-            .values("pk")[:1]
-        )
-
-        form.fields["concepto"].queryset = (
-            VersionConcepto.objects
-            .filter(
-                concepto__empresa=empresa,
-                pk=Subquery(ultima_version),
+            ultima_version = (
+                VersionConcepto.objects
+                .filter(concepto=OuterRef("concepto"))
+                .order_by("-version")
+                .values("pk")[:1]
             )
-        )
+
+            form.fields["concepto"].queryset = (
+                VersionConcepto.objects
+                .filter(
+                    concepto__empresa=empresa,
+                    pk=Subquery(ultima_version),
+                )
+            )

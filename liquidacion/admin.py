@@ -156,6 +156,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             obj = self.get_object(request, object_id)
 
             if obj:
+                extra_context["mostrar_plantillas"] = True
                 extra_context["plantillas"] = (
                     PlantillaLiquidacion.objects
                     .filter(empresa=obj.liquidacion.empresa)

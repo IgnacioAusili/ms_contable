@@ -34,7 +34,6 @@ La información gestionada por el sistema puede clasificarse en dos grandes grup
 # Casos de Uso
 
 ```mermaid
-
 flowchart LR
     CRUD_Empresa([CRUD_Empresa])
     CRUD_Categoria_Laboral([CRUD_Categoria_Laboral])
@@ -42,29 +41,35 @@ flowchart LR
 
     CRUD_Concepto_Liquidacion([CRUD_Concepto_Liquidacion])
 
+    Versinado_Concepto([Versinado_Concepto])
     Soft_Delete_Concepto([Soft_Delete_Concepto])
     Hard_Delete_Concepto([Hard_Delete_Concepto])
     Restaurar_Concepto([Restaurar_Concepto])
 
     Generar_Liquidacion([Generar_Liquidacion])
 
+    Estado_Liquidacion([Estado_Liquidacion])
     Generar_Plantillas([Generar_Plantillas])
     Generar_TXT_LSD_ARCA([Generar_TXT_LSD_ARCA])
     Liquidar_Empleado([Liquidar_Empleado])
 
     Generar_Recibo_Sueldo([Generar_Recibo_Sueldo])
+    Referencias_en_los_calculos([Referencias_en_los_calculos])
 
     Exportar_Recibo_PDF([Exportar_Recibo_PDF])
     Generar_Grafico([Generar_Grafico])
 
+    Versinado_Concepto -.->|extends| CRUD_Concepto_Liquidacion
     Soft_Delete_Concepto -.->|extends| CRUD_Concepto_Liquidacion
     Hard_Delete_Concepto -.->|extends| CRUD_Concepto_Liquidacion
     Restaurar_Concepto -.->|extends| Soft_Delete_Concepto
 
+    Generar_Liquidacion -.->|include| Estado_Liquidacion
     Generar_Liquidacion -.->|include| Generar_Plantillas
     Generar_Liquidacion -.->|include| Generar_TXT_LSD_ARCA    
     Generar_Liquidacion -.->|include| Liquidar_Empleado
     Liquidar_Empleado -.->|include| Generar_Recibo_Sueldo
+    Liquidar_Empleado -.->|include| Referencias_en_los_calculos
     Generar_Recibo_Sueldo -.->|include| Exportar_Recibo_PDF
     Generar_Recibo_Sueldo -.->|include| Generar_Grafico
 ```
