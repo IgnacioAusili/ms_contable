@@ -57,7 +57,7 @@ class ConceptoAdminForm(forms.ModelForm):
 
             version = (
                 VersionConcepto.objects
-                .vigente()
+                .ultima_version()
                 .filter(concepto=self.instance)
                 .first()
             )

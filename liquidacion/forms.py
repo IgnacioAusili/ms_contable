@@ -74,7 +74,7 @@ class DetalleLiquidacionFormSet(BaseInlineFormSet):
         queryset = (
             VersionConcepto.objects
             .filter(concepto__empresa=empresa)
-            .vigente()
+            .ultima_version()
         )
 
         # Si el detalle ya existe, mostrar en base a su versión histórica,

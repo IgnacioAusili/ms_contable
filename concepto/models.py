@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models import OuterRef, Subquery
 from django.core.validators import MinValueValidator, RegexValidator
 
@@ -12,6 +12,13 @@ class ConceptoQuerySet(models.QuerySet):
 
     def delete(self):
         self.update(eliminado=True)
+
+    @transaction.atomic
+    def hard_delete(self):
+        for concepto in self:
+            VersionConcepto.todos.filter(concepto=concepto).delete()
+
+        return super().delete()
 
 
 class ConceptoManager(models.Manager.from_queryset(ConceptoQuerySet)):
@@ -55,6 +62,11 @@ class Concepto(models.Model):
             update_fields=["eliminado"],
         )
 
+    @transaction.atomic
+    def hard_delete(self):
+        VersionConcepto.todos.filter(concepto=self).delete()
+        return super().delete()
+
     def __str__(self):
         return f"Concepto {self.pk}"
 
@@ -66,17 +78,15 @@ class VersionConceptoQuerySet(models.QuerySet):
     def eliminados(self):
         return self.filter(concepto__eliminado=True)
 
-    def vigente(self):
+    def ultima_version(self):
         ultima_version = (
-            VersionConcepto.objects
+            VersionConcepto.todos
             .filter(concepto=OuterRef("concepto"))
             .order_by("-version")
             .values("pk")[:1]
         )
 
-        return self.filter(
-            pk=Subquery(ultima_version)
-        )
+        return self.filter(pk=Subquery(ultima_version))
 
 
 class VersionConceptoManager(models.Manager.from_queryset(VersionConceptoQuerySet)):
@@ -109,7 +119,7 @@ class VersionConcepto(models.Model):
 
     concepto = models.ForeignKey(
         "concepto.Concepto",
-        on_delete=models.PROTECT,
+        on_delete=models.DO_NOTHING, # soft delete
         related_name="versiones",
     )
 

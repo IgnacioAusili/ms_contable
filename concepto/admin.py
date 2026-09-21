@@ -25,7 +25,7 @@ class CategoriaFilter(admin.SimpleListFilter):
 
         versiones = (
             VersionConcepto.objects
-            .vigente()
+            .ultima_version()
             .filter(categoria=self.value())
         )
 
@@ -51,7 +51,7 @@ class GrupoFilter(admin.SimpleListFilter):
 
         version_vigente = (
             VersionConcepto.objects
-            .vigente()
+            .ultima_version()
             .filter(grupo_id=self.value())
         )
 
@@ -75,13 +75,44 @@ class TipoFilter(admin.SimpleListFilter):
 
         versiones = (
             VersionConcepto.objects
-            .vigente()
+            .ultima_version()
             .filter(tipo=self.value())
         )
 
         return queryset.filter(
             versiones__in=versiones
         )
+
+
+class EliminadosFilter(admin.SimpleListFilter):
+    title = "eliminados"
+    parameter_name = "eliminados"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("eliminados", "Sí"),
+        )
+
+    def choices(self, changelist):
+        yield {
+            "selected": self.value() is None,
+            "query_string": changelist.get_query_string(
+                remove=[self.parameter_name],
+            ),
+            "display": "No",
+        }
+
+        for lookup, title in self.lookup_choices:
+            yield {
+                "selected": self.value() == str(lookup),
+                "query_string": changelist.get_query_string(
+                    {self.parameter_name: lookup},
+                ),
+                "display": title,
+            }
+
+    def queryset(self, request, queryset):
+        return queryset
 
 
 class VersionConceptoInline(admin.TabularInline):
@@ -112,11 +143,6 @@ class ConceptoAdmin(admin.ModelAdmin):
     form = ConceptoAdminForm
     inlines = [VersionConceptoInline]
 
-    list_filter = (CategoriaFilter,GrupoFilter,TipoFilter,'empresa')
-    preserve_filters = True
-    ordering = ('empresa',)
-    actions = None
-
     list_display = (
         "denominacion",
         "empresa",
@@ -126,6 +152,59 @@ class ConceptoAdmin(admin.ModelAdmin):
         "tipo",
         "unidad",
     )
+
+    list_filter = (CategoriaFilter,GrupoFilter,TipoFilter,EliminadosFilter,'empresa')
+    preserve_filters = True
+    ordering = ('empresa',)
+
+    # Por ahora el usuario no puede ver las versiones del concepto eliminado, para eso deberia restaurarlo primero
+    def get_list_display_links(self, request, list_display):
+        if request.GET.get("eliminados") == "eliminados":
+            return None
+
+        return super().get_list_display_links(request, list_display)
+
+    actions = ("eliminar_conceptos", "restaurar_conceptos", "eliminar_definitivamente",)
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+
+        eliminados = request.GET.get("eliminados") == "eliminados"
+
+        if eliminados:
+            actions.pop("delete_selected", None)
+            actions.pop("eliminar_conceptos", None)
+        else:
+            actions.pop("delete_selected", None)
+            actions.pop("restaurar_conceptos", None)
+            actions.pop("eliminar_definitivamente", None)
+
+        return actions
+
+    @admin.action(description="Eliminar conceptos seleccionados")
+    def eliminar_conceptos(self, request, queryset):
+        for concepto in queryset:
+            try:
+                eliminar_concepto(concepto)
+            except ConceptoEnUsoEnLiquidacionAbierta as e:
+                self.message_user(
+                    request,
+                    str(e),
+                    level=messages.ERROR,
+                )
+                return redirect(
+                    reverse(
+                        f"admin:{self.opts.app_label}_{self.opts.model_name}_changelist"
+                    )
+                )
+
+    @admin.action(description="Restaurar conceptos seleccionados")
+    def restaurar_conceptos(self, request, queryset):
+        queryset.update(eliminado=False)
+
+    @admin.action(description="Eliminar definitivamente conceptos seleccionados")
+    def eliminar_definitivamente(self, request, queryset):
+        queryset.hard_delete()
 
     change_form_template = "admin/concepto/change_form.html"
 
@@ -167,18 +246,20 @@ class ConceptoAdmin(admin.ModelAdmin):
         return version.grupo if version else "-"
 
     def get_queryset(self, request):
-        versiones = VersionConcepto.objects.vigente()
+        queryset = self.model.todos.all()
 
-        return (
-            super()
-            .get_queryset(request)
-            .activos()
-            .prefetch_related(
-                Prefetch(
-                    "versiones",
-                    queryset=versiones,
-                    to_attr="version_vigente",
-                )
+        if request.GET.get("eliminados") == "eliminados":
+            queryset = queryset.eliminados()
+            versiones = VersionConcepto.todos.eliminados().ultima_version()
+        else:
+            queryset = queryset.activos()
+            versiones = VersionConcepto.objects.ultima_version()
+
+        return queryset.prefetch_related(
+            Prefetch(
+                "versiones",
+                queryset=versiones,
+                to_attr="version_vigente",
             )
         )
 
