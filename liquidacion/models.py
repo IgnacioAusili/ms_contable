@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+from concepto.models import VersionConcepto
+
 
 class Liquidacion(models.Model):
     class Estado(models.TextChoices):
@@ -179,6 +181,16 @@ class LiquidacionEmpleado(models.Model):
         blank=False,
         editable=False,
     )
+
+    # TODO - que quede read_only al cerrar la liquidacion
+    observaciones = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        editable=True,
+        default="",
+        help_text="Observaciones que se reflejaran en el recibo de sueldo"
+    )
     # ------
 
     categoria = models.CharField(
@@ -261,7 +273,7 @@ class DetalleLiquidacion(models.Model):
 
     unidades = models.DecimalField(
         max_digits=12,
-        decimal_places=4,
+        decimal_places=2,
         null=False,
         blank=False,
     )
@@ -313,6 +325,15 @@ class DetalleLiquidacion(models.Model):
             raise ValidationError(
                 "El concepto asociado no pertenece a la empresa de la liquidación."
             )
+
+        unidad = VersionConcepto.Unidad(self.concepto.unidad)
+        if not unidad.constraint(self.unidades):
+            raise ValidationError({
+                "unidades": (
+                    f"El valor no es válido para la unidad "
+                    f"{self.concepto.get_unidad_display()}."
+                )
+            })
 
     def save(self, *args, **kwargs):
         if self.pk is not None:

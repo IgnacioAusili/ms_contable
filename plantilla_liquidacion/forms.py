@@ -10,7 +10,7 @@ class DetallePlantillaLiquidacionForm(forms.ModelForm):
         model = DetallePlantillaLiquidacion
         fields = "__all__"
         widgets = {
-            "formula": forms.Textarea(
+            "formula_base": forms.Textarea(
                 attrs={
                     "rows": 2,
                 }

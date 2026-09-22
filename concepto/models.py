@@ -115,6 +115,35 @@ class VersionConcepto(models.Model):
         CANTIDAD = "cantidad", "Cantidad"
         PORCENTAJE = "porcentaje", "Porcentaje"
 
+        @property
+        def descripcion(self):
+            return {
+                self.CANTIDAD: "Numeros enteros.",
+                self.PORCENTAJE: "Numeros reales del 0 al 100.",
+            }[self]
+
+        @property
+        def constraint(self):
+            return {
+                self.CANTIDAD: lambda valor: valor == int(valor),
+                self.PORCENTAJE: lambda valor: 0 <= valor <= 100,
+            }[self]
+
+        @property
+        def sufijo(self):
+            return {
+                self.CANTIDAD: "",
+                self.PORCENTAJE: "%",
+            }[self]
+
+        def calcular_importe(self, unidades, base):
+            if self == self.CANTIDAD:
+                return base * unidades
+            if self == self.PORCENTAJE:
+                return base * unidades / 100
+
+            raise ValueError(f"Unidad no soportada: {self}")
+
     id = models.BigAutoField(
         primary_key=True,
     )

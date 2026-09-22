@@ -2,12 +2,14 @@ from django.contrib import admin
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.html import format_html
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.urls import path
+from django.template.loader import render_to_string
 from plantilla_liquidacion.models import PlantillaLiquidacion
 from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion
 from .forms import LiquidacionForm, LiquidacionEmpleadoInlineForm, LiquidacionEmpleadoInlineFormSet, DetalleLiquidacionForm, DetalleLiquidacionFormSet
 from .services.s_expresiones import LiquidacionEmpleadoService
+from .services.s_recibo import ReciboSueldoService
 
 
 class LiquidacionEmpleadoInline(admin.TabularInline):
@@ -31,6 +33,7 @@ class LiquidacionEmpleadoInline(admin.TabularInline):
         "neto",
         "contribuciones",
         "costo_laboral",
+        "recibo_sueldo",
     )
 
     readonly_fields = (
@@ -44,6 +47,7 @@ class LiquidacionEmpleadoInline(admin.TabularInline):
         "neto",
         "contribuciones",
         "costo_laboral",
+        "recibo_sueldo",
     )
 
     @admin.display(description="")
@@ -59,6 +63,30 @@ class LiquidacionEmpleadoInline(admin.TabularInline):
         return format_html(
             '<a href="{}">Ver detalle</a>',
             url,
+        )
+
+    @admin.display(description="Recibo")
+    def recibo_sueldo(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+
+        url = reverse(
+            "admin:liquidacionempleado_recibo",
+            args=[obj.pk],
+        )
+
+        filename = (
+            f'recibo-{obj.pk}.pdf'
+        )
+
+        return format_html(
+            '<a href="{}"  target="_blank" '
+            'class="button js-recibo-pdf" '
+            'data-url="{}" '
+            'data-filename="{}">PDF</a>',
+            url,
+            url,
+            filename,
         )
 
 
@@ -159,9 +187,22 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         "neto",
         "contribuciones",
         "costo_laboral",
+        "observaciones"
     )
 
-    readonly_fields = fields
+    readonly_fields = (
+        "liquidacion",
+        "empleado",
+        "banco_de_cobro",
+        "categoria",
+        "remunerativo",
+        "no_remunerativo",
+        "bruto",
+        "descuentos",
+        "neto",
+        "contribuciones",
+        "costo_laboral",
+    )
 
     change_form_template = "admin/liquidacion/change_form.html"
 
@@ -170,7 +211,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         return False
 
     class Media:
-        js = ("liquidacion/admin/detalle_liquidacion.js",)
+        js = ("liquidacion/admin/detalle_liquidacion_empleado.js",)
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None,):
         extra_context = extra_context or {}
@@ -193,6 +234,11 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
         custom = [
             path(
+                "<int:object_id>/recibo/",
+                self.admin_site.admin_view(self.recibo_view),
+                name="liquidacionempleado_recibo",
+            ),
+            path(
                 "plantilla/<int:plantilla_id>/detalles/",
                 self.admin_site.admin_view(self.plantilla_detalles_view),
                 name="liquidacion_plantilla_detalles",
@@ -212,6 +258,22 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.path)
 
         return super().response_change(request, obj)
+    
+    def recibo_view(self, request, object_id):
+        datos = ReciboSueldoService(
+            LiquidacionEmpleado.objects.get(pk=object_id)
+        ).obtener_datos()
+
+        html = render_to_string(
+            "admin/liquidacion/recibo_sueldo.html",
+            datos,
+            request=request,
+        )
+
+        return HttpResponse(
+            html,
+            content_type="text/html",
+        )
 
     def plantilla_detalles_view(self, request, plantilla_id):
         plantilla = get_object_or_404(

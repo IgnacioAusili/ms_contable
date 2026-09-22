@@ -81,6 +81,9 @@ docs/
 │       PROC-00_plantilla.md
 │       PROC-xy_nombre.md
 │       ...
+└───interfaces
+│       recibo_sueldo.md
+│       ...
 └───imagenes
         liquidacion.jpg
         ...
@@ -99,6 +102,10 @@ Su representación utiliza modelos inspirados en SPEM, adaptados a Mermaid para 
 ### Decisiones de arquitectura
 
 Los ADR (*Architecture Decision Records*) documentan decisiones relevantes de diseño, las alternativas consideradas y los motivos de la decisión adoptada.
+
+### Interfaces
+
+Documentación sobre detalles de implementación.
 
 ### Imagenes
 

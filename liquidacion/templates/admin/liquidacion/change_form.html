@@ -4,7 +4,7 @@
 
 {% block extrastyle %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'liquidacion/admin/detalle_liquidacion.css' %}">
+    <link rel="stylesheet" href="{% static 'liquidacion/admin/detalle_liquidacion_empleado.css' %}">
 {% endblock %}
 
 {% block after_field_sets %}
@@ -73,7 +73,7 @@
                 <li><code>*</code> multiplicación</li>
                 <li><code>/</code> división</li>
                 <li><code>**</code> potencia</li>
-                <li><code>**</code> paréntesis</li>
+                <li><code>()</code> paréntesis</li>
             </ul>
 
             <h3>Referenciar otro concepto</h3>
@@ -83,13 +83,13 @@
                 Ese identificador puede utilizarse dentro de una expresión.
             </p>
 
-            <p>Al momento de calcular, se utilizara el valor de "Importe" de los detalles referenciados.</p>
-
             <p>
                 Por ejemplo, si existe el concepto <code>sueldo_basico_17</code>:
             </p>
 
             <pre><code>sueldo_basico_17 * 0.11</code></pre>
+
+            <p>Al momento de calcular, se utilizara el valor de "Importe" de los detalles referenciados.</p>
 
             <h3>Cálculos</h3>
 

@@ -137,7 +137,7 @@ class LiquidacionEmpleadoService:
 
             DetalleLiquidacion.objects.bulk_update(
                 detalles.values(),
-                ["importe"],
+                ["base", "importe"],
             )
         except Exception as e:
             raise e  # pending, raise custom exception(s)
@@ -146,7 +146,8 @@ class LiquidacionEmpleadoService:
         base = self.evaluar_formula(detalle.formula_base)
         detalle.base = base
 
-        importe = detalle.unidades * base
+        unidad = VersionConcepto.Unidad(detalle.concepto.unidad)
+        importe = unidad.calcular_importe(detalle.unidades, base)
         detalle.importe = importe
 
         self.importes[detalle.id] = importe

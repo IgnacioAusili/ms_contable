@@ -140,6 +140,8 @@ erDiagram
         decimal neto
         decimal contribuciones
         decimal costo_laboral
+        %% DJANGO BLANK: true
+        string observaciones
         %% snapshot de los datos maestros que son necesarios y que podrian cambiar
         %% DJANGO BLANK: false
         string categoria "NOT_NULL"

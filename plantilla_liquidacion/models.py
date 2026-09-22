@@ -53,7 +53,7 @@ class DetallePlantillaLiquidacion(models.Model):
 
     unidades = models.DecimalField(
         max_digits=12,
-        decimal_places=4,
+        decimal_places=2,
         null=False,
         blank=False,
     )

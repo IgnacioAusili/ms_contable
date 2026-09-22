@@ -1,5 +1,7 @@
 from django.db import models
 
+from concepto.utils import normalizar_identificador
+
 
 class GrupoConcepto(models.Model):
     id = models.BigAutoField(
@@ -13,6 +15,10 @@ class GrupoConcepto(models.Model):
         unique=True,
         help_text="Ej: Seguridad Social, INSSJP, Obra Social, etc",
     )
+
+    @property
+    def identificador(self):
+        return f"{normalizar_identificador(self.denominacion).lower()}"
 
     class Meta:
         verbose_name = "grupo para conceptos"
