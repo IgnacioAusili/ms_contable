@@ -2,11 +2,12 @@ from django.contrib import admin
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.utils.html import format_html
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import path
 from plantilla_liquidacion.models import PlantillaLiquidacion
 from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion
 from .forms import LiquidacionForm, LiquidacionEmpleadoInlineForm, LiquidacionEmpleadoInlineFormSet, DetalleLiquidacionForm, DetalleLiquidacionFormSet
+from .services.s_expresiones import LiquidacionEmpleadoService
 
 
 class LiquidacionEmpleadoInline(admin.TabularInline):
@@ -97,20 +98,31 @@ class DetalleLiquidacionInline(admin.TabularInline):
 
     fields = (
         "concepto",
+        "tipo",
         "categoria",
         "unidad",
         "unidades",
-        "expresion_base",
+        "formula_base",
         "base",
         "importe",
     )
 
     readonly_fields = (
+        "tipo",
         "categoria",
         "unidad",
         "base",
         "importe",
     )
+
+    @admin.display(description="Tipo")
+    def tipo(self, obj):
+        texto = "-"
+
+        if obj and obj.pk and obj.concepto_id:
+            texto = obj.concepto.get_tipo_display()
+
+        return format_html('<span class="tipo-display">{}</span>', texto)
 
     @admin.display(description="Categoria")
     def categoria(self, obj):
@@ -167,7 +179,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             obj = self.get_object(request, object_id)
 
             if obj:
-                extra_context["mostrar_plantillas"] = True
+                extra_context["liquidacion_empleado"] = True
                 extra_context["plantillas"] = (
                     PlantillaLiquidacion.objects
                     .filter(empresa=obj.liquidacion.empresa)
@@ -194,6 +206,13 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
         return custom + urls
 
+    def response_change(self, request, obj):
+        if "_calcular" in request.POST:
+            LiquidacionEmpleadoService(obj).liquidar()
+            return HttpResponseRedirect(request.path)
+
+        return super().response_change(request, obj)
+
     def plantilla_detalles_view(self, request, plantilla_id):
         plantilla = get_object_or_404(
             PlantillaLiquidacion,
@@ -204,7 +223,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             {
                 "concepto": detalle.concepto_id,
                 "unidades": str(detalle.unidades),
-                "expresion_base": detalle.expresion_base,
+                "formula_base": detalle.formula_base,
             }
             for detalle in plantilla.detalles.all()
         ]
@@ -217,9 +236,12 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         try:
             concepto = VersionConceptoModel.objects.get(pk=concepto_id)
         except VersionConceptoModel.DoesNotExist:
-            return JsonResponse({"unidad": ""})
+            return JsonResponse({
+                "tipo": "", "categoria": "", "unidad": "",
+            })
 
         return JsonResponse({
-            "unidad": concepto.get_unidad_display(),
+            "tipo": concepto.get_tipo_display(),
             "categoria": concepto.get_categoria_display(),
+            "unidad": concepto.get_unidad_display(),
         })

@@ -9,6 +9,13 @@ class DetallePlantillaLiquidacionForm(forms.ModelForm):
     class Meta:
         model = DetallePlantillaLiquidacion
         fields = "__all__"
+        widgets = {
+            "formula": forms.Textarea(
+                attrs={
+                    "rows": 2,
+                }
+            ),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -17,8 +17,7 @@ class Liquidacion(models.Model):
         related_name="liquidaciones",
     )
 
-    # Decision deliberada: Esta fecha puede ser del futuro puesto que puede ser válido preparar una liquidación anticipadamente.
-    # TODO - Agregar campo para definir si la liquidacion es mensual, quincenal, semanal, etc? Por ahora se asume que son mensuales
+    # Decision deliberada: Esta fecha puede ser del futuro puesto que puede ser válido preparar una liquidación anticipadamente
     periodo = models.DateField(
         null=False,
         blank=False,
@@ -250,7 +249,7 @@ class DetalleLiquidacion(models.Model):
 
     liquidacion_empleado = models.ForeignKey(
         "liquidacion.LiquidacionEmpleado",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name="detalles",
     )
 
@@ -262,12 +261,12 @@ class DetalleLiquidacion(models.Model):
 
     unidades = models.DecimalField(
         max_digits=12,
-        decimal_places=2,
+        decimal_places=4,
         null=False,
         blank=False,
     )
 
-    expresion_base = models.CharField(
+    formula_base = models.CharField(
         max_length=500,
         null=False,
         blank=False,
@@ -329,69 +328,7 @@ class DetalleLiquidacion(models.Model):
                     "No se puede cambiar el concepto asociado."
                 )
 
-        # self.base = ...expresion_base
-        # self.importe = self.unidades * self.base
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.liquidacion_empleado.liquidacion.periodo} - {self.liquidacion_empleado.empleado.apellidos}, {self.liquidacion_empleado.empleado.nombres} - {self.concepto.denominacion}"
-
-
-# Falta control para evitar ciclos indirectos
-# Evaluar expresion base: resolver referencias, validar el input, eval(detalle.expresion_base)
-# Al resolver referencias, estas deben estar calculadas o calcularse
-# Al cambiar un registro DETALLE_LIQUIDACION, hay que chequear las referencias y ajustar todos los valores
-# ---
-# 1. Resolver y calcular
-#    - Resolver referencias
-#    - Detectar ciclos indirectos
-#    - Si una referencia no está calculada, calcularla primero
-#    - Validar la expresión
-#    - Evaluar expresion_base - eval(detalle.expresion_base)
-#    - Calcular importe = unidades * base
-
-# 2. Mantener consistencia
-#    - Al modificar unidades, expresión o referencias de un detalle,
-#      recalcular ese detalle y todos sus dependientes.
-#    - Al modificar un detalle que es referenciado por otros,
-#      recalcular todos los detalles afectados transitivamente.
-
-# 3. Validaciones
-#    - Referencias existentes
-#    - Placeholders válidos
-#    - Cada placeholder tiene una referencia correspondiente
-#    - No existen ciclos directos ni indirectos
-#    - Expresión contiene únicamente elementos permitidos
-class ReferenciaDetalle(models.Model):
-    detalle_origen = models.ForeignKey(
-        DetalleLiquidacion,
-        on_delete=models.CASCADE,
-        related_name="referencias",
-    )
-
-    detalle_referenciado = models.ForeignKey(
-        DetalleLiquidacion,
-        on_delete=models.PROTECT,
-        related_name="referenciado_por",
-    )
-
-    identificador = models.CharField(
-        max_length=20,
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=[
-                    "detalle_origen",
-                    "identificador",
-                ],
-                name="unique_referencia_por_detalle",
-            ),
-            models.CheckConstraint(
-                condition=~models.Q(
-                    detalle_origen=models.F("detalle_referenciado")
-                ),
-                name="referencia_no_autoreferente",
-            )
-        ]
+        return f"identificador: {self.concepto.identificador}"

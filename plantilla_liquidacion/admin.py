@@ -18,16 +18,27 @@ class DetallePlantillaLiquidacionInline(admin.TabularInline):
 
     fields = (
         "concepto",
+        "tipo",
         "categoria",
         "unidad",
         "unidades",
-        "expresion_base",
+        "formula_base",
     )
 
     readonly_fields = (
+        "tipo",
         "categoria",
         "unidad",
     )
+
+    @admin.display(description="Tipo")
+    def tipo(self, obj):
+        texto = "-"
+
+        if obj and obj.pk and obj.concepto_id:
+            texto = obj.concepto.get_tipo_display()
+
+        return format_html('<span class="tipo-display">{}</span>', texto)
 
     @admin.display(description="Categoria")
     def categoria(self, obj):
@@ -89,9 +100,12 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
         try:
             concepto = VersionConceptoModel.objects.get(pk=concepto_id)
         except VersionConceptoModel.DoesNotExist:
-            return JsonResponse({"unidad": ""})
+            return JsonResponse({
+                "tipo": "", "categoria": "", "unidad": "",
+            })
 
         return JsonResponse({
-            "unidad": concepto.get_unidad_display(),
+            "tipo": concepto.get_tipo_display(),
             "categoria": concepto.get_categoria_display(),
+            "unidad": concepto.get_unidad_display(),
         })

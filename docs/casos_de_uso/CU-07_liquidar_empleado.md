@@ -25,15 +25,9 @@ El contador selecciona un empleado asociado a una liquidación y solicita realiz
 2. El contador agrega, modifica o elimina los conceptos que correspondan.
 3. El contador puede aplicar una plantilla de liquidación para incorporar una configuración inicial de conceptos.
 4. El sistema incorpora los detalles de los conceptos seleccionados a la liquidación del empleado.
-5. El contador configura las unidades y las expresiones base correspondientes a cada concepto.
-6. El contador configura, cuando corresponda, las referencias entre conceptos utilizadas por las expresiones de cálculo.
-7. El sistema identifica las referencias requeridas por las expresiones de cada concepto.
-8. El sistema obtiene los importes de los conceptos referenciados y evalúa las expresiones de cálculo.
-9. El sistema determina la base e importe de cada detalle de liquidación.
-10. El sistema calcula los subtotales de la liquidación del empleado.
-11. El sistema muestra los resultados obtenidos para su verificación.
-12. El contador confirma la liquidación del empleado.
-13. El sistema registra los resultados calculados.
+5. El contador configura las unidades y las fórmula base correspondiente a cada concepto.
+6. El sistema identifica las referencias requeridas en base a la fórmula base de cada concepto.
+7. El contador puede guardar la liquidacion eligiendo calcular, o no, todas las fórmulas e importes. 
 
 ## Flujos alternativos
 
@@ -47,14 +41,23 @@ En el paso 3 del flujo principal, el contador puede seleccionar una plantilla de
 4. Los detalles incorporados pueden ser modificados por el contador antes de confirmar la liquidación.
 5. La plantilla original no se modifica.
 
-### FA-02 — Recalcular liquidación
+### FA-02 — Guardar Borrador
+1. El contador utiliza la opcion "Guardar"
+2. El sistema guarda la liquidación tal y como esta, sin resolver las fórmulas ni calcular los importes. 
+
+### FA-03 — Calcular Liquidacion
+1. El contador utiliza la opcion "Calcular"
+2. El sistema obtiene los importes de los conceptos referenciados y evalúa las fórmulas base.
+3. El sistema determina el importe de cada detalle de liquidación.
+4. El sistema calcula los subtotales de la liquidación del empleado.
+5. El sistema guarda la liquidación. 
+6. El sistema muestra los resultados obtenidos para su verificación.
+
+### FA-04 — Recalcular liquidación
 
 Si el contador modifica unidades, expresiones o referencias después de un cálculo previo:
 
-1. El sistema invalida los resultados afectados.
-2. El sistema vuelve a resolver las referencias necesarias.
-3. El sistema recalcula las bases e importes correspondientes.
-4. El sistema actualiza los subtotales de la liquidación del empleado.
+1. El contador debe seguir FA-03
 
 ## Excepciones
 
@@ -86,7 +89,7 @@ Si la liquidación se encuentra cerrada, el sistema rechaza cualquier modificaci
 
 ### Liquidación calculada
 
-La liquidación del empleado queda registrada con los detalles, bases, importes y subtotales calculados.
+La liquidación del empleado queda registrada con los detalles, importes y subtotales calculados.
 
 ### Recalculo
 
@@ -102,11 +105,11 @@ Si ocurre una excepción durante el cálculo, no se confirma la liquidación del
 * RN-02: Cada detalle de liquidación referencia una versión concreta de un concepto.
 * RN-03: Las versiones de conceptos utilizadas en una liquidación deben conservarse para mantener la información histórica.
 * RN-04: Una expresión de cálculo puede utilizar referencias a otros detalles de la misma liquidación del empleado.
-* RN-05: Cada identificador utilizado en una expresión debe corresponder a una referencia configurada para el detalle que contiene dicha expresión.
+* RN-05: Cada identificador utilizado en una expresión debe corresponder con el identificador provisto al usuario en cada detalle.
 * RN-06: Las referencias utilizan el importe del detalle referenciado como valor de entrada para la expresión.
 * RN-07: Las expresiones de cálculo solamente pueden utilizar las operaciones admitidas por el sistema.
 * RN-08: Las dependencias entre conceptos deben poder resolverse sin generar ciclos.
-* RN-09: La base e importe de los conceptos son valores calculados por el sistema a partir de las unidades, expresiones y referencias configuradas.
+* RN-09: La base e importe de los conceptos son valores calculados por el sistema a partir de las unidades y fórmulas base.
 * RN-10: Los resultados de la liquidación se agrupan en remunerativo, no remunerativo, bruto, descuentos, neto, contribuciones y costo laboral, según corresponda a los conceptos liquidados.
 * RN-11: La aplicación de una plantilla genera detalles propios de la liquidación y no mantiene una dependencia posterior con la plantilla.
 * RN-12: Modificar una plantilla no altera liquidaciones existentes.
@@ -117,7 +120,7 @@ Si ocurre una excepción durante el cálculo, no se confirma la liquidación del
 
 La liquidación del empleado constituye la instancia en la que se aplican y calculan los conceptos concretos para un empleado determinado. La liquidación general definida en el CU-06 proporciona el período, la empresa y el conjunto de empleados sobre los cuales se trabaja.
 
-Las expresiones de cálculo pueden utilizar identificadores correspondientes a otros conceptos de la misma liquidación del empleado. El sistema debe resolver estas dependencias antes de evaluar cada expresión.
+Las fórmulas base pueden utilizar identificadores correspondientes a otros conceptos de la misma liquidación del empleado. El sistema debe resolver estas dependencias antes de evaluar cada expresión.
 
 La aplicación de una plantilla constituye únicamente una forma de cargar una configuración inicial. Una vez incorporados, los detalles pertenecen a la liquidación y pueden ser modificados independientemente de la plantilla.
 

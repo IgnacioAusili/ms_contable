@@ -53,12 +53,12 @@ class DetallePlantillaLiquidacion(models.Model):
 
     unidades = models.DecimalField(
         max_digits=12,
-        decimal_places=2,
+        decimal_places=4,
         null=False,
         blank=False,
     )
 
-    expresion_base = models.CharField(
+    formula_base = models.CharField(
         max_length=500,
         null=False,
         blank=False,
@@ -81,4 +81,4 @@ class DetallePlantillaLiquidacion(models.Model):
             )
 
     def __str__(self):
-        return f"Detalle {self.pk} - {self.plantilla.denominacion}"
+        return f"identificador: {self.concepto.identificador}"

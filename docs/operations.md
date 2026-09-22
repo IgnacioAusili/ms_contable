@@ -35,5 +35,5 @@ python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 python manage.py squashmigrations {app_name} {start_migration} {end_migration}
-python manage.py shell; from liquidacion.validators import evaluar_expresion; import importlib; importlib.reload(evaluar_expresion)
+python manage.py shell; # importlib
 ```

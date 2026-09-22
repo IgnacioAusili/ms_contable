@@ -2,6 +2,8 @@ from django.db import models, transaction
 from django.db.models import OuterRef, Subquery
 from django.core.validators import MinValueValidator, RegexValidator
 
+from concepto.utils import normalizar_identificador
+
 
 class ConceptoQuerySet(models.QuerySet):
     def activos(self):
@@ -177,6 +179,10 @@ class VersionConcepto(models.Model):
         null=False,
         blank=False,
     )
+
+    @property
+    def identificador(self):
+        return f"{normalizar_identificador(self.denominacion)}_{self.id}"
 
     class Meta:
         constraints = [

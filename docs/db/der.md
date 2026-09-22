@@ -46,7 +46,7 @@ erDiagram
         int id PK
         decimal unidades "NOT_NULL"
         %% DJANGO BLANK: false
-        string expresion_base "NOT_NULL"
+        string formula_base "NOT_NULL"
     }
 
     CATEGORIA_LABORAL {
@@ -150,7 +150,7 @@ erDiagram
         int id PK
         decimal unidades "NOT_NULL"
         %% DJANGO BLANK: false
-        string expresion_base "NOT_NULL"
+        string formula_base "NOT_NULL"
         %% puede estar expresado en terminos de otros conceptos
         decimal base "NOT_NULL"
         %% DJANGO HELP_TEXT: unidades * base
