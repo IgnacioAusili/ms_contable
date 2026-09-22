@@ -97,6 +97,7 @@ class DetalleLiquidacionInline(admin.TabularInline):
 
     fields = (
         "concepto",
+        "categoria",
         "unidad",
         "unidades",
         "expresion_base",
@@ -105,10 +106,20 @@ class DetalleLiquidacionInline(admin.TabularInline):
     )
 
     readonly_fields = (
+        "categoria",
         "unidad",
         "base",
         "importe",
     )
+
+    @admin.display(description="Categoria")
+    def categoria(self, obj):
+        texto = "-"
+
+        if obj and obj.pk and obj.concepto_id:
+            texto = obj.concepto.get_categoria_display()
+
+        return format_html('<span class="categoria-display">{}</span>', texto)
 
     @admin.display(description="Unidad")
     def unidad(self, obj):
@@ -175,9 +186,9 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
                 name="liquidacion_plantilla_detalles",
             ),
             path(
-                "concepto-unidad/<int:concepto_id>/",
-                self.admin_site.admin_view(self.concepto_unidad_view),
-                name="liquidacion_concepto_unidad",
+                "concepto-detalles/<int:concepto_id>/",
+                self.admin_site.admin_view(self.concepto_detalles_view),
+                name="liquidacion_concepto_detalles",
             ),
         ]
 
@@ -200,7 +211,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
         return JsonResponse({"detalles": detalles})
 
-    def concepto_unidad_view(self, request, concepto_id):
+    def concepto_detalles_view(self, request, concepto_id):
         VersionConceptoModel = DetalleLiquidacion._meta.get_field("concepto").related_model
 
         try:
@@ -208,4 +219,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         except VersionConceptoModel.DoesNotExist:
             return JsonResponse({"unidad": ""})
 
-        return JsonResponse({"unidad": concepto.get_unidad_display()})
+        return JsonResponse({
+            "unidad": concepto.get_unidad_display(),
+            "categoria": concepto.get_categoria_display(),
+        })
