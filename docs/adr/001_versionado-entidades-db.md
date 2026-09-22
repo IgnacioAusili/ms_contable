@@ -1,7 +1,5 @@
 # Conservar resultados de las Liquidaciones -- ADR (Architecture Decision Record)
 
-- Estado: Vigente
-
 ### Contexto
 
 Las liquidaciones cerradas deben conservar sus resultados aunque posteriormente cambien los datos maestros. Esto implica que, una vez cerrada una liquidación, se debe poder volver a consultar/generar el recibo correspondiente y obtener el mismo documento, aunque posteriormente cambien los datos maestros.

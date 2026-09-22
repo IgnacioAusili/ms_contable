@@ -1,7 +1,5 @@
 # Plantillas para Liquidación por Empleado -- ADR (Architecture Decision Record)
 
-- Estado: Vigente
-
 ### Contexto
 
 La generación de una liquidación puede requerir la incorporación de múltiples conceptos para cada empleado.
