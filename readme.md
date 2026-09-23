@@ -53,84 +53,13 @@ Para ejecutar el proyecto se requiere Docker.
 
 Ver el artefacto de instalacion y uso en el Release de la version que se desea instalar.
 
-## Estructura de la documentación
+## Documentación
 
-La documentación funcional y de diseño se encuentra dentro del directorio `docs/`.
-
-```text
-docs/
-│   contexto.md
-│   operations.md
-│   
-├───adr
-│       000_plantilla.md
-│       xyz_nombre_adr.md
-│       ...
-│       
-├───casos_de_uso
-│       00_modelo_uml.md
-│       CU-00_plantilla.md
-│       CU-xy_nombre.md
-│       ...
-│       
-├───db
-│       der.md
-│       
-└───procesos
-│       00_especificacion.md
-│       PROC-00_plantilla.md
-│       PROC-xy_nombre.md
-│       ...
-└───interfaces
-│       recibo_sueldo.md
-│       ...
-└───imagenes
-        liquidacion.jpg
-        ...
-```
-
-### Casos de uso
-
-Los casos de uso describen las funcionalidades del sistema desde la perspectiva del contador, incluyendo objetivos, flujos, excepciones y reglas de negocio.
-
-### Procesos
-
-Los procesos describen los procedimientos de negocio que involucran varias funcionalidades del sistema.
-
-Su representación utiliza modelos inspirados en SPEM, adaptados a Mermaid para facilitar su mantenimiento e integración con el repositorio.
-
-### Decisiones de arquitectura
-
-Los ADR (*Architecture Decision Records*) documentan decisiones relevantes de diseño, las alternativas consideradas y los motivos de la decisión adoptada.
-
-### Interfaces
-
-Documentación sobre detalles de implementación.
-
-### Imagenes
-
-Las imagenes muestran algunas vistas del sistema a fin de que se entienda mejor como y que funciones ofrece.
+Toda la documentación se encuentra dentro del directorio `docs/`.
 
 ## Modelo de dominio
 
-El sistema se estructura alrededor de los siguientes conceptos principales:
-
-```text
-Empresa
- ├── Empleados
- ├── Categorías laborales
- ├── Conceptos
- │    └── Versiones de conceptos
- ├── Plantillas de liquidación
- └── Liquidaciones
-      └── Liquidaciones de empleados
-           └── Detalles de liquidación
-                └── Referencias entre conceptos
-```
-
-Las liquidaciones conservan referencias a las versiones concretas de los conceptos utilizadas durante su cálculo, permitiendo mantener la información histórica necesaria para su posterior reproducción.
-
-
+Ver [modelo UML del dominio](./docs/dominio/modelo_dominio.md).
 
 ## Modelo de Casos de Uso
 
@@ -138,7 +67,7 @@ Ver [modelo UML de casos de uso](./docs/casos_de_uso/00_modelo_uml.md) y sus def
 
 ## Diagrama Entidad-Relación
 
-Ver [modelo UML del DER](./docs/db/der.md).
+Ver [modelo UML del DER](./docs/dominio/der.md).
 
 ## Flujo general
 
@@ -169,7 +98,9 @@ Empresa
 
 ## Conformidad con Normativa Legal y Sistemas Externos
 
-Ver [Especificaciones externas](./docs/specs_externas.md)
+Ver: 
+- [Documentacion sobre el dominio del sistema](./docs/dominio.md)
+- [Documentacion sobre la conformidad con regulaciones y sistemas externos](./docs/specs_externas)
 
 ## Licencia
 

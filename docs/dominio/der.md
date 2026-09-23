@@ -21,8 +21,6 @@ erDiagram
 
     LIQUIDACION_EMPLEADO ||--|{ DETALLE_LIQUIDACION : contiene
     VERSION_CONCEPTO ||--o{ DETALLE_LIQUIDACION : aplicado
-
-    DETALLE_LIQUIDACION ||--o{ DETALLE_LIQUIDACION : utiliza
     
     EMPRESA {
         int id PK
