@@ -1,24 +1,60 @@
 from django.db import models
+from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 
-from concepto.utils import normalizar_identificador
+GRUPOS_PROTEGIDOS = {
+    "sindical",
+    "seguridad_social",
+    "obra_social",
+    "inssjp",
+    "art",
+    "scvo",
+}
+
+
+class GrupoConceptoQuerySet(models.QuerySet):
+
+    def delete(self):
+        protegidos = self.filter(
+            codigo__in=GRUPOS_PROTEGIDOS,
+        )
+
+        if protegidos.exists():
+            codigos = ", ".join(
+                protegidos.values_list("codigo", flat=True)
+            )
+            raise ValidationError(
+                f"No se pueden eliminar grupos obligatorios: {codigos}."
+            )
+
+        return super().delete()
 
 
 class GrupoConcepto(models.Model):
+    objects = GrupoConceptoQuerySet.as_manager()
+
     id = models.BigAutoField(
         primary_key=True,
+    )
+
+    codigo = models.CharField(
+        max_length=255,
+        null=False,
+        blank=False,
+        unique=True,
+        validators=[RegexValidator(
+            regex=r"^[a-z0-9_]+$",
+            message="El código solo puede contener letras minúsculas, números y guiones bajos.",
+        )],
+        help_text="Ej: seguridad_social, inssjp, obra_social, etc",
     )
 
     denominacion = models.CharField(
         max_length=255,
         null=False,
         blank=False,
-        unique=True,
         help_text="Ej: Seguridad Social, INSSJP, Obra Social, etc",
     )
-
-    @property
-    def identificador(self):
-        return f"{normalizar_identificador(self.denominacion).lower()}"
 
     class Meta:
         verbose_name = "grupo para conceptos"
@@ -34,6 +70,15 @@ class GrupoConcepto(models.Model):
                 )
 
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.codigo in self.GRUPOS_PROTEGIDOS:
+            raise ValidationError(
+                f"El grupo de concepto '{self.denominacion}' "
+                "no puede eliminarse."
+            )
+
+        return super().delete(*args, **kwargs)
 
     def __str__(self):
         return self.denominacion

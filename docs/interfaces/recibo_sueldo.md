@@ -180,7 +180,7 @@ El sistema contempla, como mínimo, los grupos establecidos para la composición
 * Obra social
 * INSSJP
 * ART
-* Cámaras o entidades empresariales
+* SCVO
 * Otros
 
 Cada grupo puede contener conceptos correspondientes tanto al trabajador como al empleador.

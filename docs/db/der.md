@@ -64,9 +64,13 @@ erDiagram
     GRUPO_CONCEPTO {
         int id PK
         %% DJANGO BLANK: false
+        %% DJANGO HELP_TEXT: Ej: seguridad_social, inssjp, obra_social, etc
+        %% Reglas de Negocio: immutable 
+        string codigo "NOT_NULL, UNIQUE"
+        %% DJANGO BLANK: false
         %% DJANGO HELP_TEXT: Ej: Seguridad Social, INSSJP, Obra Social, etc
         %% Reglas de Negocio: immutable 
-        string denominacion "NOT_NULL, UNIQUE"
+        string denominacion "NOT_NULL"
     }
 
     VERSION_CONCEPTO {

@@ -1,0 +1,59 @@
+{% extends "admin/change_list.html" %}
+
+{% block extrabody %}
+    {{ block.super }}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const gruposObligatorios = new Set(
+                {{ grupos_protegidos|safe }}
+            );
+
+            function esProtegido(fila) {
+                const codigo = fila
+                    .querySelector(".field-codigo")
+                    ?.textContent
+                    .trim();
+
+                return gruposObligatorios.has(codigo);
+            }
+
+            document
+                .querySelectorAll("#result_list tbody tr")
+                .forEach(function (fila) {
+                    if (!esProtegido(fila)) {
+                        return;
+                    }
+
+                    fila.classList.add("protegido");
+
+                    const checkbox = fila.querySelector(
+                        'input.action-select[type="checkbox"]'
+                    );
+
+                    if (checkbox) {
+                        checkbox.disabled = true;
+                        checkbox.style.display = "none";
+                    }
+                });
+
+            document
+                .querySelector("#action-toggle")
+                ?.addEventListener("change", function () {
+                    document
+                        .querySelectorAll("#result_list tbody tr.protegido")
+                        .forEach(function (fila) {
+                            const checkbox = fila.querySelector(
+                                ".action-select"
+                            );
+
+                            if (checkbox) {
+                                checkbox.checked = false;
+                            }
+
+                            fila.classList.remove("selected");
+                        });
+                });
+        });
+    </script>
+{% endblock %}
