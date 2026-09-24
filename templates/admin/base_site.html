@@ -19,6 +19,11 @@
         <span>{{ app_name }} (v{{ app_version }})</span>
         <span class="footer-separator">·</span>
         <span>Desarrollador: {{ developer }}</span>
+        <span class="footer-separator">·</span>
+        <a href="{% static 'docs/mapeo-conceptos-arca.html' %}"
+           target="_blank">
+            Ayuda: conceptos y códigos ARCA
+        </a>
     </div>
 </div>
 {% endblock %}
