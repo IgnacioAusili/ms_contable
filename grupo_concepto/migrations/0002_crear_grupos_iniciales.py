@@ -15,6 +15,7 @@ GRUPOS_INICIALES = [
     ("inssjp", "INSSJP"),
     ("art", "ART"),
     ("scvo", "SCVO"),
+    ("entidades_empresariales", "Cámaras o Entidades Empresariales"),
 ]
 
 

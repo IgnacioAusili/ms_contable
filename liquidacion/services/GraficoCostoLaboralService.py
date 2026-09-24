@@ -1,6 +1,19 @@
 import math
+from dataclasses import dataclass
 from decimal import Decimal
 from xml.sax.saxutils import escape
+
+
+@dataclass
+class ComposicionCostoLaboral:
+    neto: Decimal
+    sindical: Decimal
+    seguridad_social: Decimal
+    obra_social: Decimal
+    inssjp: Decimal
+    art_scvo: Decimal
+    entidades_empresariales: Decimal
+    otros: Decimal
 
 
 class GraficoCostoLaboralService:
@@ -16,46 +29,28 @@ class GraficoCostoLaboralService:
         "#FF9DA7",  # Rosa
     ]
 
-    def __init__(self, detalle, remuneracion_neta):
-        self.detalle = detalle
-        self.remuneracion_neta = remuneracion_neta
+    def __init__(self, composicion: ComposicionCostoLaboral):
+        self.composicion = composicion
+
+    def _obtener_valores(self):
+        return {
+            "Neto": self.composicion.neto,
+            "Sindical": self.composicion.sindical,
+            "Seguridad social": self.composicion.seguridad_social,
+            "Obra social": self.composicion.obra_social,
+            "INSSJP": self.composicion.inssjp,
+            "ART + SCVO": self.composicion.art_scvo,
+            "Entidades empresariales": self.composicion.entidades_empresariales,
+            "Otros": self.composicion.otros,
+        }
 
     def generar_svg(self):
         valores = self._obtener_valores()
-
-        if not valores:
-            return None
-
-        total = sum(
-            valores.values(),
-            Decimal("0"),
-        )
+        total = sum(valores.values(), Decimal("0"))
 
         if total <= 0:
-            return None
+            return ""
 
-        return self._generar_svg(valores, total)
-
-    def _obtener_valores(self):
-        valores = {}
-
-        if self.remuneracion_neta > 0:
-            valores["Sueldo Neto"] = self.remuneracion_neta
-
-        for codigo, datos in self.detalle.items():
-            importe = datos.get("empleador")
-
-            if importe is None:
-                continue
-
-            importe = Decimal(importe)
-
-            if importe > 0:
-                valores[datos["denominacion"]] = importe
-
-        return valores
-
-    def _generar_svg(self, valores, total):
         width = 360
         height = 220
 
@@ -68,6 +63,9 @@ class GraficoCostoLaboralService:
         angulo_actual = -math.pi / 2
 
         for indice, (nombre, valor) in enumerate(valores.items()):
+            if valor <= 0:
+                continue
+
             proporcion = float(valor / total)
             angulo = proporcion * 2 * math.pi
 
@@ -94,21 +92,21 @@ class GraficoCostoLaboralService:
         )
 
         return f"""
-<svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="{width}"
-    height="{height}"
-    viewBox="0 0 {width} {height}"
-    role="img"
-    aria-label="Composición del costo total empleador"
->
-    <g>
-        {"".join(partes)}
-    </g>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="{width}"
+        height="{height}"
+        viewBox="0 0 {width} {height}"
+        role="img"
+        aria-label="Composición del costo total empleador"
+    >
+        <g>
+            {"".join(partes)}
+        </g>
 
-    {leyenda}
-</svg>
-""".strip()
+        {leyenda}
+    </svg>
+    """.strip()
 
     @staticmethod
     def _generar_sector(
@@ -161,32 +159,38 @@ class GraficoCostoLaboralService:
     def _generar_leyenda(self, valores, total, x, y):
         elementos = []
 
-        for indice, (nombre, valor) in enumerate(valores.items()):
+        indice_color = 0
+
+        for nombre, valor in valores.items():
+            if valor <= 0:
+                continue
+
             porcentaje = valor / total * 100
-            color = self.COLORES[indice % len(self.COLORES)]
+            color = self.COLORES[indice_color % len(self.COLORES)]
 
             elementos.append(
                 f"""
-<rect
-    x="{x}"
-    y="{y - 9}"
-    width="10"
-    height="10"
-    fill="{color}"
-/>
+    <rect
+        x="{x}"
+        y="{y - 9}"
+        width="10"
+        height="10"
+        fill="{color}"
+    />
 
-<text
-    x="{x + 16}"
-    y="{y}"
-    font-family="Arial, sans-serif"
-    font-size="11"
-    fill="#222222"
->
-    {escape(nombre)} ({porcentaje:.1f}%)
-</text>
-"""
+    <text
+        x="{x + 16}"
+        y="{y}"
+        font-family="Arial, sans-serif"
+        font-size="11"
+        fill="#222222"
+    >
+        {escape(nombre)} ({porcentaje:.1f}%)
+    </text>
+    """
             )
 
             y += 25
+            indice_color += 1
 
         return "".join(elementos)

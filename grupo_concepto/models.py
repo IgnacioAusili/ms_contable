@@ -9,6 +9,7 @@ GRUPOS_PROTEGIDOS = {
     "inssjp",
     "art",
     "scvo",
+    "entidades_empresariales",
 }
 
 

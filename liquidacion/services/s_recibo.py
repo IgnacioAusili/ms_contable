@@ -1,9 +1,8 @@
 from decimal import Decimal
 from num2words import num2words
 from concepto.models import VersionConcepto
-from grupo_concepto.models import GrupoConcepto
 from liquidacion.models import LiquidacionEmpleado
-from liquidacion.services.GraficoCostoLaboralService import GraficoCostoLaboralService
+from liquidacion.services.GraficoCostoLaboralService import GraficoCostoLaboralService, ComposicionCostoLaboral
 
 
 class ReciboSueldoService:
@@ -55,11 +54,8 @@ class ReciboSueldoService:
             if detalle.concepto.tipo == VersionConcepto.Tipo.CONTRIBUCION
         ]
 
-        detalle = self.obtener_detalle_grupos(detalles)
-
         grafico_torta_svg = GraficoCostoLaboralService(
-            detalle=detalle,
-            remuneracion_neta=le.neto,
+            composicion=self.obtener_composicion_grafico(detalles, le.neto),
         ).generar_svg()
 
         return {
@@ -114,7 +110,7 @@ class ReciboSueldoService:
 
             "observaciones": le.observaciones if le.observaciones else "-",
 
-            "detalle": detalle,
+            "detalle": self.obtener_detalle_composicion(detalles),
 
             "grafico_torta_svg": grafico_torta_svg,
         }
@@ -132,49 +128,83 @@ class ReciboSueldoService:
             "monto": self._decimal_a_string(detalle.importe),
         }
 
-    def obtener_detalle_grupos(self, detalles):
-        resultado = {}
+    def obtener_composicion_grafico(self, detalles, remuneracion_neta):
+        grupos = self._agrupar_por_grupo(detalles)
 
-        for grupo in GrupoConcepto.objects.all().order_by("id"):
-            detalles_grupo = [
-                detalle
-                for detalle in detalles
-                if detalle.concepto.grupo_id == grupo.id
-            ]
+        grupos_requeridos = {
+            "sindical",
+            "seguridad_social",
+            "obra_social",
+            "inssjp",
+            "art",
+            "scvo",
+            "entidades_empresariales",
+        }
 
-            total = sum(
-                (detalle.importe for detalle in detalles_grupo),
+        def total(codigo):
+            return grupos.get(codigo, {}).get(
+                "total",
                 Decimal("0"),
             )
 
-            empleador = sum(
-                (
-                    detalle.importe
-                    for detalle in detalles_grupo
-                    if detalle.concepto.categoria
-                       == VersionConcepto.Categoria.EMPLEADOR
+        otros = sum(
+            (
+                datos["total"]
+                for codigo, datos in grupos.items()
+                if codigo not in grupos_requeridos
+            ),
+            Decimal("0"),
+        )
+
+        return ComposicionCostoLaboral(
+            neto=remuneracion_neta,
+            sindical=total("sindical"),
+            seguridad_social=total("seguridad_social"),
+            obra_social=total("obra_social"),
+            inssjp=total("inssjp"),
+            art_scvo=total("art") + total("scvo"),
+            entidades_empresariales=total(
+                "entidades_empresariales"
+            ),
+            otros=otros,
+        )
+
+    def obtener_detalle_composicion(self, detalles):
+        grupos = self._agrupar_por_grupo(detalles)
+
+        categorias = {
+            "sindical": "Sindical",
+            "seguridad_social": "Seguridad social",
+            "obra_social": "Obra social",
+            "inssjp": "INSSJP",
+            "art": "ART",
+            "scvo": "SCVO",
+        }
+
+        return {
+            codigo: {
+                "denominacion": denominacion,
+                "total": self._decimal_a_string(
+                    grupos.get(codigo, {}).get(
+                        "total",
+                        Decimal("0"),
+                    )
                 ),
-                Decimal("0"),
-            )
-
-            trabajador = sum(
-                (
-                    detalle.importe
-                    for detalle in detalles_grupo
-                    if detalle.concepto.categoria
-                       == VersionConcepto.Categoria.TRABAJADOR
+                "empleador": self._decimal_a_string(
+                    grupos.get(codigo, {}).get(
+                        "empleador",
+                        Decimal("0"),
+                    )
                 ),
-                Decimal("0"),
-            )
-
-            resultado[grupo.codigo] = {
-                "denominacion": grupo.denominacion,
-                "total": self._decimal_a_string(total),
-                "empleador": self._decimal_a_string(empleador),
-                "trabajador": self._decimal_a_string(trabajador),
+                "trabajador": self._decimal_a_string(
+                    grupos.get(codigo, {}).get(
+                        "trabajador",
+                        Decimal("0"),
+                    )
+                ),
             }
-
-        return resultado
+            for codigo, denominacion in categorias.items()
+        }
 
     @staticmethod
     def calcular_antiguedad(fecha_ingreso, fecha_referencia):
@@ -198,6 +228,42 @@ class ReciboSueldoService:
         return anios
 
     @staticmethod
+    def neto_en_letras(valor):
+        return num2words(
+            int(valor),
+            lang="es",
+        )
+
+    def _agrupar_por_grupo(self, detalles):
+        resultado: dict[dict[str, Decimal]] = {}
+
+        for detalle in detalles:
+            if detalle.concepto.tipo not in (VersionConcepto.Tipo.CONTRIBUCION, VersionConcepto.Tipo.DESCUENTO):
+                continue
+
+            grupo = detalle.concepto.grupo
+            codigo = grupo.codigo if grupo else "sin_grupo"
+
+            if codigo and codigo not in resultado:
+                resultado[codigo] = {
+                    "total": Decimal("0"),
+                    "empleador": Decimal("0"),
+                    "trabajador": Decimal("0"),
+                }
+
+            resultado[codigo]["total"] += detalle.importe
+
+            if (
+                    detalle.concepto.categoria
+                    == VersionConcepto.Categoria.EMPLEADOR
+            ):
+                resultado[codigo]["empleador"] += detalle.importe
+            else:
+                resultado[codigo]["trabajador"] += detalle.importe
+
+        return resultado
+
+    @staticmethod
     def _formatear_unidad(unidad, unidades):
         return f"{unidades:.2f} {VersionConcepto.Unidad(unidad).sufijo}"
 
@@ -207,10 +273,3 @@ class ReciboSueldoService:
             return None
 
         return str(valor)
-
-    @staticmethod
-    def neto_en_letras(valor):
-        return num2words(
-            int(valor),
-            lang="es",
-        )
