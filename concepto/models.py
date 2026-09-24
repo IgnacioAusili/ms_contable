@@ -70,7 +70,7 @@ class Concepto(models.Model):
         return super().delete()
 
     def __str__(self):
-        return f"Concepto {self.pk}"
+        return self.versiones.ultima().denominacion
 
 
 class VersionConceptoQuerySet(models.QuerySet):
@@ -80,6 +80,7 @@ class VersionConceptoQuerySet(models.QuerySet):
     def eliminados(self):
         return self.filter(concepto__eliminado=True)
 
+    # aplicarse sobre un QuerySet de VersionConcepto y obtener la última de cada uno
     def ultima_version(self):
         ultima_version = (
             VersionConcepto.todos
@@ -89,6 +90,10 @@ class VersionConceptoQuerySet(models.QuerySet):
         )
 
         return self.filter(pk=Subquery(ultima_version))
+
+    # dado un Concepto, obtener su última versión
+    def ultima(self):
+        return self.order_by("-version").first()
 
 
 class VersionConceptoManager(models.Manager.from_queryset(VersionConceptoQuerySet)):

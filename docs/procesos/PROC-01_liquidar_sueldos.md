@@ -4,9 +4,15 @@
 
 El proceso de liquidar sueldos tiene como objetivo determinar y registrar las remuneraciones correspondientes a los empleados de una empresa para un período determinado.
 
-El proceso es realizado por el **contador** y comprende la preparación de una liquidación, la determinación de los conceptos correspondientes a cada empleado, el cálculo de sus importes y la generación de los resultados necesarios para emitir los recibos de sueldo y el archivo compatible con el Libro de Sueldos Digital de ARCA.
+El proceso es realizado por el **contador** y comprende la preparación de la liquidación, la determinación de los conceptos aplicables a cada empleado, el cálculo de sus importes, la consolidación de los resultados y su verificación.
 
-La liquidación se inicia en estado de **borrador**, durante el cual puede ser modificada. Una vez verificados los resultados, el contador puede cerrarla. Una liquidación cerrada es inmutable.
+La liquidación comienza en estado **Borrador**, durante el cual puede ser modificada. Una vez que sus resultados han sido verificados y se consideran definitivos, la liquidación puede pasar al estado **Cerrada**.
+
+Una liquidación cerrada se considera **inmutable**. Si posteriormente fuera necesario modificar sus resultados, puede iniciarse una **Rectificación**. La rectificación parte de la información histórica de la liquidación cerrada y permite modificar sus detalles y recalcular sus resultados. Los datos de las entidades referenciadas no se actualizan automáticamente durante este proceso.
+
+Una liquidación rectificada puede volver a cerrarse una vez finalizada la revisión de sus resultados.
+
+La generación del **recibo de sueldo** y del **archivo TXT compatible con el Libro de Sueldos Digital de ARCA** constituye la obtención de productos derivados de la información de la liquidación. Ambos pueden generarse cuando se dispone de la información necesaria, sin que exista un orden obligatorio entre ellos. Su generación no forma parte necesariamente de la secuencia principal de preparación y cálculo de la liquidación.
 
 El proceso debe conservar la información necesaria para reproducir posteriormente los resultados de la liquidación, independientemente de modificaciones posteriores realizadas sobre los datos maestros utilizados para generarla.
 
@@ -14,7 +20,7 @@ El proceso debe conservar la información necesaria para reproducir posteriormen
 
 # Vista funcional y organizacional
 
-Las actividades del proceso se representan junto con los productos de información que consumen y generan. Todas las actividades son realizadas por el **contador**.
+Las actividades del proceso se representan junto con los principales productos de información que consumen y generan. Todas las actividades son realizadas por el **contador**.
 
 ```mermaid
 flowchart TB
@@ -22,32 +28,35 @@ flowchart TB
     subgraph CONTADOR["Rol: Contador"]
 
         A["Preparar liquidación"]
-        B["Determinar conceptos<br/>del empleado"]
-        C["Calcular liquidación<br/>del empleado"]
+        B["Determinar conceptos<br/>aplicables"]
+        C["Calcular remuneraciones"]
         D["Verificar resultados"]
-        E["Cerrar liquidación"]
-        F["Generar recibo de sueldo"]
-        G["Generar TXT LSD"]
+        E["Finalizar liquidación"]
+        F["Rectificar liquidación"]
+        G["Obtener recibo de sueldo"]
+        H["Obtener archivo TXT LSD"]
 
     end
 
     P1["Empresa + período + fecha de pago"]
-    P2["Liquidación en estado borrador"]
+    P2["Liquidación en Borrador"]
 
-    P3["Empleado + categoría laboral"]
-    P4["Conceptos / versiones de conceptos"]
-    P5["Plantilla de liquidación<br/>(opcional)"]
-    P6["Configuración de conceptos"]
+    P3["Empleados"]
+    P4["Conceptos y versiones"]
+    P5["Configuraciones predefinidas<br/>(opcional)"]
 
-    P7["Detalles de liquidación"]
-    P8["Resultados calculados<br/>y subtotales"]
+    P6["Conceptos aplicables<br/>a cada empleado"]
+    P7["Resultados calculados"]
+    P8["Liquidación verificada"]
 
-    P9["Liquidación verificada"]
-    P10["Liquidación cerrada"]
+    P9["Liquidación Cerrada"]
+    P10["Liquidación en Rectificación"]
 
-    P11["Recibo de sueldo"]
-    P12["Archivo TXT LSD"]
+    P11["Información de liquidación"]
+    P12["Recibo de sueldo"]
+    P13["Archivo TXT LSD"]
 
+    A --> B
     P1 --> A
     A --> P2
 
@@ -58,50 +67,53 @@ flowchart TB
 
     P6 --> C
     C --> P7
-    P7 --> P8
 
-    P8 --> D
-    D --> P9
+    P7 --> D
+    D --> P8
 
-    P9 --> E
-    E --> P10
+    P8 --> E
+    E --> P9
 
-    P10 --> F
-    F --> P11
+    P9 --> F
+    F --> P10
+    P10 --> C
 
-    P10 --> G
+    P7 --> P11
+
+    P11 -.-> G
     G --> P12
+
+    P11 -.-> H
+    H --> P13
 ```
 
 ### Actividades relevantes
 
 #### Preparar liquidación
 
-Crea una liquidación para una empresa y período determinado.
+Establece la empresa, el período y la fecha de pago correspondientes a la liquidación.
 
-La liquidación comienza en estado **borrador** y debe conservar la fecha de pago correspondiente. Para este proyecto se considera una liquidación mensual, por lo que la fecha de pago debe pertenecer al período liquidado.
+La liquidación se inicia en estado **Borrador** y durante esta etapa puede ser modificada.
 
-La liquidación conserva determinados datos de la empresa que resultan necesarios para reproducir posteriormente la documentación generada.
+La información propia de la liquidación que resulte necesaria para reproducir posteriormente sus resultados debe quedar asociada a ella.
 
-#### Determinar conceptos del empleado
+#### Determinar conceptos aplicables
 
-Para cada empleado se determina el conjunto de conceptos que intervienen en su liquidación.
+Para cada empleado se determina el conjunto de conceptos que corresponde considerar en la liquidación.
 
-Los conceptos utilizados corresponden a una **versión concreta de un concepto**, de modo que modificaciones posteriores en la definición del concepto no alteran una liquidación ya realizada.
+Los conceptos pueden determinarse individualmente o a partir de una configuración predefinida.
 
-Los conceptos pueden incorporarse individualmente o mediante una **plantilla de liquidación**.
+Los conceptos utilizados en una liquidación se materializan mediante una **versión concreta de cada concepto**, de manera que las modificaciones posteriores en sus características no alteren los resultados históricos.
 
-La plantilla solamente proporciona una configuración inicial. Los detalles incorporados a la liquidación son independientes de la plantilla y pueden ser modificados antes de guardar la liquidación.
+#### Calcular remuneraciones
 
-#### Calcular liquidación del empleado
+Para cada empleado se determinan los valores necesarios para calcular los conceptos correspondientes.
 
-Para cada detalle de liquidación se determinan las unidades, la base y el importe correspondientes.
+El cálculo considera las unidades, bases y expresiones asociadas a cada detalle.
 
-Las expresiones de cálculo pueden utilizar referencias a otros detalles de la misma liquidación mediante sus identificadores.
+Las expresiones pueden establecer dependencias entre conceptos. Cuando un concepto depende del resultado de otro, dicha dependencia debe resolverse antes de realizar el cálculo correspondiente.
 
-El cálculo debe respetar las dependencias existentes entre los conceptos referenciados.
-
-A partir de los detalles calculados se determinan, entre otros, los siguientes resultados:
+A partir de los conceptos calculados se determinan, entre otros, los siguientes resultados:
 
 * remunerativo;
 * no remunerativo;
@@ -111,35 +123,55 @@ A partir de los detalles calculados se determinan, entre otros, los siguientes r
 * contribuciones;
 * costo laboral.
 
-La información necesaria para reproducir estos resultados queda asociada a la liquidación.
+Los valores necesarios para reproducir posteriormente estos resultados forman parte de la información histórica de la liquidación.
 
 #### Verificar resultados
 
 El contador verifica los resultados obtenidos para los empleados incluidos en la liquidación.
 
-Mientras la liquidación permanezca abierta, los detalles y resultados pueden ser modificados y recalculados.
+La verificación puede llevar a modificar los conceptos, los valores utilizados para el cálculo o las relaciones entre ellos, y a recalcular los resultados.
 
-#### Cerrar liquidación
+Mientras la liquidación no haya sido finalizada, este ciclo puede repetirse hasta obtener los resultados considerados correctos.
 
-Una vez verificados los resultados, el contador cierra la liquidación.
+#### Finalizar liquidación
 
-El cierre establece la liquidación como **inmutable**. A partir de ese momento no deben modificarse sus datos ni los resultados de los empleados que la componen.
+Una vez verificados los resultados, la liquidación se considera finalizada y pasa al estado **Cerrada**.
 
-#### Generar recibo de sueldo
+La liquidación cerrada constituye el registro histórico de los resultados correspondientes al período liquidado y se considera inmutable.
 
-A partir de los datos históricos de la liquidación de cada empleado se genera su recibo de sueldo.
+#### Rectificar liquidación
 
-El recibo debe utilizar la información conservada en la liquidación y no depender de los valores actuales de los datos maestros que puedan haber cambiado posteriormente.
+Una liquidación cerrada puede ser reabierta mediante una **Rectificación** cuando resulte necesario modificar sus resultados.
 
-#### Generar TXT LSD
+La rectificación parte de la información histórica conservada en la liquidación.
 
-A partir de la información registrada en la liquidación cerrada se genera el archivo TXT compatible con el Libro de Sueldos Digital de ARCA.
+Durante la rectificación pueden modificarse los detalles de la liquidación y recalcularse sus resultados. Los datos de las entidades referenciadas no se actualizan automáticamente a partir de sus valores actuales.
+
+Una vez finalizada la revisión, la liquidación puede volver a cerrarse.
+
+#### Obtener recibo de sueldo
+
+A partir de la información de la liquidación se obtiene el recibo de sueldo correspondiente a un empleado.
+
+El recibo representa los resultados registrados para el empleado y puede obtenerse cuando se dispone de la información necesaria para construirlo.
+
+La obtención del recibo no modifica los resultados ni el estado de la liquidación.
+
+#### Obtener archivo TXT LSD
+
+A partir de la información de la liquidación se obtiene el archivo compatible con el Libro de Sueldos Digital de ARCA.
+
+El archivo representa información de la liquidación destinada a su utilización con dicho sistema.
+
+La obtención del archivo no constituye conceptualmente una etapa posterior obligatoria a la generación del recibo, ni existe un orden de negocio establecido entre ambos productos.
 
 ---
 
 # Vista de comportamiento
 
-La vista de comportamiento representa la secuencia, repetición y condiciones relevantes durante la realización del proceso.
+La vista de comportamiento representa la **lógica del proceso de negocio**, incluyendo las actividades que se repiten, las decisiones y el ciclo de rectificación.
+
+No se representa en esta vista la interacción con una aplicación ni el mecanismo mediante el cual cada actividad es ejecutada.
 
 ```mermaid
 flowchart TB
@@ -147,37 +179,36 @@ flowchart TB
     INICIO([Inicio])
 
     A["Preparar liquidación"]
-    B["Incorporar empleados"]
+    B["Determinar empleados<br/>a liquidar"]
 
-    C{"¿Quedan empleados<br/>por liquidar?"}
+    C{"¿Quedan empleados<br/>por determinar?"}
 
-    D["Determinar conceptos<br/>del empleado"]
+    D["Determinar conceptos<br/>aplicables al empleado"]
+    E["Determinar valores y<br/>dependencias de cálculo"]
+    F["Calcular remuneraciones"]
+    G["Obtener resultados<br/>del empleado"]
 
-    E{"¿Utilizar plantilla?"}
-    F["Aplicar plantilla"]
+    H["Consolidar resultados<br/>de la liquidación"]
 
-    G["Configurar / modificar<br/>detalles"]
+    I["Verificar resultados"]
 
-    H["Resolver referencias<br/>entre conceptos"]
+    J{"¿Resultados<br/>correctos?"}
 
-    I["Calcular conceptos"]
-    J{"¿Cálculo válido?"}
+    K["Ajustar conceptos,<br/>valores o cálculos"]
 
-    K["Corregir configuración<br/>o datos"]
-    L["Calcular subtotales"]
+    L["Finalizar liquidación"]
 
-    M["Generar recibo<br/>del empleado"]
+    M{"¿Se requiere<br/>rectificación?"}
 
-    N{"¿Quedan empleados<br/>por liquidar?"}
+    N["Iniciar rectificación"]
 
-    O["Verificar resultados<br/>de la liquidación"]
+    O["Modificar información<br/>de la liquidación"]
 
-    P{"¿Resultados correctos?"}
-    Q["Modificar liquidación"]
-    
+    P["Recalcular resultados"]
+
+    Q["Revisar resultados<br/>rectificados"]
+
     R["Cerrar liquidación"]
-
-    S["Generar TXT LSD"]
 
     FIN([Fin])
 
@@ -186,55 +217,67 @@ flowchart TB
     B --> C
 
     C -->|Sí| D
-    C -->|No| O
-
     D --> E
-
-    E -->|Sí| F
-    E -->|No| G
+    E --> F
     F --> G
+    G --> C
 
-    G --> H
+    C -->|No| H
     H --> I
+
     I --> J
 
     J -->|No| K
-    K --> G
+    K --> D
 
     J -->|Sí| L
+
     L --> M
-    M --> N
 
-    N -->|Sí| C
-    N -->|No| O
+    M -->|No| FIN
+    M -->|Sí| N
 
+    N --> O
     O --> P
+    P --> Q
 
-    P -->|No| Q
-    Q --> C
+    Q --> J
 
-    P -->|Sí| R
-    R --> S
-    S --> FIN
+    Q -. "Nueva finalización" .-> R
+    R --> FIN
 ```
 
-### Reglas de comportamiento relevantes
+### Lógica del proceso
 
-* Una liquidación se mantiene en estado **borrador** mientras pueda ser modificada.
-* El cálculo se realiza individualmente para cada empleado incluido en la liquidación.
-* La utilización de una plantilla es opcional.
-* Las referencias entre conceptos se resuelven dentro de la liquidación del empleado correspondiente.
-* Una referencia a un identificador inexistente impide realizar correctamente el cálculo.
-* Los conceptos deben calcularse respetando las dependencias entre ellos.
-* Los resultados de un empleado se obtienen antes de continuar con el siguiente.
-* La liquidación solamente puede cerrarse una vez que el contador ha verificado sus resultados.
-* Una vez cerrada, la liquidación no puede ser modificada.
+* La liquidación se prepara para una empresa, un período y una fecha de pago determinados.
+* Se determina el conjunto de empleados que participan de la liquidación.
+* Para cada empleado se determinan los conceptos que corresponden considerar.
+* Los conceptos utilizados en la liquidación deben quedar asociados a versiones concretas de dichos conceptos.
+* El cálculo de un concepto puede depender del resultado de otros conceptos del mismo empleado.
+* Las dependencias entre conceptos deben resolverse antes de obtener los resultados que dependen de ellas.
+* Los resultados de cada empleado se consolidan como parte de la liquidación.
+* Los resultados pueden ser revisados y, cuando sea necesario, recalculados.
+* Mientras la liquidación se encuentre en preparación, el ciclo de determinación, cálculo y revisión puede repetirse.
+* Una vez que los resultados se consideran definitivos, la liquidación puede finalizarse y pasar a estado **Cerrada**.
+* Una liquidación cerrada conserva los resultados obtenidos y no debe modificarse.
+* Si una liquidación cerrada requiere modificaciones posteriores, se inicia una **Rectificación**.
+* La rectificación parte de la información histórica de la liquidación y permite modificar sus detalles y recalcular sus resultados.
+* Durante una rectificación no se reemplazan automáticamente los datos históricos de la liquidación por los valores actuales de las entidades que participaron en ella.
+* Una rectificación atraviesa nuevamente las etapas de modificación, cálculo y verificación antes de volver a finalizarse.
+* La generación del recibo de sueldo y del archivo TXT LSD son obtenciones derivadas de la información de la liquidación.
+* Ambos productos pueden obtenerse independientemente cuando exista información suficiente para producirlos.
+* No existe una dependencia de negocio entre la generación del recibo y la del archivo TXT LSD.
+* La obtención de cualquiera de estos productos no modifica conceptualmente los resultados de la liquidación.
+
+### Ciclo de rectificación
+
+Ver [modelo de estados para las liquidaciones](../dominio/estados_liquidacion.md)
 
 ---
 
 # Vista de información
 
-Esta vista representa los principales **productos de información del proceso y sus relaciones**, sin reproducir la estructura completa del modelo de datos.
+Esta vista representa los principales **productos de información del proceso y sus relaciones conceptuales**, sin reproducir la estructura completa del modelo de datos.
 
 ```mermaid
 flowchart TB
@@ -247,7 +290,7 @@ flowchart TB
     EMPLEADO["Empleado"]
     CATEGORIA["Categoría laboral"]
 
-    PLANTILLA["Plantilla de liquidación"]
+    PLANTILLA["Configuración predefinida<br/>de liquidación"]
 
     LIQ["Liquidación"]
 
@@ -255,7 +298,7 @@ flowchart TB
 
     DETALLE["Detalle de liquidación"]
 
-    REFERENCIA["Referencia entre detalles"]
+    REFERENCIA["Dependencia entre conceptos"]
 
     RECIBO["Recibo de sueldo"]
 
@@ -275,21 +318,44 @@ flowchart TB
     PLANTILLA -. "configuración inicial" .-> DETALLE
 
     DETALLE --> REFERENCIA
-    REFERENCIA -. "referencia otro detalle" .-> DETALLE
+    REFERENCIA -. "dependencia de cálculo" .-> DETALLE
 
-    LIQEMP --> RECIBO
-    LIQ --> LSD
+    LIQEMP -. "puede dar lugar a" .-> RECIBO
+    LIQ -. "puede dar lugar a" .-> LSD
 ```
 
 ### Productos de información
 
-| Producto                      | Descripción                                                                                                                       |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Liquidación**               | Representa la liquidación de una empresa para un período y fecha de pago determinados.                                            |
-| **Liquidación de empleado**   | Representa la participación de un empleado en una liquidación y conserva la información necesaria para reproducir sus resultados. |
-| **Detalle de liquidación**    | Representa la aplicación de una versión de concepto a un empleado y contiene los valores utilizados para su cálculo.              |
-| **Referencia entre detalles** | Permite que el cálculo de un detalle utilice el resultado de otro detalle del mismo empleado.                                     |
-| **Recibo de sueldo**          | Documento generado a partir de los resultados registrados para un empleado.                                                       |
-| **Archivo TXT LSD**           | Archivo generado a partir de la información de la liquidación para su utilización con el Libro de Sueldos Digital de ARCA.        |
+| Producto                      | Descripción                                                                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Liquidación**               | Representa la liquidación de una empresa para un período y fecha de pago determinados y conserva los resultados correspondientes.                            |
+| **Liquidación de empleado**   | Representa la participación de un empleado en una liquidación y conserva los resultados asociados a su remuneración.                                         |
+| **Detalle de liquidación**    | Representa la aplicación de una versión de concepto a un empleado y conserva los valores utilizados para su cálculo.                                         |
+| **Referencia entre detalles** | Representa una dependencia entre conceptos que intervienen en el cálculo de un empleado. La dependencia se determina a partir de las expresiones de cálculo. |
+| **Recibo de sueldo**          | Documento que representa los resultados de la liquidación correspondientes a un empleado.                                                                    |
+| **Archivo TXT LSD**           | Archivo que representa la información de la liquidación requerida para su utilización con el Libro de Sueldos Digital de ARCA.                               |
 
 La estructura detallada de estos elementos, sus atributos, claves y cardinalidades se encuentra definida en el **modelo de datos / DER** del sistema y no se replica en esta vista.
+
+---
+
+# Consideraciones sobre los estados y los productos derivados
+
+Los estados de la liquidación representan principalmente su **condición dentro del ciclo de determinación, revisión y modificación de resultados**:
+
+| Estado            | Significado                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| **Borrador**      | La liquidación se encuentra en preparación y sus resultados todavía pueden modificarse.    |
+| **Cerrada**       | Los resultados fueron finalizados y la liquidación se considera inmutable.                 |
+| **Rectificación** | Una liquidación previamente cerrada fue reabierta para modificar y revisar sus resultados. |
+
+La generación de documentos constituye una dimensión diferente del proceso.
+
+El recibo de sueldo y el archivo TXT LSD son productos derivados de la información de la liquidación y no representan estados de la misma. Por lo tanto:
+
+* la generación de un recibo no implica un cambio de estado;
+* la generación del archivo TXT no constituye conceptualmente una etapa posterior obligatoria a la generación del recibo;
+* ambos documentos pueden obtenerse en distintos momentos del ciclo, siempre que exista información suficiente;
+* la generación de documentos no modifica por sí misma los resultados históricos de la liquidación.
+
+La forma concreta en que la aplicación vincula determinadas operaciones con las transiciones de estado constituye una **decisión de implementación** y debe documentarse separadamente de la lógica del proceso de negocio.

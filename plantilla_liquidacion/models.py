@@ -46,7 +46,7 @@ class DetallePlantillaLiquidacion(models.Model):
     )
 
     concepto = models.ForeignKey(
-        "concepto.VersionConcepto",
+        "concepto.Concepto",
         on_delete=models.PROTECT,
         related_name="detalles_plantillas",
     )
@@ -81,11 +81,11 @@ class DetallePlantillaLiquidacion(models.Model):
         if (
             self.plantilla_id
             and self.concepto_id
-            and self.plantilla.empresa_id != self.concepto.concepto.empresa_id
+            and self.plantilla.empresa_id != self.concepto.empresa_id
         ):
             raise ValidationError(
                 "El concepto asociado no pertenece a la empresa de la plantilla."
             )
 
     def __str__(self):
-        return f"identificador: {self.concepto.identificador}"
+        return f"identificador: {self.concepto.versiones.ultima().identificador}"

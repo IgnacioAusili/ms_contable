@@ -7,7 +7,7 @@ erDiagram
 
     EMPRESA ||--o{ PLANTILLA_LIQUIDACION : tiene
     PLANTILLA_LIQUIDACION || --o{ DETALLE_PLANTILLA_LIQUIDACION : "se compone de"
-    DETALLE_PLANTILLA_LIQUIDACION }o -- || VERSION_CONCEPTO : referente_a
+    DETALLE_PLANTILLA_LIQUIDACION }o -- || CONCEPTO : referente_a
 
     EMPRESA ||--o{ CONCEPTO : define
     EMPRESA ||--o{ CATEGORIA_LABORAL : tiene

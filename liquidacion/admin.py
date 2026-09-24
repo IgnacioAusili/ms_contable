@@ -304,7 +304,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
         detalles = [
             {
-                "concepto": detalle.concepto_id,
+                "concepto": detalle.concepto.versiones.ultima().id,
                 "unidades": str(detalle.unidades),
                 "formula_base": detalle.formula_base,
             }

@@ -22,8 +22,8 @@ stateDiagram-v2
 
     Borrador --> Cerrada : Generar TXT - LSD ARCA
 
-    Cerrada --> Rectificacion : Usuario inicia rectificación
-    Rectificacion --> Cerrada : Generar TXT - LSD ARCA
+    Cerrada --> En_Rectificacion : Usuario inicia rectificación
+    En_Rectificacion --> Cerrada : Generar TXT - LSD ARCA
 
     Cerrada --> [*]
 
@@ -34,7 +34,7 @@ stateDiagram-v2
         referenciadas.
     end note
 
-    note right of Rectificacion
+    note right of En_Rectificacion
         Se pueden modificar los detalles de
         la liquidación.
         Los datos de las entidades referenciadas
@@ -94,9 +94,9 @@ En particular, los datos que hayan sido materializados como parte de la liquidac
 
 Esto permite, por ejemplo, regenerar un recibo de sueldo utilizando la información correspondiente al momento en que se realizó la liquidación, aunque posteriormente se modifiquen los datos maestros de la empresa o del empleado.
 
-## Estado Rectificación
+## Estado En_Rectificacion
 
-Una liquidación cerrada puede pasar a estado **Rectificación** mediante una acción explícita del usuario.
+Una liquidación cerrada puede pasar a estado **En_Rectificacion** mediante una acción explícita del usuario.
 
 La rectificación permite modificar una liquidación que ya había sido cerrada sin reconstruirla automáticamente a partir del estado actual de las entidades referenciadas.
 

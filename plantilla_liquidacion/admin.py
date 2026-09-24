@@ -2,17 +2,16 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.http import JsonResponse
 from django.urls import path
-
+from django.db.models import Prefetch
 from concepto.models import VersionConcepto
 from liquidacion.models import DetalleLiquidacion
 from .models import PlantillaLiquidacion, DetallePlantillaLiquidacion
-from .forms import DetallePlantillaLiquidacionForm, DetallePlantillaLiquidacionFormSet
+from .forms import DetallePlantillaLiquidacionForm
 
 
 class DetallePlantillaLiquidacionInline(admin.TabularInline):
     model = DetallePlantillaLiquidacion
     form = DetallePlantillaLiquidacionForm
-    formset = DetallePlantillaLiquidacionFormSet
 
     extra = 0
     can_delete = True
@@ -37,28 +36,29 @@ class DetallePlantillaLiquidacionInline(admin.TabularInline):
 
     @admin.display(description="Grupo")
     def grupo(self, obj):
-        texto = "-"
+        version = self.version_vigente(obj)
 
-        if obj and obj.pk and obj.concepto_id:
-            texto = obj.concepto.grupo.denominacion if obj.concepto.grupo else "-"
+        texto = (
+            version.grupo.denominacion
+            if version and version.grupo
+            else "-"
+        )
 
         return format_html('<span class="grupo-display">{}</span>', texto)
 
     @admin.display(description="Tipo")
     def tipo(self, obj):
-        texto = "-"
+        version = self.version_vigente(obj)
 
-        if obj and obj.pk and obj.concepto_id:
-            texto = obj.concepto.get_tipo_display()
+        texto = version.get_tipo_display() if version else "-"
 
         return format_html('<span class="tipo-display">{}</span>', texto)
 
     @admin.display(description="Categoria")
     def categoria(self, obj):
-        texto = "-"
+        version = self.version_vigente(obj)
 
-        if obj and obj.pk and obj.concepto_id:
-            texto = obj.concepto.get_categoria_display()
+        texto = version.get_categoria_display() if version else "-"
 
         return format_html('<span class="categoria-display">{}</span>', texto)
 
@@ -67,14 +67,50 @@ class DetallePlantillaLiquidacionInline(admin.TabularInline):
         nombre = "-"
         descripcion = ""
 
-        if obj and obj.pk and obj.concepto_id:
-            nombre = obj.concepto.get_unidad_display()
-            descripcion = VersionConcepto.Unidad(obj.concepto.unidad).descripcion
+        version = self.version_vigente(obj)
+
+        if version:
+            unidad = VersionConcepto.Unidad(version.unidad)
+            nombre = unidad.label
+            descripcion = unidad.descripcion
 
         return format_html(
             '<span class="unidad-display" title="{}">{}</span>',
             descripcion,
             nombre,
+        )
+
+    def version_vigente(self, obj):
+        if not obj or not obj.concepto_id:
+            return None
+
+        versiones = getattr(
+            obj.concepto,
+            "_versiones_vigentes",
+            [],
+        )
+
+        return versiones[0] if versiones else None
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        versiones = (
+            VersionConcepto.todos
+            .select_related("grupo")
+            .ultima_version()
+        )
+
+        return (
+            queryset
+            .select_related("concepto")
+            .prefetch_related(
+                Prefetch(
+                    "concepto__versiones",
+                    queryset=versiones,
+                    to_attr="_versiones_vigentes",
+                )
+            )
         )
 
 

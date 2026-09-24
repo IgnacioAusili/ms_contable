@@ -99,7 +99,6 @@ classDiagram
         REMUNERATIVO
         NO_REMUNERATIVO
         DESCUENTO
-        REDONDEO
         CONTRIBUCION
     }
 
@@ -112,6 +111,7 @@ classDiagram
     class EstadoLiquidacion {
         <<enumeration>>
         BORRADOR
+        EN_RECTIFICACION
         CERRADA
     }
 
@@ -126,7 +126,7 @@ classDiagram
 
     Empresa "1" *-- "0..*" PlantillaLiquidacion : tiene
     PlantillaLiquidacion "1" *-- "0..*" DetallePlantillaLiquidacion : contiene
-    VersionConcepto "1" <-- "0..*" DetallePlantillaLiquidacion : utiliza
+    Concepto "1" <-- "0..*" DetallePlantillaLiquidacion : utiliza
 
     Empresa "1" *-- "0..*" Liquidacion : realiza
     Liquidacion "1" *-- "1..*" LiquidacionEmpleado : incluye

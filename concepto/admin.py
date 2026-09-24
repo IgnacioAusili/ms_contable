@@ -210,8 +210,8 @@ class ConceptoAdmin(admin.ModelAdmin):
 
     def _version_vigente(self, obj):
         return (
-            obj.version_vigente[0]  # Prefetch(..., ) siempre devuelve una colección
-            if obj.version_vigente
+            obj.ultima_version[0]  # Prefetch(..., ) siempre devuelve una colección
+            if obj.ultima_version
             else None
         )
 
@@ -259,7 +259,7 @@ class ConceptoAdmin(admin.ModelAdmin):
             Prefetch(
                 "versiones",
                 queryset=versiones,
-                to_attr="version_vigente",
+                to_attr="ultima_version",
             )
         )
 
