@@ -23,7 +23,7 @@ class ReciboSueldoService:
             .get(pk=liquidacion_empleado.pk)
         )
 
-    def obtener_datos(self):
+    def obtener_datos(self, tipo):
         le = self.liquidacion_empleado
         liquidacion = le.liquidacion
         empleado = le.empleado
@@ -63,6 +63,7 @@ class ReciboSueldoService:
         ).generar_svg()
 
         return {
+            "tipo": tipo,
             "empresa": {
                 "nombre": empresa.nombre,
                 "domicilio": liquidacion.domicilio_empresa,

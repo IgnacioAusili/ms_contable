@@ -498,11 +498,19 @@ tam_fuente                      (opcional, número en pt) fija el tamaño del cu
           <b>Observaciones:</b>
           <span class="obs-txt" id="observaciones">{{ observaciones|default_if_none:"" }}</span>
         </div>
+        {% if tipo == "duplicado" %}
+        <div class="recibi">Recibí conforme copia del duplicado del presente recibo.</div>
+        {% else %}
         <div class="recibi">Recibí conforme copia del original del presente recibo.</div>
+        {% endif %}
       </div>
       <div class="firma">
         <div class="linea"></div>
+        {% if tipo == "duplicado" %}
         Firma Trabajador
+        {% else %}
+        Firma Empleador
+        {% endif %}
       </div>
     </div>
 

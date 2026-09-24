@@ -73,23 +73,31 @@ class LiquidacionEmpleadoInline(admin.TabularInline):
         if not obj or not obj.pk:
             return "-"
 
+        return format_html(
+            '{} {}',
+            self._boton_recibo(obj, "original", "Original"),
+            self._boton_recibo(obj, "duplicado", "Duplicado"),
+        )
+
+    def _boton_recibo(self, obj, tipo, etiqueta):
         url = reverse(
             "admin:liquidacionempleado_recibo",
             args=[obj.pk],
         )
 
-        filename = (
-            f'recibo-{obj.pk}.pdf'
-        )
+        url = f"{url}?tipo={tipo}"
+        filename = f"recibo-{obj.pk}-{tipo}.pdf"
 
         return format_html(
-            '<a href="{}"  target="_blank" '
+            '<a href="{}" target="_blank" '
             'class="button js-recibo-pdf" '
+            'style="display: inline-block; margin-right: 4px;" '
             'data-url="{}" '
-            'data-filename="{}">PDF</a>',
+            'data-filename="{}">{}</a>',
             url,
             url,
             filename,
+            etiqueta,
         )
 
 
@@ -281,9 +289,11 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         return super().response_change(request, obj)
     
     def recibo_view(self, request, object_id):
+        tipo = request.GET.get("tipo", "original")
+
         datos = ReciboSueldoService(
             LiquidacionEmpleado.objects.get(pk=object_id)
-        ).obtener_datos()
+        ).obtener_datos(tipo=tipo)
 
         html = render_to_string(
             "admin/liquidacion/recibo_sueldo.html",
