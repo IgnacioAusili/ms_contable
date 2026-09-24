@@ -167,7 +167,7 @@ class ReciboSueldoService:
                 Decimal("0"),
             )
 
-            resultado[grupo.identificador] = {
+            resultado[grupo.codigo] = {
                 "denominacion": grupo.denominacion,
                 "total": self._decimal_a_string(total),
                 "empleador": self._decimal_a_string(empleador),

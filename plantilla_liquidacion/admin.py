@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.http import JsonResponse
 from django.urls import path
+
+from concepto.models import VersionConcepto
 from liquidacion.models import DetalleLiquidacion
 from .models import PlantillaLiquidacion, DetallePlantillaLiquidacion
 from .forms import DetallePlantillaLiquidacionForm, DetallePlantillaLiquidacionFormSet
@@ -18,6 +20,7 @@ class DetallePlantillaLiquidacionInline(admin.TabularInline):
 
     fields = (
         "concepto",
+        "grupo",
         "tipo",
         "categoria",
         "unidad",
@@ -26,10 +29,20 @@ class DetallePlantillaLiquidacionInline(admin.TabularInline):
     )
 
     readonly_fields = (
+        "grupo",
         "tipo",
         "categoria",
         "unidad",
     )
+
+    @admin.display(description="Grupo")
+    def grupo(self, obj):
+        texto = "-"
+
+        if obj and obj.pk and obj.concepto_id:
+            texto = obj.concepto.grupo.denominacion if obj.concepto.grupo else "-"
+
+        return format_html('<span class="grupo-display">{}</span>', texto)
 
     @admin.display(description="Tipo")
     def tipo(self, obj):
@@ -51,12 +64,18 @@ class DetallePlantillaLiquidacionInline(admin.TabularInline):
 
     @admin.display(description="Unidad")
     def unidad(self, obj):
-        texto = "-"
+        nombre = "-"
+        descripcion = ""
 
         if obj and obj.pk and obj.concepto_id:
-            texto = obj.concepto.get_unidad_display()
+            nombre = obj.concepto.get_unidad_display()
+            descripcion = VersionConcepto.Unidad(obj.concepto.unidad).descripcion
 
-        return format_html('<span class="unidad-display">{}</span>', texto)
+        return format_html(
+            '<span class="unidad-display" title="{}">{}</span>',
+            descripcion,
+            nombre,
+        )
 
 
 @admin.register(PlantillaLiquidacion)
@@ -100,11 +119,13 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
         try:
             concepto = VersionConceptoModel.objects.get(pk=concepto_id)
         except VersionConceptoModel.DoesNotExist:
-            return JsonResponse({
-                "tipo": "", "categoria": "", "unidad": "",
-            })
+            return JsonResponse(
+                {"identificador": "", "grupo": "", "tipo": "", "categoria": "", "unidad": "",}
+            )
 
         return JsonResponse({
+            "identificador": concepto.identificador,
+            "grupo": concepto.grupo.denominacion if concepto.grupo else "",
             "tipo": concepto.get_tipo_display(),
             "categoria": concepto.get_categoria_display(),
             "unidad": concepto.get_unidad_display(),

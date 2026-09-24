@@ -68,6 +68,13 @@ class DetallePlantillaLiquidacion(models.Model):
         verbose_name = "Detalle de plantilla para liquidacion"
         verbose_name_plural = "Detalles de plantilla para liquidacion"
 
+        constraints = [
+            models.UniqueConstraint(
+                fields=["plantilla", "concepto"],
+                name="unique_concepto_por_plantilla",
+            ),
+        ]
+
     def clean(self):
         super().clean()
 

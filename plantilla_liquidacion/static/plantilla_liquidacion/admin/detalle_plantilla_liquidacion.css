@@ -1,3 +1,16 @@
+.detalles-table-wrapper {
+    max-height: 700px;
+    overflow-y: auto;
+    position: relative;
+}
+
+#detalles-group .tabular thead th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--body-bg);
+}
+
 #detalles-group .field-formula_base textarea {
     width: 90%;
     min-height: 2em;

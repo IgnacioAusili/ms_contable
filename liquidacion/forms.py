@@ -18,6 +18,19 @@ class LiquidacionForm(forms.ModelForm):
             self.fields["empresa"].disabled = True
 
 
+class LiquidacionEmpleadoForm(forms.ModelForm):
+    class Meta:
+        model = LiquidacionEmpleado
+        fields = "__all__"
+        widgets = {
+            "observaciones": forms.Textarea(
+                attrs={
+                    "rows": 2,
+                }
+            ),
+        }
+
+
 class LiquidacionEmpleadoInlineForm(forms.ModelForm):
     class Meta:
         model = LiquidacionEmpleado

@@ -9,12 +9,25 @@
         const spanUnidad = fila.querySelector(".unidad-display");
         const spanCategoria = fila.querySelector(".categoria-display");
         const spanTipo = fila.querySelector(".tipo-display");
-        if (!spanUnidad || !spanCategoria || !spanTipo) return;
+        const spanGrupo = fila.querySelector(".grupo-display");
+
+        if (!spanUnidad || !spanCategoria || !spanTipo || !spanGrupo) return;
+
+        const celdaOriginal = fila.querySelector(".original");
+        let parrafoIdentificador = celdaOriginal?.querySelector("p");
 
         const conceptoId = select.value;
+
         if (!conceptoId) {
-            spanUnidad.textContent = "";
-            spanCategoria.textContent = "";
+            spanTipo.textContent = "-";
+            spanGrupo.textContent = "-";
+            spanUnidad.textContent = "-";
+            spanCategoria.textContent = "-";
+
+            if (parrafoIdentificador) {
+                parrafoIdentificador.textContent = "";
+            }
+
             return;
         }
 
@@ -31,11 +44,32 @@
                 spanUnidad.textContent = data.unidad || "no_encontrado";
                 spanCategoria.textContent = data.categoria || "no_encontrado";
                 spanTipo.textContent = data.tipo || "no_encontrado";
+                spanGrupo.textContent = data.grupo || "-";
+
+                // Identificador mostrado por Django en .original
+                if (celdaOriginal) {
+                    if (!parrafoIdentificador) {
+                        parrafoIdentificador = document.createElement("p");
+                        celdaOriginal.prepend(parrafoIdentificador);
+                    }
+
+                    parrafoIdentificador.textContent =
+                        data.identificador
+                            ? `identificador: ${data.identificador}`
+                            : "";
+
+                    fila.classList.toggle("has_original", Boolean(data.identificador));
+                }
             })
             .catch(() => {
-                spanUnidad.textContent = "";
-                spanCategoria.textContent = "";
-                spanTipo.textContent = "";
+                spanUnidad.textContent = "-";
+                spanCategoria.textContent = "-";
+                spanTipo.textContent = "-";
+                spanGrupo.textContent = "-";
+
+                if (parrafoIdentificador) {
+                    parrafoIdentificador.textContent = "";
+                }
             });
     }
 
@@ -50,6 +84,20 @@
             textarea.scrollHeight,
             maxHeight
         )}px`;
+    }
+
+    function inlineTablaWrapper() {
+        const group = document.getElementById("detalles-group");
+        if (!group) return;
+
+        const table = group.querySelector("table");
+        if (!table) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "detalles-table-wrapper";
+
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
     }
 
     async function aplicarPlantilla(plantillaId, urlTemplate) {
@@ -202,6 +250,8 @@
                 },
             );
         }
+
+        inlineTablaWrapper();
 
         // Ayuda
         const dialogo = document.getElementById("modal-ayuda-liquidacion");

@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from django.db.models import OuterRef, Subquery
 from django.core.validators import MinValueValidator, RegexValidator
-
+from decimal import Decimal
 from concepto.utils import normalizar_identificador
 
 
@@ -118,15 +118,15 @@ class VersionConcepto(models.Model):
         @property
         def descripcion(self):
             return {
-                self.CANTIDAD: "Numeros enteros.",
+                self.CANTIDAD: "Numeros reales.",
                 self.PORCENTAJE: "Numeros reales del 0 al 100.",
             }[self]
 
         @property
         def constraint(self):
             return {
-                self.CANTIDAD: lambda valor: valor == int(valor),
-                self.PORCENTAJE: lambda valor: 0 <= valor <= 100,
+                self.CANTIDAD: lambda valor: isinstance(valor, Decimal),
+                self.PORCENTAJE: lambda valor: isinstance(valor, Decimal) and 0 <= valor <= 100,
             }[self]
 
         @property
