@@ -14,7 +14,7 @@ def eliminar_concepto(concepto):
         raise ConceptoEnUsoEnLiquidacionAbierta()
 
     DetallePlantillaLiquidacion.objects.filter(
-        concepto__concepto=concepto,
+        concepto=concepto,
     ).delete()
 
     concepto.delete()
@@ -94,7 +94,7 @@ def crear_version_concepto(
         else 1
     )
 
-    return VersionConcepto.objects.create(
+    version = VersionConcepto(
         concepto=concepto,
         version=siguiente_version,
         denominacion=denominacion,
@@ -104,3 +104,8 @@ def crear_version_concepto(
         unidad=unidad,
         grupo=grupo,
     )
+
+    version.full_clean()
+    version.save()
+
+    return version

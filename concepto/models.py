@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.db.models import OuterRef, Subquery
 from django.core.validators import MinValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
 from decimal import Decimal
 from concepto.utils import normalizar_identificador
 
@@ -114,7 +115,6 @@ class VersionConcepto(models.Model):
         NO_REMUNERATIVO = "no_remunerativo", "No remunerativo"
         DESCUENTO = "descuento", "Descuento"
         CONTRIBUCION = "contribucion", "Contribución"
-        APORTES = "aportes", "Aportes"
 
     class Unidad(models.TextChoices):
         CANTIDAD = "cantidad", "Cantidad"
@@ -226,6 +226,25 @@ class VersionConcepto(models.Model):
             ),
         ]
         ordering = ("-version",)
+
+    def clean(self):
+        super().clean()
+
+        if self.tipo == self.Tipo.CONTRIBUCION:
+            if self.categoria != self.Categoria.EMPLEADOR:
+                raise ValidationError({
+                    "categoria": (
+                        "Los conceptos de tipo contribución "
+                        "deben corresponder a la categoría empleador."
+                    )
+                })
+        elif self.categoria != self.Categoria.TRABAJADOR:
+            raise ValidationError({
+                "categoria": (
+                    "Los conceptos que no son contribuciones "
+                    "deben corresponder a la categoría trabajador."
+                )
+            })
 
     def save(self, *args, **kwargs):
         if self.pk is None:
