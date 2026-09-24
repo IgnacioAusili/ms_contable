@@ -1,7 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-
+from django.contrib import admin
 from concepto.models import VersionConcepto
+from core.utils import format_decimal_2
 
 
 class Liquidacion(models.Model):
@@ -111,17 +112,15 @@ class LiquidacionEmpleado(models.Model):
         related_name="empleados",
     )
 
-    # Mostrar solo los de la empresa correspondiente
     empleado = models.ForeignKey(
         "empleado.Empleado",
         on_delete=models.PROTECT,
         related_name="liquidaciones",
     )
 
-    # --- Calcular automaticamente al cerrar la liquidacion ---
     remunerativo = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         default=0,
         null=False,
         blank=False,
@@ -129,8 +128,8 @@ class LiquidacionEmpleado(models.Model):
     )
 
     no_remunerativo = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         default=0,
         null=False,
         blank=False,
@@ -138,8 +137,8 @@ class LiquidacionEmpleado(models.Model):
     )
 
     bruto = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         default=0,
         null=False,
         blank=False,
@@ -147,8 +146,8 @@ class LiquidacionEmpleado(models.Model):
     )
 
     descuentos = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         default=0,
         null=False,
         blank=False,
@@ -156,8 +155,8 @@ class LiquidacionEmpleado(models.Model):
     )
 
     neto = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         default=0,
         null=False,
         blank=False,
@@ -165,8 +164,8 @@ class LiquidacionEmpleado(models.Model):
     )
 
     contribuciones = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         default=0,
         null=False,
         blank=False,
@@ -174,8 +173,8 @@ class LiquidacionEmpleado(models.Model):
     )
 
     costo_laboral = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         default=0,
         null=False,
         blank=False,
@@ -191,7 +190,6 @@ class LiquidacionEmpleado(models.Model):
         default="",
         help_text="Observaciones que se reflejaran en el recibo de sueldo"
     )
-    # ------
 
     categoria = models.CharField(
         max_length=255,
@@ -206,6 +204,41 @@ class LiquidacionEmpleado(models.Model):
         blank=True,
         editable=False,
     )
+
+    @property
+    @admin.display(description="Remunerativo")
+    def remunerativo_display(self):
+        return format_decimal_2(self.remunerativo)
+
+    @property
+    @admin.display(description="No Remunerativo")
+    def no_remunerativo_display(self):
+        return format_decimal_2(self.no_remunerativo)
+
+    @property
+    @admin.display(description="Bruto")
+    def bruto_display(self):
+        return format_decimal_2(self.bruto)
+
+    @property
+    @admin.display(description="Descuentos")
+    def descuentos_display(self):
+        return format_decimal_2(self.descuentos)
+
+    @property
+    @admin.display(description="Neto")
+    def neto_display(self):
+        return format_decimal_2(self.neto)
+
+    @property
+    @admin.display(description="Contribuciones")
+    def contribuciones_display(self):
+        return format_decimal_2(self.contribuciones)
+
+    @property
+    @admin.display(description="Costo Laboral")
+    def costo_laboral_display(self):
+        return format_decimal_2(self.costo_laboral)
 
     class Meta:
         verbose_name = "liquidación por empleado"
@@ -285,8 +318,8 @@ class DetalleLiquidacion(models.Model):
     )
 
     base = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         null=False,
         blank=False,
         default=0,
@@ -294,14 +327,24 @@ class DetalleLiquidacion(models.Model):
     )
 
     importe = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
+        max_digits=20,
+        decimal_places=5,
         null=False,
         blank=False,
         default=0,
         editable=False,
         help_text="Unidades * Base",
     )
+
+    @property
+    @admin.display(description="Base")
+    def base_display(self):
+        return format_decimal_2(self.base)
+
+    @property
+    @admin.display(description="Importe")
+    def importe_display(self):
+        return format_decimal_2(self.importe)
 
     class Meta:
         verbose_name = "detalle liquidación"

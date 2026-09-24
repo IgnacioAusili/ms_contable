@@ -59,7 +59,7 @@ class ReciboSueldoService:
 
         grafico_torta_svg = GraficoCostoLaboralService(
             detalle=detalle,
-            remuneracion_bruta=le.bruto,
+            remuneracion_neta=le.neto,
         ).generar_svg()
 
         return {
@@ -81,9 +81,9 @@ class ReciboSueldoService:
                 "antiguedad": f"{self.calcular_antiguedad(empleado.fecha_ingreso, liquidacion.fecha_pago,)} AÑOS",
                 "fecha_ingreso": empleado.fecha_ingreso.strftime("%d/%m/%Y"),
                 "categoria": le.categoria,
-                "cuil": empleado.cuil,
+                "cuil": empleado.cuil_display,
                 "banco": le.banco_de_cobro,
-                "periodo_pago": f"{liquidacion.periodo.month}/{liquidacion.periodo.year} - {liquidacion.fecha_pago.strftime('%d/%m/%Y')}",  # TODO - revisar
+                "periodo_pago": f"{liquidacion.fecha_pago.strftime('%d/%m/%Y')}",
             },
 
             "contribuciones": contribuciones,
@@ -107,13 +107,12 @@ class ReciboSueldoService:
             "total_descuentos": self._decimal_a_string(
                 le.descuentos
             ),
-            "sueldo_neto": self._decimal_a_string(le.neto),
+            "sueldo_neto": self._decimal_a_string(int(le.neto)),
 
             "neto_en_letras": self.neto_en_letras(le.neto),
 
-            "observaciones": f"{le.observaciones}",
+            "observaciones": le.observaciones if le.observaciones else "-",
 
-            # TODO - Va a haber grupos globales inmutables con las denominaciones estandar para que esto funcione bien
             "detalle": detalle,
 
             "grafico_torta_svg": grafico_torta_svg,
@@ -199,10 +198,7 @@ class ReciboSueldoService:
 
     @staticmethod
     def _formatear_unidad(unidad, unidades):
-        if unidad == VersionConcepto.Unidad.PORCENTAJE:
-            return f"{unidades:.2f} %"
-
-        return f"{unidades:.2f}"
+        return f"{unidades:.2f} {VersionConcepto.Unidad(unidad).sufijo}"
 
     @staticmethod
     def _decimal_a_string(valor):
@@ -213,14 +209,7 @@ class ReciboSueldoService:
 
     @staticmethod
     def neto_en_letras(valor):
-        valor = valor.quantize(Decimal("0.01"))
-
-        parte_entera = int(valor)
-        centavos = int((valor - parte_entera) * 100)
-
-        letras = num2words(
-            parte_entera,
+        return num2words(
+            int(valor),
             lang="es",
         )
-
-        return f"{letras} con {centavos:02d}/100"

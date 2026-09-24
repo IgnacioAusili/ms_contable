@@ -8,9 +8,9 @@ from .models import Empleado
 @admin.register(Empleado)
 class EmpleadoAdmin(admin.ModelAdmin):
     list_per_page = 25
-    list_display = ('cuil', 'apellidos', 'nombres', 'empresa', 'categoria_laboral', 'legajo', 'fecha_ingreso', 'banco_de_cobro')
+    list_display = ('cuil_display', 'apellidos', 'nombres', 'empresa', 'categoria_laboral', 'legajo', 'fecha_ingreso', 'banco_de_cobro')
     list_select_related = ('empresa', 'categoria_laboral',)
-    search_fields = ('cuil','apellidos')
+    search_fields = ('cuil_display','apellidos')
     search_help_text = "Buscar por apellido o cuil"
     list_filter = ('empresa',)
     list_editable = ('banco_de_cobro',)

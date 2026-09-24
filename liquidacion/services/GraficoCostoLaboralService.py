@@ -16,9 +16,9 @@ class GraficoCostoLaboralService:
         "#FF9DA7",  # Rosa
     ]
 
-    def __init__(self, detalle, remuneracion_bruta):
+    def __init__(self, detalle, remuneracion_neta):
         self.detalle = detalle
-        self.remuneracion_bruta = remuneracion_bruta
+        self.remuneracion_neta = remuneracion_neta
 
     def generar_svg(self):
         valores = self._obtener_valores()
@@ -39,8 +39,8 @@ class GraficoCostoLaboralService:
     def _obtener_valores(self):
         valores = {}
 
-        if self.remuneracion_bruta > 0:
-            valores["Remuneración"] = self.remuneracion_bruta
+        if self.remuneracion_neta > 0:
+            valores["Sueldo Neto"] = self.remuneracion_neta
 
         for codigo, datos in self.detalle.items():
             importe = datos.get("empleador")

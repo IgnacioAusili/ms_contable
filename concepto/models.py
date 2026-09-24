@@ -113,8 +113,8 @@ class VersionConcepto(models.Model):
         REMUNERATIVO = "remunerativo", "Remunerativo"
         NO_REMUNERATIVO = "no_remunerativo", "No remunerativo"
         DESCUENTO = "descuento", "Descuento"
-        REDONDEO = "redondeo", "Redondeo"
         CONTRIBUCION = "contribucion", "Contribución"
+        APORTES = "aportes", "Aportes"
 
     class Unidad(models.TextChoices):
         CANTIDAD = "cantidad", "Cantidad"

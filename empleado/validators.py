@@ -1,5 +1,12 @@
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
+
+def no_fecha_futura(value):
+    if value > timezone.localdate():
+        raise ValidationError(
+            "La fecha de ingreso no puede ser futura."
+        )
 
 def es_dni_valido(value):
     if value is None:
@@ -62,5 +69,5 @@ def es_cuil_valido(value):
 def validar_cuil(value):
     if not es_cuil_valido(value):
         raise ValidationError(
-            "El CUIL no es válido."
+            "El CUIL no es válido (ingreselo sin guiones)."
         )

@@ -1,8 +1,9 @@
 from django.db import models
-from django.core.validators import MaxValueValidator
-from empleado.validators import validar_dni, validar_cuil
+from django.contrib import admin
+
+from core.utils import format_cuil
+from empleado.validators import validar_dni, validar_cuil, no_fecha_futura
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 
 class Empleado(models.Model):
@@ -57,12 +58,7 @@ class Empleado(models.Model):
     fecha_ingreso = models.DateField(
         null=False,
         blank=False,
-        validators=[
-            MaxValueValidator(
-                timezone.localdate(),
-                message="La fecha de ingreso no puede ser futura.",
-            ),
-        ],
+        validators=[no_fecha_futura],
     )
 
     banco_de_cobro = models.CharField(
@@ -71,6 +67,11 @@ class Empleado(models.Model):
         blank=False,
         help_text="Ej: Nacion, Bco. Pcia. BS AS, Santander, etc",
     )
+
+    @property
+    @admin.display(description="Cuil")
+    def cuil_display(self):
+        return format_cuil(self.cuil)
 
     class Meta:
         constraints = [

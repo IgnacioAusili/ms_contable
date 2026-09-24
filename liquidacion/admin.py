@@ -29,13 +29,13 @@ class LiquidacionEmpleadoInline(admin.TabularInline):
         "empleado",
         "banco_de_cobro",
         "categoria",
-        "remunerativo",
-        "no_remunerativo",
-        "bruto",
-        "descuentos",
-        "neto",
-        "contribuciones",
-        "costo_laboral",
+        "remunerativo_display",
+        "no_remunerativo_display",
+        "bruto_display",
+        "descuentos_display",
+        "neto_display",
+        "contribuciones_display",
+        "costo_laboral_display",
         "recibo_sueldo",
     )
 
@@ -43,13 +43,13 @@ class LiquidacionEmpleadoInline(admin.TabularInline):
         "detalle_link",
         "banco_de_cobro",
         "categoria",
-        "remunerativo",
-        "no_remunerativo",
-        "bruto",
-        "descuentos",
-        "neto",
-        "contribuciones",
-        "costo_laboral",
+        "remunerativo_display",
+        "no_remunerativo_display",
+        "bruto_display",
+        "descuentos_display",
+        "neto_display",
+        "contribuciones_display",
+        "costo_laboral_display",
         "recibo_sueldo",
     )
 
@@ -135,8 +135,8 @@ class DetalleLiquidacionInline(admin.TabularInline):
         "unidad",
         "unidades",
         "formula_base",
-        "base",
-        "importe",
+        "base_display",
+        "importe_display",
     )
 
     readonly_fields = (
@@ -144,8 +144,8 @@ class DetalleLiquidacionInline(admin.TabularInline):
         "tipo",
         "categoria",
         "unidad",
-        "base",
-        "importe",
+        "base_display",
+        "importe_display",
     )
 
     @admin.display(description="Grupo")
@@ -201,13 +201,13 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         "empleado",
         "banco_de_cobro",
         "categoria",
-        "remunerativo",
-        "no_remunerativo",
-        "bruto",
-        "descuentos",
-        "neto",
-        "contribuciones",
-        "costo_laboral",
+        "remunerativo_display",
+        "no_remunerativo_display",
+        "bruto_display",
+        "descuentos_display",
+        "neto_display",
+        "contribuciones_display",
+        "costo_laboral_display",
         "observaciones"
     )
 
@@ -216,13 +216,13 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         "empleado",
         "banco_de_cobro",
         "categoria",
-        "remunerativo",
-        "no_remunerativo",
-        "bruto",
-        "descuentos",
-        "neto",
-        "contribuciones",
-        "costo_laboral",
+        "remunerativo_display",
+        "no_remunerativo_display",
+        "bruto_display",
+        "descuentos_display",
+        "neto_display",
+        "contribuciones_display",
+        "costo_laboral_display",
     )
 
     change_form_template = "admin/liquidacion/change_form.html"
