@@ -62,13 +62,13 @@ No se modifica el estado del sistema.
 
 * RN-01: Cada plantilla pertenece a una única empresa.
 * RN-02: La denominación de una plantilla debe ser única dentro de una empresa.
-* RN-03: Cada detalle de una plantilla referencia una `VersionConcepto`.
-* RN-04: Una plantilla solamente puede contener versiones de conceptos pertenecientes a la misma empresa.
+* RN-03: Cada detalle de una plantilla referencia un `Concepto`.
+* RN-04: Una plantilla solamente puede contener conceptos pertenecientes a la misma empresa.
 * RN-05: Los detalles de una plantilla almacenan la configuración inicial de los conceptos, incluyendo las unidades y la fórmula base.
 * RN-06: La plantilla no almacena los valores calculados de base ni importe.
 * RN-07: Al aplicar una plantilla se generan nuevos detalles independientes para la liquidación correspondiente.
 * RN-08: Las modificaciones posteriores de una plantilla no alteran las liquidaciones que hayan sido creadas previamente a partir de ella.
-* RN-09: Una plantilla solamente puede utilizar versiones de conceptos que estén disponibles para nuevas liquidaciones.
+* RN-09: Los detalles de las plantillas siempre referencian a las versiones vigentes de los conceptos, NO a la version del momento de crear dicho detalle.
 
 ## Observaciones
 

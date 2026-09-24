@@ -67,12 +67,12 @@ class Liquidacion(models.Model):
 
         if self.periodo and self.fecha_pago:
             if (self.fecha_pago.year != self.periodo.year
-                or self.fecha_pago.month != self.periodo.month
+                or self.fecha_pago.month not in (self.periodo.month, self.periodo.month+1)
             ):
                 raise ValidationError({
                     "fecha_pago": (
                         "La fecha de pago debe estar dentro del período "
-                        "de la liquidación."
+                        "de la liquidación, o del siguiente."
                     )
                 })
 
