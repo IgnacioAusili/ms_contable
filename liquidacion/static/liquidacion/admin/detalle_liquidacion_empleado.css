@@ -1,11 +1,15 @@
+/* Filas: sin bordes ni padding extra */
 .columnas-custom .form-row {
+    padding: 0.5rem 0;
+    border: 0;
     width: 100%;
 }
 
+/* Columnas automáticas: tantas como entren, mínimo 14rem cada una */
 .columnas-custom .form-multiline {
-    display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 0.75rem 1.5rem;
     width: 100%;
 }
 
@@ -13,7 +17,53 @@
     width: auto !important;
     min-width: 0;
     margin: 0;
+    padding: 0;
 }
+
+/* Label arriba, input abajo (evita las superposiciones del layout "aligned") */
+.columnas-custom .flex-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+}
+
+.columnas-custom .form-row label {
+    width: auto;
+    min-width: 0;
+    padding: 0;
+    float: none;
+    font-size: 0.8125rem;
+    color: var(--body-quiet-color);
+}
+
+/* Checkboxes: label al lado */
+.columnas-custom .flex-container.checkbox-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Widgets a todo el ancho de su celda */
+.columnas-custom input:not([type="checkbox"]):not([type="radio"]),
+.columnas-custom select,
+.columnas-custom textarea,
+.columnas-custom .related-widget-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Django indenta help/readonly ~170px por el layout "aligned" */
+.columnas-custom .help,
+.columnas-custom .readonly {
+    margin: 0;
+    padding: 0;
+}
+
+/* Separación entre formularios en un inline */
+.columnas-custom .inline-related + .inline-related {
+    margin-top: 0.5rem;
+}
+
+/* ============================================= */
 
 .totales-liquidacion .fieldBox > label {
     font-size: 0;
@@ -36,6 +86,8 @@
 .totales-liquidacion .identificador-campo::before {
     content: "identificador: ";
 }
+
+/* ============================================= */
 
 .sugerencias-importe {
     margin-top: 4px;
@@ -72,6 +124,8 @@
     overflow-y: auto;
     box-sizing: border-box;
 }
+
+/* ============================================= */
 
 #abrir-ayuda {
     display: block;
@@ -128,7 +182,7 @@
 }
 
 #modal-ayuda-liquidacion {
-    max-width: 700px;
+    max-height: 80%;
     padding: 2rem;
 }
 
@@ -136,17 +190,48 @@
     background: rgb(0 0 0 / 50%);
 }
 
+/* ============================================= */
+
+/* Barra de acciones fija abajo */
+#content-main form .submit-row {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0 0;
+    padding: 0.75rem 1rem;
+    background: var(--body-bg);
+    border: 0;
+    border-top: 1px solid var(--hairline-color);
+    box-shadow: 0 -4px 12px rgb(0 0 0 / 0.06);
+}
+
+.botones-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 2.1875rem;
+    padding: 0 18px;
+    line-height: 1;
+    font-family: var(--font-family-primary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    margin: 0;
+}
+
 .calcular-button {
     background: #d9822b !important;
-    border: 1px solid #bd6f20 !important;
-    border-radius: 3px;
-
     color: #fff !important;
-    font-weight: 600;
-
-    padding: 10px 18px;
-
-    cursor: pointer;
+    border: 1px solid #bd6f20 !important;
 }
 
 .calcular-button:hover {
@@ -157,3 +242,20 @@
 .calcular-button:active {
     background: #a9601c !important;
 }
+
+.recibo-button {
+    background: #2f7d9c !important;
+    color: #fff !important;
+    border: 1px solid #286b85 !important;
+}
+
+.recibo-button:hover {
+    background: #286b85 !important;
+    border-color: #20586d !important;
+}
+
+.recibo-button:active {
+    background: #20586d !important;
+}
+
+

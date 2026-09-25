@@ -1,8 +1,17 @@
 from django.db import models
-from empleado.validators import validar_cuit
+from core.validators import validar_cuit
 
 
 class Empresa(models.Model):
+    class TipoEmpleador(models.TextChoices):
+        ADMINISTRACION_PUBLICA = "administracion_publica", "Administración Pública"
+        D81401_ART2_INCB = "d81401_art2_incb", "Decreto 814/01; Artículo 2, inc B"
+        SERVICIOS_EVENTUALES_ART2_INCB = "servicios_eventuales_art2_incb", "Servicios Eventuales; Art 2, inc B"
+        D81401_ART2_INCA = "d81401_art2_inca", "Decreto 814/01; Artículo 2, inc A"
+        SERVICIOS_EVENTUALES_ART2_INCA = "servicios_eventuales_art2_inca", "Servicios Eventuales; Art 2, inc A"
+        ENSENIANZA_PRIVADA = "ensenianza_privada", "Enseñanza Privada"
+        D121203_AFA_CLUBES = "d121203_afa_clubes", "Decreto 1212/03; Clubes AFA"
+
     id = models.BigAutoField(primary_key=True)
 
     cuit = models.CharField(
@@ -11,11 +20,20 @@ class Empresa(models.Model):
         blank=False,
         validators=[validar_cuit],
     )
+
     nombre = models.CharField(
         max_length=255,
         null=False,
         blank=False,
     )
+
+    tipo_empleador = models.CharField(
+        max_length=50,
+        choices=TipoEmpleador.choices,
+        null=False,
+        blank=False
+    )
+
     domicilio = models.CharField(
         max_length=255,
         null=False,

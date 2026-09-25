@@ -14,16 +14,32 @@
 {% block footer %}
 <div id="footer">
     <div class="footer-content">
-        <span>Estudio Contable: {{ estudio }}</span>
-        <span class="footer-separator">·</span>
-        <span>{{ app_name }} (v{{ app_version }})</span>
-        <span class="footer-separator">·</span>
-        <span>Desarrollador: {{ developer }}</span>
-        <span class="footer-separator">·</span>
-        <a href="{% static 'docs/mapeo-conceptos-arca.html' %}"
-           target="_blank">
-            Ayuda: conceptos y códigos ARCA
-        </a>
+
+        <div class="footer-info">
+            <span>{{ app_name }} (v{{ app_version }})</span>
+            <span class="footer-separator">·</span>
+            <span>Desarrollador: {{ developer }}</span>
+        </div>
+
+        <div class="footer-help">
+            <span class="footer-help-title">Ayudas:</span>
+
+            <a href="{% static 'docs/mapeo-conceptos-arca.html' %}"
+               target="_blank">
+                Conceptos y códigos ARCA
+            </a>
+
+            <a href="{% static 'docs/mapeo-codigos-arca_1.html' %}"
+               target="_blank">
+                Tablas
+            </a>
+
+            <a href="{% static 'docs/mapeo-codigos-arca.html' %}"
+               target="_blank">
+                Anexo
+            </a>
+        </div>
+
     </div>
 </div>
 {% endblock %}

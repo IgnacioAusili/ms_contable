@@ -137,6 +137,9 @@ class VersionConceptoInline(admin.TabularInline):
 
     readonly_fields = fields
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).order_by("-version")
+
 
 @admin.register(Concepto)
 class ConceptoAdmin(admin.ModelAdmin):
@@ -195,10 +198,12 @@ class ConceptoAdmin(admin.ModelAdmin):
         if not version:
             return "-"
 
-        return ", ".join(
+        resultado = ", ".join(
             base.denominacion
             for base in version.bases_imponibles.all()
         ) or "-"
+
+        return resultado.replace("Remuneración ", "R")
 
     # Por ahora el usuario no puede ver las versiones del concepto eliminado, para eso deberia restaurarlo primero
     def get_list_display_links(self, request, list_display):

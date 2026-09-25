@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db import transaction
 
 from base_imponible.models import BaseImponible, ResultadoBaseImponible
+from empleado.models import VersionEmpleado
 from liquidacion.models import LiquidacionEmpleado
 
 
@@ -16,7 +17,7 @@ class LiquidacionEmpleadoService:
         self.nodos_por_identificador = {}
 
     @transaction.atomic
-    def crear(self):
+    def crear(self, *, commit=True):
         """
         Inicializa una liquidación de empleado recién creada.
 
@@ -24,6 +25,12 @@ class LiquidacionEmpleadoService:
         para la liquidación del empleado. Los valores son inicializados en
         cero y serán calculados posteriormente por liquidar().
         """
+        self._asignar_version_empleado()
+
+        if commit:
+            self.liquidacion_empleado.full_clean()
+            self.liquidacion_empleado.save()
+
         self.crear_resultados_bases_imponibles()
 
     def crear_resultados_bases_imponibles(self):
@@ -44,3 +51,17 @@ class LiquidacionEmpleadoService:
             )
             for base in bases
         ])
+
+    def _asignar_version_empleado(self):
+        version = (
+            VersionEmpleado.objects
+            .filter(empleado=self.liquidacion_empleado.empleado)
+            .ultima()
+        )
+
+        if version is None:
+            raise ValueError(
+                "El empleado no tiene una versión vigente."
+            )
+
+        self.liquidacion_empleado.version_empleado = version

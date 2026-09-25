@@ -1,0 +1,6 @@
+.campo-no-editable {
+    background-color: var(--darkened-bg) !important;
+    color: var(--body-quiet-color);
+    border-color: var(--border-color) !important;
+    cursor: not-allowed;
+}

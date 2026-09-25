@@ -163,7 +163,6 @@ class VersionConcepto(models.Model):
 
     bases_imponibles = models.ManyToManyField(
         BaseImponible,
-        null=False,
         blank=True,
         related_name="versiones_concepto",
     )
@@ -258,17 +257,14 @@ class VersionConcepto(models.Model):
     def save(self, *args, **kwargs):
         if self.pk is None:
             ultima_version = (
-                type(self).objects
-                .filter(concepto=self.concepto)
-                .order_by("-version")
-                .values_list("version", flat=True)
-                .first()
+                type(self).objects.filter(concepto=self.concepto)
+                .ultima()
             )
 
             self.version = (ultima_version or 0) + 1
         else:
             raise ValueError(
-                "Esta entidad no es editable." # deshabilitar desde la UI. Solo si tiene asociado algun detalle de una liquidacion cerrada
+                "Esta entidad no es editable."
             )
 
         super().save(*args, **kwargs)

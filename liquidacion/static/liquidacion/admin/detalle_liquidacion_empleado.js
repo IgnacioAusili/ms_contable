@@ -4,7 +4,7 @@
     const SELECTOR = 'select[id$="-concepto"]';
 
     function actualizarDetalles(select) {
-        const fila = select.closest("tr");
+        const fila = select.closest(".inline-related");
         if (!fila) return;
         const spanUnidad = fila.querySelector(".unidad-display");
         const spanCategoria = fila.querySelector(".categoria-display");

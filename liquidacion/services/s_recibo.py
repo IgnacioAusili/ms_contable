@@ -77,9 +77,9 @@ class ReciboSueldoService:
                 "sueldo_bruto": self._decimal_a_string(le.bruto),
                 "antiguedad": f"{self.calcular_antiguedad(empleado.fecha_ingreso, liquidacion.fecha_pago,)} AÑOS",
                 "fecha_ingreso": empleado.fecha_ingreso.strftime("%d/%m/%Y"),
-                "categoria": le.categoria,
+                "categoria": le.version_empleado.categoria_laboral,
                 "cuil": empleado.cuil_display,
-                "banco": le.banco_de_cobro,
+                "banco": empleado.versiones.ultima().banco_de_cobro,
                 "periodo_pago": f"{liquidacion.fecha_pago.strftime('%d/%m/%Y')}",
             },
 

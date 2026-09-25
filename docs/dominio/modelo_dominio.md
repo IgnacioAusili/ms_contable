@@ -7,6 +7,7 @@ classDiagram
     class Empresa {
         +CUIT
         +nombre
+        +tipoEmpleador
         +domicilio
     }
 
@@ -17,7 +18,20 @@ classDiagram
         +nombres
         +legajo
         +fechaIngreso
+    }
+
+    class VersionEmpleado {
+        +version
+        +dependenciaDeRevista
+        +conyuge
+        +cantidadHijos
         +bancoDeCobro
+        +CBU
+        +formaPago
+        +CCT
+        +coberturaSCVO
+        +correspondeReduccion
+        +codigoObraSocial
     }
 
     class CategoriaLaboral {
@@ -31,18 +45,23 @@ classDiagram
         +configurable
     }
 
+    class ResultadoBaseImponible {
+        +valor
+    }
+
     class Concepto {
         +nombreLogico
         +activo
     }
 
     class VersionConcepto {
-        +numero
+        +version
         +denominacion
         +codigoARCA
         +categoria
         +tipo
         +unidad
+        +debitoCredito
     }
 
     class GrupoConcepto {
@@ -61,9 +80,13 @@ classDiagram
 
     class Liquidacion {
         +periodo
+        +numeroLiquidacion
         +fechaPago
         +estado
         +domicilioEmpresa
+        +tipoEnvio
+        +tipoLiquidacion
+        +observaciones
     }
 
     class LiquidacionEmpleado {
@@ -74,9 +97,32 @@ classDiagram
         +neto
         +contribuciones
         +costoLaboral
-        +categoria
-        +bancoDeCobro
         +observaciones
+        fechaRubrica
+        +cantidadDiasProporcionarTope
+        +codigoSituacion
+        +codigoCondicion
+        +codigoActividad
+        +codigoModalidadContratacion
+        +codigoSiniestrado
+        +codigoLocalidad
+        +unidadTiempoTrabajado
+        +tiempoTrabajado
+        +porcentajeAporteAdicionalSS
+        +porcentajeContribTareaDiferencial
+        +cantidadAdherentesObraSocial
+        +aporteAdicionalObraSocial
+        +contribAdicionalObraSocial
+        +baseCalcDiferencialAportesObraSocialFSR
+        +baseCalcDiferencialContribObraSocialFSR
+        +baseCalcDiferencialLeyRiesgosTrabajo
+        +remuneracionMaternidadANSES
+        +baseCalcDiferencialAportesSegSocial
+        +baseCalcDiferencialContribSegSocial
+    }
+
+    class TramoSituacionRevista {
+        +diaInicio
     }
 
     class DetalleLiquidacion {
@@ -84,6 +130,10 @@ classDiagram
         +formulaBase
         +base
         +importe
+        +cantidad
+        +unidadesLSD
+        +debitoCredito
+        +periodoAjusteRetroactivo
     }
 
     class CategoriaConcepto {
@@ -116,7 +166,9 @@ classDiagram
 
     Empresa "1" *-- "0..*" Empleado : emplea
     Empresa "1" *-- "0..*" CategoriaLaboral : define
-    CategoriaLaboral "1" <-- "0..*" Empleado : pertenece a
+
+    Empleado "1" *-- "1..*" VersionEmpleado : tiene
+    CategoriaLaboral "1" <-- "0..*" VersionEmpleado : asignada_a
 
     Empresa "1" *-- "0..*" Concepto : define
     Concepto "1" *-- "1..*" VersionConcepto : tiene
@@ -128,15 +180,18 @@ classDiagram
 
     Empresa "1" *-- "0..*" Liquidacion : realiza
     Liquidacion "1" *-- "1..*" LiquidacionEmpleado : incluye
+
     Empleado "1" <-- "0..*" LiquidacionEmpleado : participa
+    VersionEmpleado "1" <-- "0..*" LiquidacionEmpleado : utiliza
+
+    LiquidacionEmpleado "1" *-- "1..*" TramoSituacionRevista : tiene
 
     LiquidacionEmpleado "1" *-- "1..*" DetalleLiquidacion : contiene
     VersionConcepto "1" <-- "0..*" DetalleLiquidacion : aplica
 
-    DetalleLiquidacion "0..*" --> "0..*" DetalleLiquidacion : utiliza como referencia
-
-    LiquidacionEmpleado "0..*" --> "12" BaseImponible : determina
-    VersionConcepto "0..*" --> "0..9" BaseImponible : "contribuye a"
+    BaseImponible "0..*" <-- "0..*" VersionConcepto : incluye
+    BaseImponible "1" <-- "0..*" ResultadoBaseImponible : resultado
+    LiquidacionEmpleado "1" --> "0..*" ResultadoBaseImponible : computa
 
     VersionConcepto --> CategoriaConcepto : categoria
     VersionConcepto --> TipoConcepto : tipo

@@ -51,7 +51,7 @@ def crear_bases_imponibles(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("base_imponible", "0001_initial"),
+        ("base_imponible", "0002_initial"),
     ]
 
     operations = [

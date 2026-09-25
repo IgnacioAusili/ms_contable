@@ -13,9 +13,10 @@ import json
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):
     list_per_page = 10
-    list_display = ('nombre', 'cuit', 'domicilio')
+    list_display = ('nombre', 'cuit', 'tipo_empleador', 'domicilio')
     search_fields = ('nombre',)
     search_help_text = "Buscar por nombre"
+    list_filter = ('tipo_empleador',)
     list_editable = ('domicilio',)
     list_display_links = None
 

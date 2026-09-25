@@ -1,8 +1,9 @@
 from django.db import models
+from django.db.models import OuterRef, Subquery
 from django.contrib import admin
-
+from django.core.validators import MinValueValidator
 from core.utils import format_cuil
-from empleado.validators import validar_dni, validar_cuil, no_fecha_futura
+from core.validators import validar_dni, validar_cuil, no_fecha_futura, validar_cbu
 from django.core.exceptions import ValidationError
 
 
@@ -13,12 +14,6 @@ class Empleado(models.Model):
 
     empresa = models.ForeignKey(
         "empresa.Empresa",
-        on_delete=models.PROTECT,
-        related_name="empleados",
-    )
-
-    categoria_laboral = models.ForeignKey(
-        "categoria_laboral.CategoriaLaboral",
         on_delete=models.PROTECT,
         related_name="empleados",
     )
@@ -61,13 +56,6 @@ class Empleado(models.Model):
         validators=[no_fecha_futura],
     )
 
-    banco_de_cobro = models.CharField(
-        max_length=255,
-        null=False,
-        blank=False,
-        help_text="Ej: Nacion, Bco. Pcia. BS AS, Santander, etc",
-    )
-
     @property
     @admin.display(description="Cuil")
     def cuil_display(self):
@@ -80,18 +68,6 @@ class Empleado(models.Model):
                 name="unique_legajo_por_empresa",
             ),
         ]
-
-    def clean(self):
-        super().clean()
-
-        if (
-            self.empresa_id
-            and self.categoria_laboral_id
-            and self.empresa_id != self.categoria_laboral.empresa_id
-        ):
-            raise ValidationError(
-                "La cateogoria laboral asociada no pertenece a la misma empresa que este empleado."
-            )
 
     def save(self, *args, **kwargs):
         if self.pk is not None:
@@ -121,3 +97,146 @@ class Empleado(models.Model):
 
     def __str__(self):
         return f"{self.apellidos}, {self.nombres}"
+
+
+class VersionEmpleadoQuerySet(models.QuerySet):
+    # aplicarse sobre un QuerySet de VersionEmpleado y obtener la última de cada uno
+    def ultima_version(self):
+        ultima_version = (
+            VersionEmpleado.todos
+            .filter(empleado=OuterRef("empleado"))
+            .order_by("-version")
+            .values("pk")[:1]
+        )
+
+        return self.filter(pk=Subquery(ultima_version))
+
+    # dado un Empleado, obtener su última versión
+    def ultima(self):
+        return self.order_by("-version").first()
+
+
+class VersionEmpleadoManager(models.Manager.from_queryset(VersionEmpleadoQuerySet)):
+    pass
+
+
+class VersionEmpleado(models.Model):
+    objects = VersionEmpleadoManager()
+    todos = VersionEmpleadoQuerySet.as_manager()
+
+    class FormaPago(models.IntegerChoices):
+        EFECTIVO = 1, "Efectivo"
+        CHEQUE = 2, "Cheque"
+        ACREDITACION_EN_CUENTA = 3, "Acreditación en Cuenta"
+        PAGO_EXTERNO = 4, "Pago Externo"
+
+    id = models.BigAutoField(
+        primary_key=True,
+    )
+
+    empleado = models.ForeignKey(
+        "empleado.Empleado",
+        on_delete=models.CASCADE,
+        related_name="versiones",
+    )
+
+    version = models.PositiveIntegerField(
+        null=False,
+        blank=False,
+        editable=False,
+        validators=[MinValueValidator(1)],
+    )
+
+    conyuge = models.BooleanField(
+        default=False
+    )
+
+    cantidad_hijos = models.PositiveIntegerField(
+        null=False,
+        blank=False,
+        default=0
+    )
+
+    codigo_obra_social = models.CharField(
+        max_length=6,
+        null=False,
+        blank=True,
+    )
+
+    categoria_laboral = models.ForeignKey(
+        "categoria_laboral.CategoriaLaboral",
+        on_delete=models.PROTECT,
+        related_name="empleados",
+    )
+
+    dependencia_revista = models.CharField(
+        max_length=255,
+        null=False,
+        blank=True,
+    )
+
+    banco_de_cobro = models.CharField(
+        max_length=255,
+        null=False,
+        blank=False,
+        help_text="Ej: Nacion, Bco. Pcia. BS AS, Santander, etc",
+    )
+
+    cbu = models.CharField(
+        max_length=22,
+        null=False,
+        blank=True,
+        validators=[validar_cbu]
+    )
+
+    forma_de_pago = models.IntegerField(
+        choices=FormaPago.choices,
+        null=False,
+        blank=False,
+    )
+
+    cct = models.BooleanField(
+        default=False
+    )
+
+    cobertura_scvo = models.BooleanField(
+        default=False
+    )
+
+    corresponde_reduccion = models.BooleanField(
+        default=False
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["empleado", "version"],
+                name="unique_version_por_empleado",
+            ),
+        ]
+        ordering = ("-version",)
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.empleado.empresa_id
+            and self.categoria_laboral_id
+            and self.empleado.empresa_id != self.categoria_laboral.empresa_id
+        ):
+            raise ValidationError(
+                "La cateogoria laboral asociada no pertenece a la misma empresa que este empleado."
+            )
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            ultima_version = (
+                type(self).objects.filter(empleado=self.empleado)
+                .ultima()
+            )
+
+            self.version = (ultima_version.version + 1 if ultima_version else 1)
+        else:
+            raise ValueError("Esta entidad no es editable.")
+
+        super().save(*args, **kwargs)

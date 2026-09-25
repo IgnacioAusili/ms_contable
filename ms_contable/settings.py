@@ -6,7 +6,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 APP_NAME = "MS Contable"
 APP_VERSION = "0.0.0"
-ESTUDIO_CONTABLE = os.environ.get("ESTUDIO_CONTABLE", "Datos Estudio Contable")
 
 DEVELOPER = "Schulz, Matias"
 

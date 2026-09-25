@@ -1,25 +1,11 @@
 from django import forms
 from django.forms.models import BaseInlineFormSet
-
 from base_imponible.models import ResultadoBaseImponible
 from core.utils import format_decimal_2
 from empleado.models import Empleado
-from concepto.models import VersionConcepto
-from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion
-from .services.LiquidacionEmpleadoService import LiquidacionEmpleadoService
-
-
-class LiquidacionForm(forms.ModelForm):
-    class Meta:
-        model = Liquidacion
-        fields = "__all__"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Una vez creada, la empresa no se puede cambiar.
-        if self.instance and self.instance.pk:
-            self.fields["empresa"].disabled = True
+from ..models import TramoSituacionRevista
+from ..models.m_liquidacion_empleado import LiquidacionEmpleado
+from ..services.LiquidacionEmpleadoService import LiquidacionEmpleadoService
 
 
 class LiquidacionEmpleadoForm(forms.ModelForm):
@@ -57,16 +43,12 @@ class LiquidacionEmpleadoInlineForm(forms.ModelForm):
 
 class LiquidacionEmpleadoInlineFormSet(BaseInlineFormSet):
 
-    def save(self, commit=True):
-        liquidaciones_empleado = super().save(commit=commit)
+    def save_new(self, form, commit=True):
+        liquidacion_empleado = super().save_new(form, commit=False,)
 
-        if commit:
-            for liquidacion_empleado in self.new_objects:
-                LiquidacionEmpleadoService(
-                    liquidacion_empleado
-                ).crear()
+        LiquidacionEmpleadoService(liquidacion_empleado).crear(commit=commit)
 
-        return liquidaciones_empleado
+        return liquidacion_empleado
 
     def get_form_kwargs(self, index):
         kwargs = super().get_form_kwargs(index)
@@ -79,47 +61,10 @@ class LiquidacionEmpleadoInlineFormSet(BaseInlineFormSet):
         return kwargs
 
 
-class DetalleLiquidacionForm(forms.ModelForm):
+class TramoSituacionRevistaInlineForm(forms.ModelForm):
     class Meta:
-        model = DetalleLiquidacion
-        fields = "__all__"
-        widgets = {
-            "formula_base": forms.Textarea(
-                attrs={
-                    "rows": 2,
-                }
-            ),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Una vez creado, no se puede cambiar el concepto.
-        if self.instance and self.instance.pk:
-            self.fields["concepto"].disabled = True
-
-
-class DetalleLiquidacionFormSet(BaseInlineFormSet):
-    def add_fields(self, form, index):
-        super().add_fields(form, index)
-
-        empresa = self.instance.liquidacion.empresa
-
-        queryset = (
-            VersionConcepto.objects
-            .filter(concepto__empresa=empresa)
-            .ultima_version()
-        )
-
-        # Si el detalle ya existe, mostrar en base a su versión histórica,
-        # aunque el concepto haya sido eliminado. Puede pasar para liquidaciones cerradas
-        if form.instance.pk:
-            queryset = queryset | (
-                VersionConcepto.todos
-                .filter(pk=form.instance.concepto_id)
-            )
-
-        form.fields["concepto"].queryset = queryset.distinct()
+        model = TramoSituacionRevista
+        fields = ("dia_inicio",)
 
 
 class ImporteResultadoWidget(forms.NumberInput):

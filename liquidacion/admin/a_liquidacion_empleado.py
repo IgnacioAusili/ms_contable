@@ -7,197 +7,41 @@ from django.urls import path
 from django.template.loader import render_to_string
 
 from base_imponible.models import ResultadoBaseImponible
-from concepto.models import VersionConcepto
 from plantilla_liquidacion.models import PlantillaLiquidacion
-from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion, IDENTIFICADORES_LE
-from .forms import LiquidacionForm, LiquidacionEmpleadoInlineForm, LiquidacionEmpleadoInlineFormSet, \
-    DetalleLiquidacionForm, DetalleLiquidacionFormSet, LiquidacionEmpleadoForm, ResultadoBaseImponibleInlineForm
-from .services.s_expresiones import LiquidacionEmpleadoService
-from .services.s_recibo import ReciboSueldoService
+from .a_detalles_liquidacion import DetalleLiquidacionInline
+from ..models import TramoSituacionRevista
+from ..models.m_liquidacion_empleado import LiquidacionEmpleado
+from ..models.m_detalles_liquidacion import DetalleLiquidacion
+from ..forms.f_liquidacion_empleado import (
+    LiquidacionEmpleadoForm, LiquidacionEmpleadoInlineForm,
+    LiquidacionEmpleadoInlineFormSet,
+    ResultadoBaseImponibleInlineForm, TramoSituacionRevistaInlineForm
+)
+from ..services.s_expresiones import LiquidacionEmpleadoService
+from ..services.s_recibo import ReciboSueldoService
 
 
-class LiquidacionEmpleadoInline(admin.TabularInline):
-    model = LiquidacionEmpleado
-    form = LiquidacionEmpleadoInlineForm
-    formset = LiquidacionEmpleadoInlineFormSet
+class TramoSituacionRevistaInline(admin.TabularInline):
+    model = TramoSituacionRevista
+    form = TramoSituacionRevistaInlineForm
 
     extra = 0
+    max_num = 3
     can_delete = True
     show_change_link = True
 
     fields = (
-        "detalle_link",
-        "empleado",
-        "banco_de_cobro",
-        "categoria",
-        "remunerativo_display",
-        "no_remunerativo_display",
-        "bruto_display",
-        "descuentos_display",
-        "neto_display",
-        "contribuciones_display",
-        "costo_laboral_display",
-        "recibo_sueldo",
+        "situacion_revista",
+        "dia_inicio",
     )
 
-    readonly_fields = (
-        "detalle_link",
-        "banco_de_cobro",
-        "categoria",
-        "remunerativo_display",
-        "no_remunerativo_display",
-        "bruto_display",
-        "descuentos_display",
-        "neto_display",
-        "contribuciones_display",
-        "costo_laboral_display",
-        "recibo_sueldo",
-    )
+    readonly_fields = ("situacion_revista",)
 
-    @admin.display(description="")
-    def detalle_link(self, obj):
-        if not obj.pk:
-            return ""
+    ordering = ("dia_inicio",)
 
-        url = reverse(
-            "admin:liquidacion_liquidacionempleado_change",
-            args=[obj.pk],
-        )
-
-        return format_html(
-            '<a href="{}">Ver detalle</a>',
-            url,
-        )
-
-    @admin.display(description="Recibo")
-    def recibo_sueldo(self, obj):
-        if not obj or not obj.pk:
-            return "-"
-
-        return format_html(
-            '{} {}',
-            self._boton_recibo(obj, "original", "Original"),
-            self._boton_recibo(obj, "duplicado", "Duplicado"),
-        )
-
-    def _boton_recibo(self, obj, tipo, etiqueta):
-        url = reverse(
-            "admin:liquidacionempleado_recibo",
-            args=[obj.pk],
-        )
-
-        url = f"{url}?tipo={tipo}"
-        filename = f"recibo-{obj.pk}-{tipo}.pdf"
-
-        return format_html(
-            '<a href="{}" target="_blank" '
-            'class="button js-recibo-pdf" '
-            'style="display: inline-block; margin-right: 4px;" '
-            'data-url="{}" '
-            'data-filename="{}">{}</a>',
-            url,
-            url,
-            filename,
-            etiqueta,
-        )
-
-
-@admin.register(Liquidacion)
-class LiquidacionAdmin(admin.ModelAdmin):
-    form = LiquidacionForm
-    inlines = [LiquidacionEmpleadoInline]
-    actions = None
-
-    list_display = (
-        "__str__",
-        "periodo",
-        "fecha_pago",
-        "estado",
-        "domicilio_empresa"
-    )
-
-    list_filter = ('empresa', 'estado',)
-    list_select_related = ('empresa',)
-
-    search_fields = ('periodo',)
-    search_help_text = "Busqueda por periodo (fecha, año, mes, etc)"
-
-    ordering = ('empresa', 'periodo',)
-
-    change_form_template = "admin/liquidacion/change_form.html"
-
-
-class DetalleLiquidacionInline(admin.TabularInline):
-    model = DetalleLiquidacion
-    form = DetalleLiquidacionForm
-    formset = DetalleLiquidacionFormSet
-
-    extra = 0
-    can_delete = True
-    show_change_link = True
-
-    fields = (
-        "concepto",
-        "grupo",
-        "tipo",
-        "categoria",
-        "unidad",
-        "unidades",
-        "formula_base",
-        "base_display",
-        "importe_display",
-    )
-
-    readonly_fields = (
-        "grupo",
-        "tipo",
-        "categoria",
-        "unidad",
-        "base_display",
-        "importe_display",
-    )
-
-    @admin.display(description="Grupo")
-    def grupo(self, obj):
-        texto = "-"
-
-        if obj and obj.pk and obj.concepto_id:
-            texto = obj.concepto.grupo.denominacion if obj.concepto.grupo else "-"
-
-        return format_html('<span class="grupo-display">{}</span>', texto)
-
-    @admin.display(description="Tipo")
-    def tipo(self, obj):
-        texto = "-"
-
-        if obj and obj.pk and obj.concepto_id:
-            texto = obj.concepto.get_tipo_display()
-
-        return format_html('<span class="tipo-display">{}</span>', texto)
-
-    @admin.display(description="Categoria")
-    def categoria(self, obj):
-        texto = "-"
-
-        if obj and obj.pk and obj.concepto_id:
-            texto = obj.concepto.get_categoria_display()
-
-        return format_html('<span class="categoria-display">{}</span>', texto)
-
-    @admin.display(description="Unidad")
-    def unidad(self, obj):
-        nombre = "-"
-        descripcion = ""
-
-        if obj and obj.pk and obj.concepto_id:
-            nombre = obj.concepto.get_unidad_display()
-            descripcion = VersionConcepto.Unidad(obj.concepto.unidad).descripcion
-
-        return format_html(
-            '<span class="unidad-display" title="{}">{}</span>',
-            descripcion,
-            nombre,
-        )
+    @admin.display(description="Situación de Revista")
+    def situacion_revista(self, obj):
+        return "Situación de Revista"
 
 
 class ResultadoBaseImponibleInline(admin.TabularInline):
@@ -208,18 +52,22 @@ class ResultadoBaseImponibleInline(admin.TabularInline):
     max_num = 0
     can_delete = False
 
-    fields = ("base_imponible_display","importe")
+    fields = ("base_imponible_display", "descripcion_display", "importe")
 
-    readonly_fields = ("base_imponible_display",)
+    readonly_fields = ("base_imponible_display", "descripcion_display")
 
     @admin.display(description="Base imponible")
     def base_imponible_display(self, obj):
         return obj.base_imponible
 
+    @admin.display(description="Descripción")
+    def descripcion_display(self, obj):
+        return obj.base_imponible.descripcion
+
 
 @admin.register(LiquidacionEmpleado)
 class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
-    inlines = [ResultadoBaseImponibleInline, DetalleLiquidacionInline]
+    inlines = [TramoSituacionRevistaInline, DetalleLiquidacionInline, ResultadoBaseImponibleInline]
     form = LiquidacionEmpleadoForm
 
     fieldsets = (
@@ -227,26 +75,28 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             "fields": (
                 "liquidacion",
                 "empleado",
-                "banco_de_cobro",
-                "categoria",
             ),
+        }),
+        ("Datos Adicionales", {
+            "classes": ("columnas-custom",),
+            "fields": (
+                ("fecha_rubrica", "cantidad_dias_proporcionar_tope", "unidad_tiempo_trabajado", "tiempo_trabajado"),
+                ("codigo_situacion", "codigo_condicion", "codigo_actividad",
+                 "codigo_modalidad_contratacion", "codigo_siniestrado", "codigo_localidad"),
+                ("porcentaje_aporte_adicional_ss", "porcentaje_contrib_tarea_diferencial",
+                 "remuneracion_maternidad_anses"),
+                ("cantidad_adherentes_obra_social", "aporte_adicional_obra_social", "contrib_adicional_obra_social"),
+                ("base_calc_diferencial_aportes_obra_social_fsr", "base_calc_diferencial_contrib_obra_social_fsr",
+                 "base_calc_diferencial_ley_riesgos_trabajo", "base_calc_diferencial_aportes_seg_social",
+                 "base_calc_diferencial_contrib_seg_social")
+            )
         }),
         ("Totales de liquidación", {
             "classes": ("columnas-custom",),  # "totales-liquidacion",),
             "fields": (
-                (
-                    "remunerativo_display",
-                    "bruto_display",
-                    "descuentos_display",
-                ),
-                (
-                    "no_remunerativo_display",
-                    "neto_display",
-                    "contribuciones_display",
-                ),
-                (
-                    "costo_laboral_display",
-                ),
+                ("remunerativo_display", "bruto_display", "descuentos_display",),
+                ("no_remunerativo_display", "neto_display", "contribuciones_display",),
+                ("costo_laboral_display",),
             ),
         }),
         ("Observaciones", {
@@ -257,8 +107,6 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
     readonly_fields = (
         "liquidacion",
         "empleado",
-        "banco_de_cobro",
-        "categoria",
         "remunerativo_display",
         "no_remunerativo_display",
         "bruto_display",
@@ -340,11 +188,16 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
     class Media:
         js = ("liquidacion/admin/detalle_liquidacion_empleado.js",)
 
-    def changeform_view(self, request, object_id=None, form_url="", extra_context=None,):
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None, ):
         extra_context = extra_context or {}
 
         if object_id:
             obj = self.get_object(request, object_id)
+
+            recibo_url = reverse(
+                "admin:liquidacionempleado_recibo",
+                args=[obj.pk],
+            )
 
             if obj:
                 extra_context["liquidacion_empleado"] = True
@@ -354,7 +207,14 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
                     .order_by("denominacion")
                 )
 
-        return super().changeform_view(request, object_id, form_url, extra_context,)
+                extra_context["recibo_original_url"] = (
+                    f"{recibo_url}?tipo=original"
+                )
+                extra_context["recibo_duplicado_url"] = (
+                    f"{recibo_url}?tipo=duplicado"
+                )
+
+        return super().changeform_view(request, object_id, form_url, extra_context, )
 
     def get_urls(self):
         urls = super().get_urls()
@@ -385,7 +245,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.path)
 
         return super().response_change(request, obj)
-    
+
     def recibo_view(self, request, object_id):
         tipo = request.GET.get("tipo", "original")
 
@@ -428,7 +288,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             concepto = VersionConceptoModel.objects.get(pk=concepto_id)
         except VersionConceptoModel.DoesNotExist:
             return JsonResponse(
-                {"identificador": "", "grupo": "", "tipo": "", "categoria": "", "unidad": "",}
+                {"identificador": "", "grupo": "", "tipo": "", "categoria": "", "unidad": "", }
             )
 
         return JsonResponse({
@@ -438,3 +298,85 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             "categoria": concepto.get_categoria_display(),
             "unidad": concepto.get_unidad_display(),
         })
+
+
+class LiquidacionEmpleadoInline(admin.TabularInline):
+    model = LiquidacionEmpleado
+    form = LiquidacionEmpleadoInlineForm
+    formset = LiquidacionEmpleadoInlineFormSet
+
+    extra = 0
+    can_delete = True
+    show_change_link = True
+
+    fields = (
+        "detalle_link",
+        "empleado",
+        "remunerativo_display",
+        "no_remunerativo_display",
+        "bruto_display",
+        "descuentos_display",
+        "neto_display",
+        "contribuciones_display",
+        "costo_laboral_display",
+        "recibo_sueldo",
+    )
+
+    readonly_fields = (
+        "detalle_link",
+        "remunerativo_display",
+        "no_remunerativo_display",
+        "bruto_display",
+        "descuentos_display",
+        "neto_display",
+        "contribuciones_display",
+        "costo_laboral_display",
+        "recibo_sueldo",
+    )
+
+    @admin.display(description="")
+    def detalle_link(self, obj):
+        if not obj.pk:
+            return ""
+
+        url = reverse(
+            "admin:liquidacion_liquidacionempleado_change",
+            args=[obj.pk],
+        )
+
+        return format_html(
+            '<a href="{}">Ver detalle</a>',
+            url,
+        )
+
+    @admin.display(description="Recibo")
+    def recibo_sueldo(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+
+        return format_html(
+            '{} {}',
+            self._boton_recibo(obj, "original", "Original"),
+            self._boton_recibo(obj, "duplicado", "Duplicado"),
+        )
+
+    def _boton_recibo(self, obj, tipo, etiqueta):
+        url = reverse(
+            "admin:liquidacionempleado_recibo",
+            args=[obj.pk],
+        )
+
+        url = f"{url}?tipo={tipo}"
+        filename = f"recibo-{obj.pk}-{tipo}.pdf"
+
+        return format_html(
+            '<a href="{}" target="_blank" '
+            'class="button js-recibo-pdf" '
+            'style="display: inline-block; margin-right: 4px;" '
+            'data-url="{}" '
+            'data-filename="{}">{}</a>',
+            url,
+            url,
+            filename,
+            etiqueta,
+        )

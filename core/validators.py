@@ -71,3 +71,55 @@ def validar_cuil(value):
         raise ValidationError(
             "El CUIL no es válido (ingreselo sin guiones)."
         )
+
+
+def validar_cbu(cbu: str) -> bool:  # tmb sirve para cvu's
+    cbu_digito_verificador_1_valido(cbu)
+    cbu_digito_verificador_2_valido(cbu)
+
+
+def cbu_digito_verificador_1_valido(cbu: str) -> bool:
+    """
+    Valida el primer dígito verificador del CBU.
+
+    Estructura:
+        posiciones 1-3: código de entidad
+        posiciones 4-7: código de sucursal
+        posición 8:     dígito verificador
+    """
+    datos = cbu[:7]
+    digito_esperado = int(cbu[7])
+
+    ponderadores = (7, 1, 3, 9, 7, 1, 3)
+
+    suma = sum(
+        int(digito) * ponderador
+        for digito, ponderador in zip(datos, ponderadores)
+    )
+
+    digito_calculado = (10 - (suma % 10)) % 10
+
+    return digito_calculado == digito_esperado
+
+
+def cbu_digito_verificador_2_valido(cbu: str) -> bool:
+    """
+    Valida el segundo dígito verificador del CBU.
+
+    Estructura:
+        posiciones 9-21: número de cuenta
+        posición 22:     dígito verificador
+    """
+    datos = cbu[8:21]
+    digito_esperado = int(cbu[21])
+
+    ponderadores = (3, 9, 7, 1, 3, 9, 7, 1, 3, 9, 7, 1, 3)
+
+    suma = sum(
+        int(digito) * ponderador
+        for digito, ponderador in zip(datos, ponderadores)
+    )
+
+    digito_calculado = (10 - (suma % 10)) % 10
+
+    return digito_calculado == digito_esperado
