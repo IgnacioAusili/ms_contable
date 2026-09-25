@@ -10,6 +10,19 @@
 {% block after_field_sets %}
     {{ block.super }}
 
+    <div class="bases-imponibles-info">
+        <strong>Identificadores de las Bases Imponibles</strong>
+
+        <ul>
+            {% for base in bases_imponibles %}
+                <li>
+                    <code>{{ base.identificador }}</code>
+                    — {{ base.denominacion }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
     <button
         type="button"
         class="button"
@@ -64,6 +77,11 @@
         <pre><code>sueldo_basico_17 * 0.11</code></pre>
 
         <p>Al momento de calcular, se utilizara el valor de "Importe" de los detalles referenciados.</p>
+
+        <p>
+            Lo mismo aplica para las bases imponibles: todos cuentan con su identificador
+            y se pueden referenciar en las fórmulas
+        </p>
 
         <h3>Cálculos</h3>
 

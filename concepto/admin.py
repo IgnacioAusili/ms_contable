@@ -150,12 +150,55 @@ class ConceptoAdmin(admin.ModelAdmin):
         "codigo_arca",
         "categoria",
         "tipo",
+        "bases_imponibles",
         "unidad",
     )
 
     list_filter = (CategoriaFilter,GrupoFilter,TipoFilter,EliminadosFilter,'empresa')
     preserve_filters = True
     ordering = ('empresa',)
+
+    @admin.display(description="Denominación")
+    def denominacion(self, obj):
+        version = self._version_vigente(obj)
+        return version.denominacion if version else "-"
+
+    @admin.display(description="Código ARCA")
+    def codigo_arca(self, obj):
+        version = self._version_vigente(obj)
+        return version.codigo_arca if version else "-"
+
+    @admin.display(description="Categoría")
+    def categoria(self, obj):
+        version = self._version_vigente(obj)
+        return version.get_categoria_display() if version else "-"
+
+    @admin.display(description="Tipo")
+    def tipo(self, obj):
+        version = self._version_vigente(obj)
+        return version.get_tipo_display() if version else "-"
+
+    @admin.display(description="Unidad")
+    def unidad(self, obj):
+        version = self._version_vigente(obj)
+        return version.get_unidad_display() if version else "-"
+
+    @admin.display(description="Grupo")
+    def grupo(self, obj):
+        version = self._version_vigente(obj)
+        return version.grupo if version else "-"
+
+    @admin.display(description="Bases Imponibles")
+    def bases_imponibles(self, obj):
+        version = self._version_vigente(obj)
+
+        if not version:
+            return "-"
+
+        return ", ".join(
+            base.denominacion
+            for base in version.bases_imponibles.all()
+        ) or "-"
 
     # Por ahora el usuario no puede ver las versiones del concepto eliminado, para eso deberia restaurarlo primero
     def get_list_display_links(self, request, list_display):
@@ -215,36 +258,6 @@ class ConceptoAdmin(admin.ModelAdmin):
             else None
         )
 
-    @admin.display(description="Denominación")
-    def denominacion(self, obj):
-        version = self._version_vigente(obj)
-        return version.denominacion if version else "-"
-
-    @admin.display(description="Código ARCA")
-    def codigo_arca(self, obj):
-        version = self._version_vigente(obj)
-        return version.codigo_arca if version else "-"
-
-    @admin.display(description="Categoría")
-    def categoria(self, obj):
-        version = self._version_vigente(obj)
-        return version.get_categoria_display() if version else "-"
-
-    @admin.display(description="Tipo")
-    def tipo(self, obj):
-        version = self._version_vigente(obj)
-        return version.get_tipo_display() if version else "-"
-
-    @admin.display(description="Unidad")
-    def unidad(self, obj):
-        version = self._version_vigente(obj)
-        return version.get_unidad_display() if version else "-"
-
-    @admin.display(description="Grupo")
-    def grupo(self, obj):
-        version = self._version_vigente(obj)
-        return version.grupo if version else "-"
-
     def get_queryset(self, request):
         queryset = self.model.todos.all()
 
@@ -275,6 +288,7 @@ class ConceptoAdmin(admin.ModelAdmin):
             tipo=form.cleaned_data["tipo"],
             unidad=form.cleaned_data["unidad"],
             grupo=form.cleaned_data["grupo"],
+            bases_imponibles=form.cleaned_data["bases_imponibles"],
         )
 
     def delete_view(self, request, object_id, extra_context=None):

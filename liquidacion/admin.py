@@ -6,11 +6,12 @@ from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.urls import path
 from django.template.loader import render_to_string
 
+from base_imponible.models import ResultadoBaseImponible
 from concepto.models import VersionConcepto
 from plantilla_liquidacion.models import PlantillaLiquidacion
-from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion
+from .models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion, IDENTIFICADORES_LE
 from .forms import LiquidacionForm, LiquidacionEmpleadoInlineForm, LiquidacionEmpleadoInlineFormSet, \
-    DetalleLiquidacionForm, DetalleLiquidacionFormSet, LiquidacionEmpleadoForm
+    DetalleLiquidacionForm, DetalleLiquidacionFormSet, LiquidacionEmpleadoForm, ResultadoBaseImponibleInlineForm
 from .services.s_expresiones import LiquidacionEmpleadoService
 from .services.s_recibo import ReciboSueldoService
 
@@ -199,24 +200,58 @@ class DetalleLiquidacionInline(admin.TabularInline):
         )
 
 
+class ResultadoBaseImponibleInline(admin.TabularInline):
+    model = ResultadoBaseImponible
+    form = ResultadoBaseImponibleInlineForm
+
+    extra = 0
+    max_num = 0
+    can_delete = False
+
+    fields = ("base_imponible_display","importe")
+
+    readonly_fields = ("base_imponible_display",)
+
+    @admin.display(description="Base imponible")
+    def base_imponible_display(self, obj):
+        return obj.base_imponible
+
+
 @admin.register(LiquidacionEmpleado)
 class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
-    inlines = [DetalleLiquidacionInline]
+    inlines = [ResultadoBaseImponibleInline, DetalleLiquidacionInline]
     form = LiquidacionEmpleadoForm
 
-    fields = (
-        "liquidacion",
-        "empleado",
-        "banco_de_cobro",
-        "categoria",
-        "remunerativo_display",
-        "no_remunerativo_display",
-        "bruto_display",
-        "descuentos_display",
-        "neto_display",
-        "contribuciones_display",
-        "costo_laboral_display",
-        "observaciones"
+    fieldsets = (
+        (None, {
+            "fields": (
+                "liquidacion",
+                "empleado",
+                "banco_de_cobro",
+                "categoria",
+            ),
+        }),
+        ("Totales de liquidación", {
+            "classes": ("columnas-custom",),  # "totales-liquidacion",),
+            "fields": (
+                (
+                    "remunerativo_display",
+                    "bruto_display",
+                    "descuentos_display",
+                ),
+                (
+                    "no_remunerativo_display",
+                    "neto_display",
+                    "contribuciones_display",
+                ),
+                (
+                    "costo_laboral_display",
+                ),
+            ),
+        }),
+        ("Observaciones", {
+            "fields": ("observaciones",),
+        }),
     )
 
     readonly_fields = (
@@ -232,6 +267,69 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         "contribuciones_display",
         "costo_laboral_display",
     )
+
+    # @admin.display(
+    #     description=format_html(
+    #         '<span class="nombre-campo">Remunerativo:</span>'
+    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["remunerativo"]}</small>'
+    #     )
+    # )
+    # def remunerativo_display(self, obj):
+    #     return obj.remunerativo_display
+    #
+    # @admin.display(
+    #     description=format_html(
+    #         '<span class="nombre-campo">No Remunerativo:</span>'
+    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["no_remunerativo"]}</small>'
+    #     )
+    # )
+    # def no_remunerativo_display(self, obj):
+    #     return obj.no_remunerativo_display
+    #
+    # @admin.display(
+    #     description=format_html(
+    #         '<span class="nombre-campo">Bruto:</span>'
+    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["bruto"]}</small>'
+    #     )
+    # )
+    # def bruto_display(self, obj):
+    #     return obj.bruto_display
+    #
+    # @admin.display(
+    #     description=format_html(
+    #         '<span class="nombre-campo">Descuentos:</span>'
+    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["descuentos"]}</small>'
+    #     )
+    # )
+    # def descuentos_display(self, obj):
+    #     return obj.descuentos_display
+    #
+    # @admin.display(
+    #     description=format_html(
+    #         '<span class="nombre-campo">Neto:</span>'
+    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["neto"]}</small>'
+    #     )
+    # )
+    # def neto_display(self, obj):
+    #     return obj.neto_display
+    #
+    # @admin.display(
+    #     description=format_html(
+    #         '<span class="nombre-campo">Contribuciones:</span>'
+    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["contribuciones"]}</small>'
+    #     )
+    # )
+    # def contribuciones_display(self, obj):
+    #     return obj.contribuciones_display
+    #
+    # @admin.display(
+    #     description=format_html(
+    #         '<span class="nombre-campo">Costo Laboral:</span>'
+    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["costo_laboral"]}</small>'
+    #     )
+    # )
+    # def costo_laboral_display(self, obj):
+    #     return obj.costo_laboral_display
 
     change_form_template = "admin/liquidacion/change_form.html"
 

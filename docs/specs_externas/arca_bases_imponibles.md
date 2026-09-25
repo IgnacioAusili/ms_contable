@@ -1,3 +1,5 @@
+# Bases Imponibles - ARCA
+
 | Bases Imponibles | Cuenta |
 | --- | --- |
 | Remuneracion total | remuneracion bruta = remunerativo + no remunerativo |

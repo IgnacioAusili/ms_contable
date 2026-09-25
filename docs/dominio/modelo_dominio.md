@@ -24,6 +24,13 @@ classDiagram
         +denominacion
     }
 
+    class BaseImponible {
+        +denominacion
+        +identificador
+        +descripcion
+        +configurable
+    }
+
     class Concepto {
         +nombreLogico
         +activo
@@ -79,15 +86,6 @@ classDiagram
         +importe
     }
 
-    class BaseImponible {
-        +numero
-        +importe
-    }
-
-    class Detraccion {
-        +importe
-    }
-
     class CategoriaConcepto {
         <<enumeration>>
         TRABAJADOR
@@ -137,9 +135,8 @@ classDiagram
 
     DetalleLiquidacion "0..*" --> "0..*" DetalleLiquidacion : utiliza como referencia
 
-    LiquidacionEmpleado "1" --> "0..*" BaseImponible : determina
-    BaseImponible "0..1" --> "0..1" Detraccion : puede aplicar
-
+    LiquidacionEmpleado "0..*" --> "12" BaseImponible : determina
+    VersionConcepto "0..*" --> "0..9" BaseImponible : "contribuye a"
 
     VersionConcepto --> CategoriaConcepto : categoria
     VersionConcepto --> TipoConcepto : tipo

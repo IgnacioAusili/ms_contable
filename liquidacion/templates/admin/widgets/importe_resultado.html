@@ -1,0 +1,7 @@
+{% include "django/forms/widgets/input.html" %}
+
+{% if widget.attrs.data_sugerencias %}
+    <div class="sugerencias-importe">
+        {{ widget.attrs.data_sugerencias }}
+    </div>
+{% endif %}

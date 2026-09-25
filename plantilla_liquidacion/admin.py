@@ -4,6 +4,8 @@ from django.http import JsonResponse
 from django.urls import path, reverse
 from django.db.models import Prefetch
 from django.http import HttpResponseRedirect
+
+from base_imponible.models import BaseImponible
 from concepto.models import VersionConcepto, Concepto
 from liquidacion.models import DetalleLiquidacion
 from .models import PlantillaLiquidacion, DetallePlantillaLiquidacion
@@ -38,12 +40,14 @@ class DetallePlantillaLiquidacionInline(admin.TabularInline):
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
 
-        empresa = obj.empresa if obj else None
-
-        if empresa:
+        if obj:
+            empresa = obj.empresa
             formset.form.base_fields["concepto"].queryset = (
-                Concepto.objects
-                .filter(empresa=empresa)
+                Concepto.objects.filter(empresa=empresa)
+            )
+        else:
+            formset.form.base_fields["concepto"].queryset = (
+                Concepto.objects.none()
             )
 
         return formset
@@ -152,6 +156,27 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
     class Media:
         js = ("plantilla_liquidacion/admin/detalle_plantilla_liquidacion.js",)
 
+    def changeform_view(
+        self,
+        request,
+        object_id=None,
+        form_url="",
+        extra_context=None,
+    ):
+        extra_context = extra_context or {}
+
+        extra_context["bases_imponibles"] = (
+            BaseImponible.objects
+            .order_by("id")
+        )
+
+        return super().changeform_view(
+            request,
+            object_id,
+            form_url,
+            extra_context=extra_context,
+        )
+
     @admin.display(description="Duplicar")
     def duplicar(self, obj):
         url = reverse(
@@ -215,21 +240,19 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
         return custom + urls
 
     def concepto_detalles_view(self, request, concepto_id):
-        VersionConceptoModel = DetalleLiquidacion._meta.get_field("concepto").related_model
-
         try:
-            concepto = VersionConceptoModel.objects.get(pk=concepto_id)
-        except VersionConceptoModel.DoesNotExist:
+            version_concepto = Concepto.objects.get(pk=concepto_id).versiones.ultima()
+        except Exception:
             return JsonResponse(
                 {"identificador": "", "grupo": "", "tipo": "", "categoria": "", "unidad": "",}
             )
 
         return JsonResponse({
-            "identificador": concepto.identificador,
-            "grupo": concepto.grupo.denominacion if concepto.grupo else "",
-            "tipo": concepto.get_tipo_display(),
-            "categoria": concepto.get_categoria_display(),
-            "unidad": concepto.get_unidad_display(),
+            "identificador": version_concepto.identificador,
+            "grupo": version_concepto.grupo.denominacion if version_concepto.grupo else "",
+            "tipo": version_concepto.get_tipo_display(),
+            "categoria": version_concepto.get_categoria_display(),
+            "unidad": version_concepto.get_unidad_display(),
         })
 
     def duplicar_view(self, request, object_id):

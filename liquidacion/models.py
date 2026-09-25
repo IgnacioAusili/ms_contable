@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib import admin
+from django.utils.html import format_html
 from concepto.models import VersionConcepto
 from core.utils import format_decimal_2
 
@@ -98,6 +99,17 @@ class Liquidacion(models.Model):
 
     def __str__(self):
         return f"{self.periodo:%Y-%m} - {self.empresa}"
+
+
+IDENTIFICADORES_LE = {
+    "remunerativo": "remunerativo",
+    "no_remunerativo": "no_remunerativo",
+    "bruto": "bruto",
+    "neto": "neto",
+    "contribuciones": "contribuciones",
+    "descuentos": "descuentos",
+    "costo_laboral": "costo_laboral",
+}
 
 
 # Validar que si la liquidacion esta cerrada, esta por empleado tampoco se pueda modificar

@@ -126,7 +126,7 @@
         const data = await response.json();
 
         const managementForm = document.querySelector(
-            'input[name$="-TOTAL_FORMS"]',
+            'input[name="detalles-TOTAL_FORMS"]',
         );
 
         if (!managementForm) {

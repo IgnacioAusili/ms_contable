@@ -6,6 +6,10 @@ class ReferenciaInexistente(ErrorCalculoLiquidacion):
     pass
 
 
+class VersionConceptoNoLiquidada(ErrorCalculoLiquidacion):
+    pass
+
+
 class ReferenciaCiclica(ErrorCalculoLiquidacion):
     pass
 

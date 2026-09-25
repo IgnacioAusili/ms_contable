@@ -1,3 +1,56 @@
+.columnas-custom .form-row {
+    width: 100%;
+}
+
+.columnas-custom .form-multiline {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0 40px;
+    width: 100%;
+}
+
+.columnas-custom .form-multiline > div {
+    width: auto !important;
+    min-width: 0;
+    margin: 0;
+}
+
+.totales-liquidacion .fieldBox > label {
+    font-size: 0;
+}
+
+.totales-liquidacion .nombre-campo {
+    display: block;
+    font-size: 0.8125rem;
+}
+
+.totales-liquidacion .identificador-campo {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.5rem;
+    font-weight: normal;
+    color: var(--body-quiet-color);
+    font-family: monospace;
+}
+
+.totales-liquidacion .identificador-campo::before {
+    content: "identificador: ";
+}
+
+.sugerencias-importe {
+    margin-top: 4px;
+    font-size: 0.7rem;
+    color: var(--body-quiet-color);
+    user-select: text;
+}
+
+.importe-no-editable {
+    background-color: var(--darkened-bg) !important;
+    color: var(--body-quiet-color);
+    border-color: var(--border-color) !important;
+    cursor: not-allowed;
+}
+
 .detalles-table-wrapper {
     max-height: 700px;
     overflow-y: auto;

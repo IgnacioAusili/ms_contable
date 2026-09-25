@@ -3,6 +3,8 @@ from django.db.models import OuterRef, Subquery
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from decimal import Decimal
+
+from base_imponible.models import BaseImponible
 from concepto.utils import normalizar_identificador
 
 
@@ -157,6 +159,13 @@ class VersionConcepto(models.Model):
         "concepto.Concepto",
         on_delete=models.DO_NOTHING,  # soft delete
         related_name="versiones",
+    )
+
+    bases_imponibles = models.ManyToManyField(
+        BaseImponible,
+        null=False,
+        blank=True,
+        related_name="versiones_concepto",
     )
 
     grupo = models.ForeignKey(

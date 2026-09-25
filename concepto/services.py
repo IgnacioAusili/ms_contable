@@ -29,6 +29,7 @@ def actualizar_concepto(
     tipo,
     unidad,
     grupo,
+    bases_imponibles,
 ):
     version_actual = (
         VersionConcepto.objects
@@ -46,6 +47,7 @@ def actualizar_concepto(
             tipo=tipo,
             unidad=unidad,
             grupo=grupo,
+            bases_imponibles=bases_imponibles,
         )
 
     cambios = (
@@ -54,7 +56,9 @@ def actualizar_concepto(
         or version_actual.categoria != categoria
         or version_actual.tipo != tipo
         or version_actual.unidad != unidad
-        or version_actual.grupo_id != grupo.id
+        or version_actual.grupo_id != (grupo.id if grupo else None)
+        or set(version_actual.bases_imponibles.values_list("id", flat=True))
+           != {base.id for base in bases_imponibles}
     )
 
     if not cambios:
@@ -68,6 +72,7 @@ def actualizar_concepto(
         tipo=tipo,
         unidad=unidad,
         grupo=grupo,
+        bases_imponibles=bases_imponibles,
     )
 
 
@@ -80,6 +85,7 @@ def crear_version_concepto(
     tipo,
     unidad,
     grupo,
+    bases_imponibles,
 ):
     ultima_version = (
         VersionConcepto.objects
@@ -107,5 +113,7 @@ def crear_version_concepto(
 
     version.full_clean()
     version.save()
+
+    version.bases_imponibles.set(bases_imponibles)
 
     return version

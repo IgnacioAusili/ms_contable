@@ -22,6 +22,10 @@ erDiagram
     LIQUIDACION_EMPLEADO ||--|{ DETALLE_LIQUIDACION : contiene
     VERSION_CONCEPTO ||--o{ DETALLE_LIQUIDACION : aplicado
     
+    BASE_IMPONIBLE }o--o{ VERSION_CONCEPTO : "incluye (configurable = true)"
+    BASE_IMPONIBLE ||--o{ RESULTADO_BASE_IMPONIBLE : tiene
+    LIQUIDACION_EMPLEADO ||--o{ RESULTADO_BASE_IMPONIBLE : computa 
+
     EMPRESA {
         int id PK
         %% DJANGO BLANK: false 
@@ -55,6 +59,18 @@ erDiagram
         string denominacion "NOT_NULL"
     }
 
+    BASE_IMPONIBLE {
+        %% DJANGO BLANK: false 
+        string denominacion "NOT_NULL, UNIQUE"
+        %% DJANGO BLANK: false 
+        string identificador "NOT_NULL, UNIQUE"
+        %% DJANGO BLANK: true 
+        string descripcion "NOT_NULL"
+        %% DJANGO BLANK: false 
+        %% indica si la composición de la base puede configurarla el usuario asociando conceptos
+        bool configurable "NOT_NULL"
+    }
+
     CONCEPTO {
         int id PK
     }
@@ -86,7 +102,7 @@ erDiagram
         %% DJANGO CHOICES: trabajador, empleador
         CATEGORIA_CONCEPTO categoria "NOT_NULL"
         %% DJANGO BLANK: false 
-        %% DJANGO CHOICES: remunerativo, no remunerativo, descuento, redondeo, contribucion
+        %% DJANGO CHOICES: remunerativo, no remunerativo, descuento, contribucion
         TIPO_CONCEPTO tipo "NOT_NULL"
         %% DJANGO BLANK: false 
         %% DJANGO CHOICES: cantidad, porcentaje
@@ -126,7 +142,6 @@ erDiagram
         date fecha_pago "NOT_NULL"
         %% DJANGO BLANK: false 
         %% DJANGO CHOICES: borrador, cerrada
-        %% Reglas de Negocio: una vez cerrada no se puede modificar
         ESTADO_LIQUIDACION estado "NOT_NULL"
         %% snapshot de los datos maestros que son necesarios y que podrian cambiar
         string domicilio_empresa "NOT_NULL"
@@ -157,7 +172,11 @@ erDiagram
         string formula_base "NOT_NULL"
         %% puede estar expresado en terminos de otros conceptos
         decimal base "NOT_NULL"
-        %% DJANGO HELP_TEXT: unidades * base
+        %% importe calculado a partir de unidades, unidad y base
         decimal importe "NOT_NULL"
+    }
+
+    RESULTADO_BASE_IMPONIBLE {
+        decimal valor
     }
 ```
