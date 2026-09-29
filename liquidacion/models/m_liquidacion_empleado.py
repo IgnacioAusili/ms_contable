@@ -16,7 +16,6 @@ IDENTIFICADORES_LE = {
 }
 
 
-# TODO - Si la liquidacion esta cerrada, esta por empleado tampoco se puede modificar
 class LiquidacionEmpleado(models.Model):
     class UnidadTiempoTrabajado(models.TextChoices):
         D = "d", "Días"
@@ -322,6 +321,11 @@ class LiquidacionEmpleado(models.Model):
     def clean(self):
         super().clean()
 
+        if not self.liquidacion.editable():
+            raise ValidationError(
+                "Esta liquidación no se puede modificar."
+            )
+
         if (
             self.liquidacion_id
             and self.empleado_id
@@ -344,6 +348,11 @@ class LiquidacionEmpleado(models.Model):
             self.categoria = self.version_empleado.categoria_laboral.denominacion
             self.banco_de_cobro = self.version_empleado.banco_de_cobro
         else:
+            if not self.liquidacion.editable():
+                raise ValidationError(
+                    "Esta liquidación no se puede modificar."
+                )
+
             original = type(self).objects.get(pk=self.pk)
 
             if self.liquidacion_id != original.liquidacion_id:

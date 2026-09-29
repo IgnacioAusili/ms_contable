@@ -36,11 +36,17 @@ class Empresa(models.Model):
         if self.pk is not None:
             original = type(self).objects.get(pk=self.pk)
 
-            if self.cuit != original.cuit:
-                raise ValueError("El CUIT de una empresa es inmutable.")
+            immutable_fields = [
+                "cuit",
+                "nombre",
+                "tipo_empleador",
+            ]
 
-            if self.nombre != original.nombre:
-                raise ValueError("El nombre de una empresa es inmutable.")
+            for field in immutable_fields:
+                if getattr(self, field) != getattr(original, field):
+                    raise ValueError(
+                        f"El campo '{field}' de una empresa es inmutable."
+                    )
 
         super().save(*args, **kwargs)
 

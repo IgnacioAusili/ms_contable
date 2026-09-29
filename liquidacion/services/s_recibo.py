@@ -1,5 +1,7 @@
 from decimal import Decimal
 from num2words import num2words
+
+from concepto.choices import Categoria, Unidad, Tipo
 from concepto.models import VersionConcepto
 from liquidacion.models import LiquidacionEmpleado
 from liquidacion.services.GraficoCostoLaboralService import GraficoCostoLaboralService, ComposicionCostoLaboral
@@ -33,25 +35,25 @@ class ReciboSueldoService:
         remunerativos = [
             self._detalle_a_dict(detalle)
             for detalle in detalles
-            if detalle.concepto.tipo == VersionConcepto.Tipo.REMUNERATIVO
+            if detalle.concepto.tipo == Tipo.REMUNERATIVO
         ]
 
         no_remunerativos = [
             self._detalle_a_dict(detalle)
             for detalle in detalles
-            if detalle.concepto.tipo == VersionConcepto.Tipo.NO_REMUNERATIVO
+            if detalle.concepto.tipo == Tipo.NO_REMUNERATIVO
         ]
 
         descuentos = [
             self._detalle_a_dict(detalle)
             for detalle in detalles
-            if detalle.concepto.tipo == VersionConcepto.Tipo.DESCUENTO
+            if detalle.concepto.tipo == Tipo.DESCUENTO
         ]
 
         contribuciones = [
             self._detalle_a_dict(detalle)
             for detalle in detalles
-            if detalle.concepto.tipo == VersionConcepto.Tipo.CONTRIBUCION
+            if detalle.concepto.tipo == Tipo.CONTRIBUCION
         ]
 
         grafico_torta_svg = GraficoCostoLaboralService(
@@ -238,7 +240,7 @@ class ReciboSueldoService:
         resultado: dict[dict[str, Decimal]] = {}
 
         for detalle in detalles:
-            if detalle.concepto.tipo not in (VersionConcepto.Tipo.CONTRIBUCION, VersionConcepto.Tipo.DESCUENTO):
+            if detalle.concepto.tipo not in (Tipo.CONTRIBUCION, Tipo.DESCUENTO):
                 continue
 
             grupo = detalle.concepto.grupo
@@ -253,10 +255,7 @@ class ReciboSueldoService:
 
             resultado[codigo]["total"] += detalle.importe
 
-            if (
-                    detalle.concepto.categoria
-                    == VersionConcepto.Categoria.EMPLEADOR
-            ):
+            if detalle.concepto.categoria == Categoria.EMPLEADOR:
                 resultado[codigo]["empleador"] += detalle.importe
             else:
                 resultado[codigo]["trabajador"] += detalle.importe
@@ -265,7 +264,7 @@ class ReciboSueldoService:
 
     @staticmethod
     def _formatear_unidad(unidad, unidades):
-        return f"{unidades:.2f} {VersionConcepto.Unidad(unidad).sufijo}"
+        return f"{unidades:.2f} {Unidad(unidad).sufijo}"
 
     @staticmethod
     def _decimal_a_string(valor):

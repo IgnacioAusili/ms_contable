@@ -129,10 +129,16 @@ class LiquidacionAdmin(admin.ModelAdmin):
         "fecha_pago",
     )
 
-    readonly_fields = (
-        "empresa",
-        "estado",
-    )
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.pk:
+            return (
+                "estado",
+                "empresa",
+            )
+
+        return (
+            "estado",
+        )
 
     list_filter = ('empresa', 'estado',)
     list_select_related = ('empresa',)

@@ -1,15 +1,20 @@
+from datetime import date
 from django import forms
-
 from categoria_laboral.models import CategoriaLaboral
 from .choices import FormaPago
 from .models import Empleado, VersionEmpleado
+from .rules import validar_forma_pago_cbu
 
 
 class ReadOnlyDateWidget(forms.TextInput):
     def format_value(self, value):
         if value is None:
             return ""
-        return value.strftime("%d/%m/%Y")
+
+        if isinstance(value, date):
+            return value.strftime("%d/%m/%Y")
+
+        return value
 
     def __init__(self, attrs=None):
         attrs = attrs or {}
@@ -46,6 +51,8 @@ class EmpleadoAdminForm(forms.ModelForm):
     cbu = forms.CharField(
         label="CBU/CVU",
         max_length=VersionEmpleado._meta.get_field("cbu").max_length,
+        validators=VersionEmpleado._meta.get_field("cbu").validators,
+        required=False,
     )
 
     forma_de_pago = forms.ChoiceField(
@@ -71,6 +78,7 @@ class EmpleadoAdminForm(forms.ModelForm):
     codigo_obra_social = forms.CharField(
         label="Código de obra social",
         max_length=VersionEmpleado._meta.get_field("codigo_obra_social").max_length,
+        required=False,
     )
 
     class Meta:
@@ -164,3 +172,11 @@ class EmpleadoAdminForm(forms.ModelForm):
             self.initial.update({
                 "cantidad_hijos": 0,
             })
+
+    def clean(self):
+        cleaned_data = super().clean()
+        validar_forma_pago_cbu(
+            forma_de_pago=cleaned_data.get("forma_de_pago"),
+            cbu=cleaned_data.get("cbu"),
+        )
+        return cleaned_data

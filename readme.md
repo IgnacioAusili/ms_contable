@@ -69,6 +69,10 @@ Ver [modelo UML de casos de uso](./docs/casos_de_uso/00_modelo_uml.md) y sus def
 
 Ver [modelo UML del DER](./docs/dominio/der.md).
 
+## Estructura del Proyecto
+
+Ver [estructura del proyecto](./docs/specs_internas/estructura-py.md).
+
 ## Flujo general
 
 A grandes rasgos, el funcionamiento del sistema sigue el siguiente flujo:

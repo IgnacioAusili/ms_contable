@@ -1,8 +1,10 @@
 from django import forms
 
 from base_imponible.models import BaseImponible
+from .choices import Categoria, Tipo, Unidad
 from .models import Concepto, VersionConcepto
 from grupo_concepto.models import GrupoConcepto
+from .rules import validar_tipo_categoria
 
 
 class ConceptoAdminForm(forms.ModelForm):
@@ -30,12 +32,12 @@ class ConceptoAdminForm(forms.ModelForm):
 
     categoria = forms.ChoiceField(
         label="Categoría",
-        choices=VersionConcepto.Categoria.choices,
+        choices=Categoria.choices,
     )
 
     tipo = forms.ChoiceField(
         label="Tipo",
-        choices=VersionConcepto.Tipo.choices,
+        choices=Tipo.choices,
     )
 
     auto_seleccionar_bases = forms.BooleanField(
@@ -53,7 +55,7 @@ class ConceptoAdminForm(forms.ModelForm):
 
     unidad = forms.ChoiceField(
         label="Unidad",
-        choices=VersionConcepto.Unidad.choices,
+        choices=Unidad.choices,
     )
 
     class Meta:
@@ -96,3 +98,11 @@ class ConceptoAdminForm(forms.ModelForm):
                 })
         else:
             self.fields["auto_seleccionar_bases"].initial = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        validar_tipo_categoria(
+            tipo=cleaned_data.get("tipo"),
+            categoria=cleaned_data.get("categoria"),
+        )
+        return cleaned_data

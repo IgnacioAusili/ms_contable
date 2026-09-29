@@ -18,11 +18,6 @@ def actualizar_empleado(
     corresponde_reduccion,
     codigo_obra_social,
 ):
-    if categoria_laboral.empresa_id != empleado.empresa_id:
-        raise ValueError(
-            "La categoría laboral debe pertenecer a la empresa del empleado."
-        )
-
     version_actual = (
         VersionEmpleado.objects
         .filter(empleado=empleado)
@@ -53,7 +48,7 @@ def actualizar_empleado(
         or version_actual.cantidad_hijos != cantidad_hijos
         or version_actual.banco_de_cobro != banco_de_cobro
         or version_actual.cbu != cbu
-        or version_actual.forma_de_pago != forma_de_pago
+        or version_actual.forma_de_pago != int(forma_de_pago)
         or version_actual.cct != cct
         or version_actual.cobertura_scvo != cobertura_scvo
         or version_actual.corresponde_reduccion != corresponde_reduccion
@@ -100,11 +95,6 @@ def crear_version_empleado(
         .order_by("-version")
         .first()
     )
-
-    if empleado.dni not in empleado.cuil:
-        raise ValueError(
-            "El CUIL no se corresponde con el DNI."
-        )
 
     siguiente_version = (ultima_version.version + 1 if ultima_version else 1)
 

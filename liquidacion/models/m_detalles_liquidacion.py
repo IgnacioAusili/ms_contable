@@ -3,12 +3,13 @@ from datetime import date
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib import admin
+
+from concepto.choices import Unidad
 from concepto.models import VersionConcepto
 from core.utils import format_decimal_2
 from liquidacion.choices import UnidadesLsd, DebitoCredito
 
 
-# TODO - Validar que si la liquidacion esta cerrada, este detalle tampoco se pueda modificar
 class DetalleLiquidacion(models.Model):
     id = models.BigAutoField(
         primary_key=True,
@@ -109,6 +110,11 @@ class DetalleLiquidacion(models.Model):
     def clean(self):
         super().clean()
 
+        if not self.liquidacion_empleado.liquidacion.editable():
+            raise ValidationError(
+                "Esta liquidación no se puede modificar."
+            )
+
         if (
             self.liquidacion_empleado_id
             and self.concepto_id
@@ -118,7 +124,7 @@ class DetalleLiquidacion(models.Model):
                 "El concepto asociado no pertenece a la empresa de la liquidación."
             )
 
-        unidad = VersionConcepto.Unidad(self.concepto.unidad)
+        unidad = Unidad(self.concepto.unidad)
         if not unidad.constraint(self.unidades):
             raise ValidationError({
                 "unidades": (
@@ -129,6 +135,11 @@ class DetalleLiquidacion(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk is not None:
+            if not self.liquidacion_empleado.liquidacion.editable():
+                raise ValidationError(
+                    "Esta liquidación no se puede modificar."
+                )
+
             original = type(self).objects.get(pk=self.pk)
 
             if self.liquidacion_empleado_id != original.liquidacion_empleado_id:

@@ -6,6 +6,7 @@ from django.db.models import Prefetch
 from django.http import HttpResponseRedirect
 
 from base_imponible.models import BaseImponible
+from concepto.choices import Unidad
 from concepto.models import VersionConcepto, Concepto
 from .models import PlantillaLiquidacion, DetallePlantillaLiquidacion
 from .forms import DetallePlantillaLiquidacionForm
@@ -99,7 +100,7 @@ class DetallePlantillaLiquidacionInline(admin.StackedInline):
         version = self.version_vigente(obj)
 
         if version:
-            unidad = VersionConcepto.Unidad(version.unidad)
+            unidad = Unidad(version.unidad)
             nombre = unidad.label
             descripcion = unidad.descripcion
 

@@ -4,9 +4,8 @@ from django.utils import timezone
 
 def no_fecha_futura(value):
     if value > timezone.localdate():
-        raise ValidationError(
-            "La fecha de ingreso no puede ser futura."
-        )
+        raise ValidationError("La fecha de ingreso no puede ser futura.")
+
 
 def es_dni_valido(value):
     if value is None:
@@ -19,9 +18,7 @@ def es_dni_valido(value):
 
 def validar_dni(value):
     if not es_dni_valido(value):
-        raise ValidationError(
-            "El DNI debe contener entre 7 y 8 dígitos."
-        )
+        raise ValidationError("El DNI debe contener entre 7 y 8 dígitos.")
 
 
 def es_cuit_valido(value):
@@ -30,9 +27,7 @@ def es_cuit_valido(value):
 
 def validar_cuit(value):
     if not es_cuit_valido(value):
-        raise ValidationError(
-            "El CUIT no es válido."
-        )
+        raise ValidationError("El CUIT no es válido.")
 
 
 def es_cuil_valido(value):
@@ -74,10 +69,8 @@ def validar_cuil(value):
 
 
 def validar_cbu(cbu: str) -> bool:  # tmb sirve para cvu's
-    return (
-        cbu_digito_verificador_1_valido(cbu) and
-        cbu_digito_verificador_2_valido(cbu)
-    )
+    if not cbu_digito_verificador_1_valido(cbu) or not cbu_digito_verificador_2_valido(cbu):
+        raise ValidationError("El CBU no es válido.")
 
 
 def cbu_digito_verificador_1_valido(cbu: str) -> bool:

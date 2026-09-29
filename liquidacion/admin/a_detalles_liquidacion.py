@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
+
+from concepto.choices import Unidad
 from concepto.models import VersionConcepto
 from ..models.m_detalles_liquidacion import DetalleLiquidacion
 from ..forms.f_detalles_liquidacion import DetalleLiquidacionForm, DetalleLiquidacionFormSet
@@ -80,7 +82,7 @@ class DetalleLiquidacionInline(admin.StackedInline):
 
         if obj and obj.pk and obj.concepto_id:
             nombre = obj.concepto.get_unidad_display()
-            descripcion = VersionConcepto.Unidad(obj.concepto.unidad).descripcion
+            descripcion = Unidad(obj.concepto.unidad).descripcion
 
         return format_html(
             '<span class="unidad-display" title="{}">{}</span>',

@@ -178,6 +178,7 @@
                 Rectificar
             </button>
         {% endif %}
+            {% if original %}
             <button
                 type="button"
                 class="botones-custom txt-button"
@@ -187,13 +188,14 @@
             >
                 Generar TXT
             </button>
+            {% endif %}
     {% endif %}
 
-        {% if change and has_delete_permission and not is_popup and liq_editable %}
-            {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
-            <a href="{% add_preserved_filters delete_url %}" class="deletelink">
-                Eliminar
-            </a>
-        {% endif %}
+    {% if change and has_delete_permission and not is_popup and liq_editable %}
+        {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
+        <a href="{% add_preserved_filters delete_url %}" class="deletelink">
+            Eliminar
+        </a>
+    {% endif %}
     </div>
 {% endblock %}

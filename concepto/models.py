@@ -1,10 +1,9 @@
 from django.db import models, transaction
 from django.db.models import OuterRef, Subquery
 from django.core.validators import MinValueValidator, RegexValidator
-from django.core.exceptions import ValidationError
-from decimal import Decimal
-
 from base_imponible.models import BaseImponible
+from concepto.choices import Categoria, Tipo, Unidad
+from concepto.rules import validar_tipo_categoria
 from core.utils import normalizar_identificador
 
 
@@ -73,7 +72,7 @@ class Concepto(models.Model):
         return super().delete()
 
     def __str__(self):
-        return self.versiones.ultima().denominacion
+        return VersionConcepto.todos.filter(concepto=self).ultima().denominacion
 
 
 class VersionConceptoQuerySet(models.QuerySet):
@@ -107,49 +106,6 @@ class VersionConceptoManager(models.Manager.from_queryset(VersionConceptoQuerySe
 class VersionConcepto(models.Model):
     objects = VersionConceptoManager()
     todos = VersionConceptoQuerySet.as_manager()
-
-    class Categoria(models.TextChoices):
-        TRABAJADOR = "trabajador", "Trabajador"
-        EMPLEADOR = "empleador", "Empleador"
-
-    class Tipo(models.TextChoices):
-        REMUNERATIVO = "remunerativo", "Remunerativo"
-        NO_REMUNERATIVO = "no_remunerativo", "No remunerativo"
-        DESCUENTO = "descuento", "Descuento"
-        CONTRIBUCION = "contribucion", "Contribución"
-
-    class Unidad(models.TextChoices):
-        CANTIDAD = "cantidad", "Cantidad"
-        PORCENTAJE = "porcentaje", "Porcentaje"
-
-        @property
-        def descripcion(self):
-            return {
-                self.CANTIDAD: "Numeros reales.",
-                self.PORCENTAJE: "Numeros reales del 0 al 100.",
-            }[self]
-
-        @property
-        def constraint(self):
-            return {
-                self.CANTIDAD: lambda valor: isinstance(valor, Decimal),
-                self.PORCENTAJE: lambda valor: isinstance(valor, Decimal) and 0 <= valor <= 100,
-            }[self]
-
-        @property
-        def sufijo(self):
-            return {
-                self.CANTIDAD: "",
-                self.PORCENTAJE: "%",
-            }[self]
-
-        def calcular_importe(self, unidades, base):
-            if self == self.CANTIDAD:
-                return base * unidades
-            if self == self.PORCENTAJE:
-                return base * unidades / 100
-
-            raise ValueError(f"Unidad no soportada: {self}")
 
     id = models.BigAutoField(
         primary_key=True,
@@ -242,21 +198,7 @@ class VersionConcepto(models.Model):
     def clean(self):
         super().clean()
 
-        if self.tipo == self.Tipo.CONTRIBUCION:
-            if self.categoria != self.Categoria.EMPLEADOR:
-                raise ValidationError({
-                    "categoria": (
-                        "Los conceptos de tipo contribución "
-                        "deben corresponder a la categoría empleador."
-                    )
-                })
-        elif self.categoria != self.Categoria.TRABAJADOR:
-            raise ValidationError({
-                "categoria": (
-                    "Los conceptos que no son contribuciones "
-                    "deben corresponder a la categoría trabajador."
-                )
-            })
+        validar_tipo_categoria(tipo=self.tipo, categoria=self.categoria)
 
     def save(self, *args, **kwargs):
         if self.pk is None:

@@ -172,8 +172,7 @@ class ValidadorRegistro02:
         if len(cbu) != 22:
             raise Exception("El CBU debe tener 22 dígitos.")
 
-        if not validar_cbu(cbu):
-            raise Exception("El CBU es invalido.")
+        validar_cbu(cbu)
 
     def _validar_cantidad_dias_tope(self):
         cantidad_dias_tope = self.datos.cantidad_dias_tope

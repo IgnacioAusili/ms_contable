@@ -4,9 +4,10 @@ from django.db.models import Prefetch
 import ast, operator
 from simpleeval import SimpleEval
 from base_imponible.models import ResultadoBaseImponible
+from concepto.choices import Tipo, Unidad
 from liquidacion.models import LiquidacionEmpleado, DetalleLiquidacion
 from ..validators.v_expresiones import preparar_formula
-from ..exceptions import ReferenciaInexistente, ReferenciaCiclica, VersionConceptoNoLiquidada
+from ..exceptions import ReferenciaInexistente, ReferenciaCiclica
 from concepto.models import VersionConcepto
 
 
@@ -112,10 +113,10 @@ class LiquidacionEmpleadoService:
         detalles = self.detalles.values()
 
         subtotales = {
-            VersionConcepto.Tipo.REMUNERATIVO: Decimal("0"),
-            VersionConcepto.Tipo.NO_REMUNERATIVO: Decimal("0"),
-            VersionConcepto.Tipo.DESCUENTO: Decimal("0"),
-            VersionConcepto.Tipo.CONTRIBUCION: Decimal("0"),
+            Tipo.REMUNERATIVO: Decimal("0"),
+            Tipo.NO_REMUNERATIVO: Decimal("0"),
+            Tipo.DESCUENTO: Decimal("0"),
+            Tipo.CONTRIBUCION: Decimal("0"),
         }
 
         for detalle in detalles:
@@ -129,16 +130,16 @@ class LiquidacionEmpleadoService:
             subtotales[tipo] += detalle.importe
 
         remunerativo = subtotales[
-            VersionConcepto.Tipo.REMUNERATIVO
+            Tipo.REMUNERATIVO
         ]
         no_remunerativo = subtotales[
-            VersionConcepto.Tipo.NO_REMUNERATIVO
+            Tipo.NO_REMUNERATIVO
         ]
         descuentos = subtotales[
-            VersionConcepto.Tipo.DESCUENTO
+            Tipo.DESCUENTO
         ]
         contribuciones = subtotales[
-            VersionConcepto.Tipo.CONTRIBUCION
+            Tipo.CONTRIBUCION
         ]
 
         remuneracion_bruta = self.obtener_valor_base_imponible("remuneracion_total")
@@ -227,7 +228,7 @@ class LiquidacionEmpleadoService:
         base = self.evaluar_formula(detalle.formula_base)
         detalle.base = base
 
-        unidad = VersionConcepto.Unidad(detalle.concepto.unidad)
+        unidad = Unidad(detalle.concepto.unidad)
         importe = unidad.calcular_importe(
             detalle.unidades,
             base,
@@ -279,8 +280,8 @@ class LiquidacionEmpleadoService:
 
         for nodo, detalle in self.detalles.items():
             if detalle.concepto.tipo in (
-                    VersionConcepto.Tipo.REMUNERATIVO,
-                    VersionConcepto.Tipo.NO_REMUNERATIVO,
+                    Tipo.REMUNERATIVO,
+                    Tipo.NO_REMUNERATIVO,
             ):
                 try:
                     importe += self.importes[nodo]
@@ -570,8 +571,8 @@ def obtener_grafo_referencias(
         if identificador_base == "remuneracion_total":
             for nodo_detalle, detalle in detalles.items():
                 if detalle.concepto.tipo in (
-                        VersionConcepto.Tipo.REMUNERATIVO,
-                        VersionConcepto.Tipo.NO_REMUNERATIVO,
+                        Tipo.REMUNERATIVO,
+                        Tipo.NO_REMUNERATIVO,
                 ):
                     grafo[nodo].append(nodo_detalle)
 

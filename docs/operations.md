@@ -16,6 +16,9 @@ Deberia haber, como maximo, una migracion por cada version que se lanza. \
 
 - Generar imagen Docker y subirla a [Dockerhub](https://hub.docker.com/repository/docker/matiasschulz/ms_contable/tags)
     - El dockerfile deberia ejecutar todos los tests
+    - DEBUG = False
+    - python manage.py collectstatic
+    - python manage.py runserver  --insecure
 
 - Generar Tag con la version en el repositorio de Github
 
@@ -42,4 +45,5 @@ python manage.py runserver
 python manage.py squashmigrations {app_name} {start_migration} {end_migration}
 python manage.py shell; # importlib
 python manage.py test
+python manage.py collectstatic
 ```

@@ -6,6 +6,7 @@ from core.utils import format_cuil
 from core.validators import validar_dni, validar_cuil, no_fecha_futura, validar_cbu
 from django.core.exceptions import ValidationError
 from empleado.choices import FormaPago
+from empleado.rules import validar_forma_pago_cbu, validar_dni_cuil
 
 
 class Empleado(models.Model):
@@ -68,7 +69,15 @@ class Empleado(models.Model):
                 fields=["empresa", "legajo"],
                 name="unique_legajo_por_empresa",
             ),
+            models.UniqueConstraint(
+                fields=["empresa", "dni"],
+                name="unique_dni_por_empresa",
+            ),
         ]
+
+    def clean(self):
+        super().clean()
+        validar_dni_cuil(dni=self.dni, cuil=self.cuil)
 
     def save(self, *args, **kwargs):
         if self.pk is not None:
@@ -181,7 +190,7 @@ class VersionEmpleado(models.Model):
         max_length=22,
         null=False,
         blank=True,
-        validators=[validar_cbu]
+        validators=[validar_cbu, ]
     )
 
     forma_de_pago = models.IntegerField(
@@ -222,6 +231,8 @@ class VersionEmpleado(models.Model):
             raise ValidationError(
                 "La cateogoria laboral asociada no pertenece a la misma empresa que este empleado."
             )
+
+        validar_forma_pago_cbu(forma_de_pago=self.forma_de_pago, cbu=self.cbu)
 
     def save(self, *args, **kwargs):
         if self.pk is None:

@@ -1,7 +1,6 @@
 class ConceptoEnUsoEnLiquidacionAbierta(Exception):
     default_message = (
-        "No se puede eliminar el concepto porque está siendo "
-        "utilizado en una liquidación abierta."
+        "No se puede eliminar el concepto porque está siendo utilizado en una liquidación abierta."
     )
 
     def __init__(self, message=None):
