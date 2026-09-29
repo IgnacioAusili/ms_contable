@@ -93,8 +93,8 @@ class DetalleLiquidacion(models.Model):
     )
 
     periodo_ajuste_retroactivo = models.DateField(
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
     )
 
     @property
@@ -156,4 +156,4 @@ class DetalleLiquidacion(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"identificador: {self.concepto.identificador}"
+        return f"identificador: {self.concepto.identificador_version}"

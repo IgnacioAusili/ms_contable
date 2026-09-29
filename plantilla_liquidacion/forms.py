@@ -1,8 +1,5 @@
 from django import forms
-from django.forms.models import BaseInlineFormSet
-from django.db.models import OuterRef, Subquery
 from .models import DetallePlantillaLiquidacion
-from concepto.models import VersionConcepto
 
 
 class DetallePlantillaLiquidacionForm(forms.ModelForm):

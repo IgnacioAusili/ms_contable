@@ -88,4 +88,4 @@ class DetallePlantillaLiquidacion(models.Model):
             )
 
     def __str__(self):
-        return f"identificador: {self.concepto.versiones.ultima().identificador}"
+        return f"identificador: {self.concepto.versiones.ultima().identificador_concepto}"

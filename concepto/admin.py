@@ -132,10 +132,20 @@ class VersionConceptoInline(admin.TabularInline):
         "codigo_arca",
         "categoria",
         "tipo",
+        "bases_imponibles_version",
         "unidad",
     )
 
     readonly_fields = fields
+
+    @admin.display(description="Bases Imponibles")
+    def bases_imponibles_version(self, obj):
+        resultado = ", ".join(
+            base.denominacion
+            for base in obj.bases_imponibles.all()
+        ) or "-"
+
+        return resultado.replace("Remuneración ", "R")
 
     def get_queryset(self, request):
         return super().get_queryset(request).order_by("-version")
@@ -160,6 +170,9 @@ class ConceptoAdmin(admin.ModelAdmin):
     list_filter = (CategoriaFilter,GrupoFilter,TipoFilter,EliminadosFilter,'empresa')
     preserve_filters = True
     ordering = ('empresa',)
+
+    class Media:
+        js = ("concepto/admin/concepto_admin.js",)
 
     @admin.display(description="Denominación")
     def denominacion(self, obj):

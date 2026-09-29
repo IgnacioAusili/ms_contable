@@ -7,7 +7,6 @@ from django.http import HttpResponseRedirect
 
 from base_imponible.models import BaseImponible
 from concepto.models import VersionConcepto, Concepto
-from liquidacion.models import DetalleLiquidacion
 from .models import PlantillaLiquidacion, DetallePlantillaLiquidacion
 from .forms import DetallePlantillaLiquidacionForm
 
@@ -248,7 +247,7 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
             )
 
         return JsonResponse({
-            "identificador": version_concepto.identificador,
+            "identificador": version_concepto.identificador_concepto,
             "grupo": version_concepto.grupo.denominacion if version_concepto.grupo else "",
             "tipo": version_concepto.get_tipo_display(),
             "categoria": version_concepto.get_categoria_display(),

@@ -3,7 +3,6 @@ from django.db import transaction
 from django.db.models import Prefetch
 import ast, operator
 from simpleeval import SimpleEval
-
 from base_imponible.models import ResultadoBaseImponible
 from liquidacion.models import LiquidacionEmpleado, DetalleLiquidacion
 from ..validators.v_expresiones import preparar_formula
@@ -48,24 +47,17 @@ class LiquidacionEmpleadoService:
         """
         detalles = (
             DetalleLiquidacion.objects
-            .filter(
-                liquidacion_empleado=self.liquidacion_empleado,
-            )
+            .filter(liquidacion_empleado=self.liquidacion_empleado,)
             .select_related("concepto")
         )
 
         empresa_id = self.liquidacion_empleado.liquidacion.empresa_id
 
-        versiones = (
-            VersionConcepto.todos
-            .filter(concepto__empresa_id=empresa_id)
-        )
+        versiones = VersionConcepto.todos.filter(concepto__empresa_id=empresa_id)
 
         resultados_bases = (
             ResultadoBaseImponible.objects
-            .filter(
-                liquidacion_empleado=self.liquidacion_empleado,
-            )
+            .filter(liquidacion_empleado=self.liquidacion_empleado,)
             .select_related("base_imponible")
             .prefetch_related(
                 Prefetch(
@@ -88,16 +80,10 @@ class LiquidacionEmpleadoService:
         self.nodos_por_identificador = {}
 
         for nodo, detalle in self.detalles.items():
-            self._registrar_nodo(
-                detalle.concepto.identificador,
-                nodo,
-            )
+            self._registrar_nodo(detalle.concepto.identificador_version, nodo,)
 
         for nodo, resultado_base in self.resultados_bases.items():
-            self._registrar_nodo(
-                resultado_base.base_imponible.identificador,
-                nodo,
-            )
+            self._registrar_nodo(resultado_base.base_imponible.identificador, nodo,)
 
     def _registrar_nodo(self, identificador, nodo):
         """
@@ -300,7 +286,7 @@ class LiquidacionEmpleadoService:
                     importe += self.importes[nodo]
                 except KeyError:
                     raise RuntimeError(
-                        f"El detalle '{detalle.concepto.identificador}' "
+                        f"El detalle '{detalle.concepto.identificador_version}' "
                         "todavía no fue calculado."
                     )
 
@@ -343,20 +329,16 @@ class LiquidacionEmpleadoService:
         importe = Decimal("0")
 
         for version in versiones:
-            nodo = self.nodos_por_identificador.get(
-                version.identificador
-            )
+            nodo = self.nodos_por_identificador.get(version.identificador_version)
 
-            if nodo is None:
-                raise VersionConceptoNoLiquidada()
-
-            try:
-                importe += self.importes[nodo]
-            except KeyError:
-                raise RuntimeError(
-                    f"El nodo '{version.identificador}' "
-                    "todavía no fue calculado."
-                )
+            if nodo:
+                try:
+                    importe += self.importes[nodo]
+                except KeyError:
+                    raise RuntimeError(
+                        f"El nodo '{version.identificador_version}' "
+                        "todavía no fue calculado."
+                    )
 
         return importe
 
@@ -502,13 +484,6 @@ def obtener_orden_calculo(grafo):
     for nodo in grafo:
         visitar(nodo)
 
-
-    print("")
-    print("")
-    print("=================================================================================")
-    print("===========================orden===========================")
-    print("=================================================================================")
-    print(orden)
     return orden
 
 
@@ -563,40 +538,28 @@ def obtener_grafo_referencias(
     }
 
     for nodo, detalle in detalles.items():
-        formula_normalizada = normalizar_formula(
-            detalle.formula_base
-        )
-        identificadores = obtener_identificadores(
-            formula_normalizada
-        )
+        formula_normalizada = normalizar_formula(detalle.formula_base)
+
+        identificadores = obtener_identificadores(formula_normalizada)
 
         for identificador in identificadores:
             try:
-                nodo_referenciado = nodos_por_identificador[
-                    identificador
-                ]
+                nodo_referenciado = nodos_por_identificador[identificador]
             except KeyError:
                 raise ReferenciaInexistente(identificador)
 
             grafo[nodo].append(nodo_referenciado)
 
     for nodo, resultado_base in resultados_bases.items():
-        identificador_base = (
-            resultado_base.base_imponible.identificador
-        )
+        identificador_base = resultado_base.base_imponible.identificador
 
         if identificador_base == "detracciones":
             continue
 
         if identificador_base == "remuneracion_10":
-            for identificador in (
-                    "remuneracion_2",
-                    "detracciones",
-            ):
+            for identificador in ("remuneracion_2", "detracciones",):
                 try:
-                    nodo_referenciado = nodos_por_identificador[
-                        identificador
-                    ]
+                    nodo_referenciado = nodos_por_identificador[identificador]
                 except KeyError:
                     raise ReferenciaInexistente(identificador)
 
@@ -614,39 +577,26 @@ def obtener_grafo_referencias(
 
             continue
 
-        versiones = (
-            resultado_base.base_imponible
-            .versiones_concepto
-            .all()
-        )
+        # todas las versiones de concepto que el usuario marco para que computen como parte del resultado_base
+        versiones = resultado_base.base_imponible.versiones_concepto.all()
 
-        # Una base sin conceptos no tiene dependencias.
+        # Una base sin conceptos asociados no tiene dependencias.
         if not versiones:
             continue
 
         versiones_por_concepto = {}
 
         for version in versiones:
-            versiones_por_concepto.setdefault(
-                version.concepto_id,
-                []
-            ).append(version)
+            versiones_por_concepto.setdefault(version.concepto_id, []).append(version)
 
         for versiones_concepto in versiones_por_concepto.values():
-            nodo_referenciado = None
-
             for version in versiones_concepto:
-                nodo_referenciado = nodos_por_identificador.get(
-                    version.identificador
-                )
+                nodo_referenciado = nodos_por_identificador.get(version.identificador_version)
 
                 if nodo_referenciado is not None:
-                    break
-
-            if nodo_referenciado is None:
-                raise VersionConceptoNoLiquidada()
-
-            grafo[nodo].append(nodo_referenciado)
+                    # agregar los detalles de liquidacion y bases que seran dependencias para poder calcular
+                    # la base en cuestion
+                    grafo[nodo].append(nodo_referenciado)
 
     return grafo
 

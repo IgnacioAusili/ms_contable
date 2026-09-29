@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 
 from base_imponible.models import ResultadoBaseImponible
 from plantilla_liquidacion.models import PlantillaLiquidacion
+from plantilla_liquidacion.services import PlantillaLiquidacionService
 from .a_detalles_liquidacion import DetalleLiquidacionInline
 from ..models import TramoSituacionRevista
 from ..models.m_liquidacion_empleado import LiquidacionEmpleado
@@ -270,11 +271,13 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             pk=plantilla_id,
         )
 
+        plantilla_service = PlantillaLiquidacionService(plantilla.empresa)
+
         detalles = [
             {
                 "concepto": detalle.concepto.versiones.ultima().id,
                 "unidades": str(detalle.unidades),
-                "formula_base": detalle.formula_base,
+                "formula_base": plantilla_service.reemplazar_identificadores_formula(detalle.formula_base),
             }
             for detalle in plantilla.detalles.all()
         ]
@@ -292,7 +295,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             )
 
         return JsonResponse({
-            "identificador": concepto.identificador,
+            "identificador": concepto.identificador_version,
             "grupo": concepto.grupo.denominacion if concepto.grupo else "",
             "tipo": concepto.get_tipo_display(),
             "categoria": concepto.get_categoria_display(),

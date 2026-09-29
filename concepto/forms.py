@@ -38,6 +38,11 @@ class ConceptoAdminForm(forms.ModelForm):
         choices=VersionConcepto.Tipo.choices,
     )
 
+    auto_seleccionar_bases = forms.BooleanField(
+        label="Seleccionar bases imponibles automáticamente",
+        required=False,
+    )
+
     bases_imponibles = forms.ModelMultipleChoiceField(
         label="Bases imponibles",
         queryset=BaseImponible.objects.filter(configurable=True),
@@ -60,6 +65,7 @@ class ConceptoAdminForm(forms.ModelForm):
             "codigo_arca",
             "categoria",
             "tipo",
+            "auto_seleccionar_bases",
             "bases_imponibles",
             "unidad",
         ]
@@ -69,6 +75,7 @@ class ConceptoAdminForm(forms.ModelForm):
 
         if self.instance and self.instance.pk:
             self.fields["empresa"].disabled = True
+            self.fields["auto_seleccionar_bases"].initial = False
 
             version = (
                 VersionConcepto.objects
@@ -87,3 +94,5 @@ class ConceptoAdminForm(forms.ModelForm):
                     "grupo": version.grupo,
                     "bases_imponibles": version.bases_imponibles.all(),
                 })
+        else:
+            self.fields["auto_seleccionar_bases"].initial = True

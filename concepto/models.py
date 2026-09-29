@@ -223,7 +223,11 @@ class VersionConcepto(models.Model):
     )
 
     @property
-    def identificador(self):
+    def identificador_concepto(self):
+        return f"{normalizar_identificador(self.denominacion)}_{self.concepto_id}"
+
+    @property
+    def identificador_version(self):
         return f"{normalizar_identificador(self.denominacion)}_{self.id}"
 
     class Meta:
@@ -256,12 +260,15 @@ class VersionConcepto(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk is None:
+            self.version = 1
+
             ultima_version = (
                 type(self).objects.filter(concepto=self.concepto)
                 .ultima()
             )
 
-            self.version = (ultima_version or 0) + 1
+            if ultima_version:
+                self.version = (ultima_version.version or 0) + 1
         else:
             raise ValueError(
                 "Esta entidad no es editable."
