@@ -1,20 +1,10 @@
 from dataclasses import dataclass
 from typing import ClassVar
-from enum import IntEnum
 from decimal import Decimal
 
 from core.validators import validar_cuil
+from empresa.choices import TipoEmpleador
 from liquidacion.lsd.utils import validar_datos_obligatorios_dataclass
-
-
-class TipoEmpleador(IntEnum):
-    ADMINISTRACION_PUBLICA = 0
-    D81401_ART2_INCB = 1
-    SERVICIOS_EVENTUALES_ART2_INCB = 2
-    D81401_ART2_INCA = 4
-    SERVICIOS_EVENTUALES_ART2_INCA = 5
-    ENSENIANZA_PRIVADA = 7
-    D121203_AFA_CLUBES = 8
 
 
 @dataclass
@@ -23,15 +13,13 @@ class DatosRegistro04:
     TIPO_REGISTRO: ClassVar[str] = "04"
     CODIGO_TIPO_OPERACION: ClassVar[bool] = False
     cuil_trabajador: str  # 11 enteros
-    tipo_empleador: TipoEmpleador
+    tipo_empleador: str
     codigo_situacion_revista: str  # Longitud 2
     codigo_condicion: str  # Longitud 2
     codigo_actividad: str  # Longitud 3
     codigo_modalidad_contratacion: str  # Longitud 3
     codigo_siniestrado: str  # Longitud 2
     codigo_localidad: str  # Longitud 2
-    codigo_situacion_revista_1: str  # Longitud 2
-    dia_inicio_situacion_revista_1: int  # Longitud 2
     codigo_obra_social: str  # Longitud 6
     remuneracion_bruta: Decimal  # Longitud 15. 13 enteros, 2 decimales
     base_imponible_1: Decimal  # Longitud 15. 13 enteros, 2 decimales
@@ -45,6 +33,8 @@ class DatosRegistro04:
     base_imponible_9: Decimal  # Longitud 15. 13 enteros, 2 decimales
     base_imponible_10: Decimal  # Longitud 15. 13 enteros, 2 decimales
     detracciones: Decimal  # Longitud 15. 13 enteros, 2 decimales
+    codigo_situacion_revista_1: str | None  # Longitud 2
+    dia_inicio_situacion_revista_1: int | None  # Longitud 2
     conyuge: bool | None
     marca_cct: bool | None
     marca_scvo: bool | None
@@ -90,7 +80,7 @@ class GeneradorRegistro04:
             f"{self.formateador.bools_formateados(self.datos.marca_cct)}"
             f"{self.formateador.bools_formateados(self.datos.marca_scvo)}"
             f"{self.formateador.bools_formateados(self.datos.marca_reduccion)}"
-            f"{self.datos.tipo_empleador.value}"
+            f"{self.datos.tipo_empleador}"
             f"{self.formateador.bools_formateados(self.datos.CODIGO_TIPO_OPERACION)}"
             f"{self.formateador.formateado_como_entero(self.datos.codigo_situacion_revista, 2)}"
             f"{self.formateador.formateado_como_string(self.datos.codigo_condicion, 2)}"
@@ -193,6 +183,7 @@ class ValidadorRegistro04:
     def validar(self):
         validar_datos_obligatorios_dataclass(self.datos)
         self._validar_cuil()
+        self._validar_tipo_empleador()
         self._validar_codigos_longitud()
         self._validar_numeros_decimales()
         self._validar_dia_inicio_situaciones_revista()
@@ -210,6 +201,14 @@ class ValidadorRegistro04:
 
         validar_cuil(cuil)
 
+    def _validar_tipo_empleador(self):
+        tipo_empleador = self.datos.tipo_empleador
+
+        if tipo_empleador not in TipoEmpleador.values:
+            raise Exception(
+                f"El tipo de empleador {tipo_empleador} no es válido."
+            )
+
     def _validar_codigos_longitud(self):
         codigos = [
             ("Codigo de situacion de revista", self.datos.codigo_situacion_revista, True, 2),
@@ -218,15 +217,20 @@ class ValidadorRegistro04:
             ("Codigo de modalidad de contratacion", self.datos.codigo_modalidad_contratacion, True, 3),
             ("Codigo de siniestrado", self.datos.codigo_siniestrado, True, 2),
             ("Codigo de localidad", self.datos.codigo_localidad, True, 2),
-            ("Codigo de situacion de revista 1", self.datos.codigo_situacion_revista_1, True, 2),
+            ("Codigo de situacion de revista 1", self.datos.codigo_situacion_revista_1, False, 2),
             ("Codigo de obra social", self.datos.codigo_obra_social, True, 6),
             ("Codigo de situacion de revista 2", self.datos.codigo_situacion_revista_2, False, 2),
             ("Codigo de situacion de revista 3", self.datos.codigo_situacion_revista_3, False, 2),
         ]
 
         for nombre, valor, obligatorio, max_long in codigos:
-            if not obligatorio and not valor:
-                return
+            if not valor:
+                if obligatorio:
+                    raise Exception(
+                        f"{nombre} es obligatorio."
+                    )
+                else:
+                    continue
 
             if len(valor) > max_long:
                 raise Exception(
@@ -270,8 +274,13 @@ class ValidadorRegistro04:
         ]
 
         for nombre, valor, obligatorio, long_entero, long_decimal in numeros_decimales:
-            if not obligatorio and valor is None:
-                continue
+            if valor is None:
+                if obligatorio:
+                    raise Exception(
+                        f"{nombre} es obligatorio."
+                    )
+                else:
+                    continue
 
             if not 0 <= valor < 10**long_entero:
                 raise Exception(
@@ -284,7 +293,7 @@ class ValidadorRegistro04:
         dia_inicio_situacion_revista_2 = self.datos.dia_inicio_situacion_revista_2
         dia_inicio_situacion_revista_3 = self.datos.dia_inicio_situacion_revista_3
 
-        if not 0 <= dia_inicio_situacion_revista_1 <= 31:
+        if dia_inicio_situacion_revista_1 and not 0 <= dia_inicio_situacion_revista_1 <= 31:
             raise Exception(
                 "El dia de inicio de situacion de revista 1 no es valida. Debe contener, como máximo, 2 digitos."
             )

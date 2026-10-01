@@ -1,3 +1,3 @@
-from .a_liquidacion import LiquidacionAdmin
-from .a_liquidacion_empleado import ResultadoBaseImponibleInline, LiquidacionEmpleadoAdmin, LiquidacionEmpleadoInline
+from .a_liquidacion import LiquidacionAdmin, LiquidacionEmpleadoInline
+from .a_liquidacion_empleado import ResultadoBaseImponibleInline, LiquidacionEmpleadoAdmin
 from .a_detalles_liquidacion import DetalleLiquidacionInline

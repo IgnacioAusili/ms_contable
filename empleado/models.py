@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator
 from core.utils import format_cuil
 from core.validators import validar_dni, validar_cuil, no_fecha_futura, validar_cbu
 from django.core.exceptions import ValidationError
+from empleado.choices import FormaPago
 
 
 class Empleado(models.Model):
@@ -123,12 +124,6 @@ class VersionEmpleadoManager(models.Manager.from_queryset(VersionEmpleadoQuerySe
 class VersionEmpleado(models.Model):
     objects = VersionEmpleadoManager()
     todos = VersionEmpleadoQuerySet.as_manager()
-
-    class FormaPago(models.IntegerChoices):
-        EFECTIVO = 1, "Efectivo"
-        CHEQUE = 2, "Cheque"
-        ACREDITACION_EN_CUENTA = 3, "Acreditación en Cuenta"
-        PAGO_EXTERNO = 4, "Pago Externo"
 
     id = models.BigAutoField(
         primary_key=True,

@@ -107,13 +107,20 @@ class LiquidacionEmpleado(models.Model):
         editable=False,
     )
 
-    observaciones = models.CharField(
+    observaciones_recibo = models.CharField(
         max_length=100,
         null=True,
         blank=True,
         editable=True,
         default="",
         help_text="Observaciones que se reflejaran en el recibo de sueldo"
+    )
+
+    observaciones_lsd = models.CharField(
+        max_length=80,
+        null=False,
+        blank=True,
+        help_text="Observaciones para Libro de Sueldos Digital de ARCA. Max 80 caracteres.",
     )
 
     fecha_rubrica = models.DateField(

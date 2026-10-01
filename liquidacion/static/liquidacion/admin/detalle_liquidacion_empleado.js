@@ -4,17 +4,22 @@
     const SELECTOR = 'select[id$="-concepto"]';
 
     function actualizarDetalles(select) {
-        const fila = select.closest(".inline-related");
-        if (!fila) return;
-        const spanUnidad = fila.querySelector(".unidad-display");
-        const spanCategoria = fila.querySelector(".categoria-display");
-        const spanTipo = fila.querySelector(".tipo-display");
-        const spanGrupo = fila.querySelector(".grupo-display");
+        const detalle = select.closest(".inline-related");
+        if (!detalle) return;
 
-        if (!spanUnidad || !spanCategoria || !spanTipo || !spanGrupo) return;
+        const spanUnidad = detalle.querySelector(".unidad-display");
+        const spanCategoria = detalle.querySelector(".categoria-display");
+        const spanTipo = detalle.querySelector(".tipo-display");
+        const spanGrupo = detalle.querySelector(".grupo-display");
+        const spanIdentificador = detalle.querySelector(".inline_label");
 
-        const celdaOriginal = fila.querySelector(".original");
-        let parrafoIdentificador = celdaOriginal?.querySelector("p");
+        if (
+            !spanUnidad ||
+            !spanCategoria ||
+            !spanTipo ||
+            !spanGrupo ||
+            !spanIdentificador
+        ) return;
 
         const conceptoId = select.value;
 
@@ -23,17 +28,11 @@
             spanGrupo.textContent = "-";
             spanUnidad.textContent = "-";
             spanCategoria.textContent = "-";
-
-            if (parrafoIdentificador) {
-                parrafoIdentificador.textContent = "";
-            }
+            spanIdentificador.textContent = "";
 
             return;
         }
 
-        // URL relativa al change_form actual:
-        // /admin/app/liquidacionempleado/<pk>/change/  ->  ../../concepto-detalles/<id>/
-        // /admin/app/liquidacionempleado/add/          ->  ../concepto-detalles/<id>/
         const base = window.location.pathname.includes("/add/")
             ? "../concepto-detalles/"
             : "../../concepto-detalles/";
@@ -46,30 +45,14 @@
                 spanTipo.textContent = data.tipo || "no_encontrado";
                 spanGrupo.textContent = data.grupo || "-";
 
-                // Identificador mostrado por Django en .original
-                if (celdaOriginal) {
-                    if (!parrafoIdentificador) {
-                        parrafoIdentificador = document.createElement("p");
-                        celdaOriginal.prepend(parrafoIdentificador);
-                    }
-
-                    parrafoIdentificador.textContent =
-                        data.identificador
-                            ? `identificador: ${data.identificador}`
-                            : "";
-
-                    fila.classList.toggle("has_original", Boolean(data.identificador));
-                }
+                spanIdentificador.textContent = data.identificador || "";
             })
             .catch(() => {
                 spanUnidad.textContent = "-";
                 spanCategoria.textContent = "-";
                 spanTipo.textContent = "-";
                 spanGrupo.textContent = "-";
-
-                if (parrafoIdentificador) {
-                    parrafoIdentificador.textContent = "";
-                }
+                spanIdentificador.textContent = "";
             });
     }
 
@@ -84,20 +67,6 @@
             textarea.scrollHeight,
             maxHeight
         )}px`;
-    }
-
-    function inlineTablaWrapper() {
-        const group = document.getElementById("detalles-group");
-        if (!group) return;
-
-        const table = group.querySelector("table");
-        if (!table) return;
-
-        const wrapper = document.createElement("div");
-        wrapper.className = "detalles-table-wrapper";
-
-        table.parentNode.insertBefore(wrapper, table);
-        wrapper.appendChild(table);
     }
 
     async function aplicarPlantilla(plantillaId, urlTemplate) {
@@ -181,6 +150,22 @@
                 `[name="${prefix}-${formIndex}-formula_base"]`,
             );
 
+            const cantidad = row.querySelector(
+                `[name="${prefix}-${formIndex}-cantidad"]`,
+            );
+
+            const unidadesLsd = row.querySelector(
+                `[name="${prefix}-${formIndex}-unidades_lsd"]`,
+            );
+
+            const debitoCredito = row.querySelector(
+                `[name="${prefix}-${formIndex}-debito_credito"]`,
+            );
+
+            const periodoAjusteRetroactivo = row.querySelector(
+                `[name="${prefix}-${formIndex}-periodo_ajuste_retroactivo"]`,
+            );
+
             if (concepto) {
                 concepto.value = detalle.concepto;
 
@@ -202,8 +187,179 @@
                 ajustarAlturaTextarea(formulaBase);
             }
 
+            if (cantidad) {
+                cantidad.value = detalle.cantidad;
+            }
+
+            if (unidadesLsd) {
+                unidadesLsd.value = detalle.unidades_lsd;
+            }
+
+            if (debitoCredito) {
+                debitoCredito.value = detalle.debito_credito;
+            }
+
+            if (periodoAjusteRetroactivo) {
+                periodoAjusteRetroactivo.value =
+                    detalle.periodo_ajuste_retroactivo ?? "";
+            }
+
             managementForm.value = formIndex + 1;
         }
+    }
+
+    async function completarConLiqPrevia(boton, url) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                credentials: "same-origin",
+            });
+
+            if (!response.ok) {
+                throw new Error(
+                    "No se pudo obtener la liquidación previa."
+                );
+            }
+
+            const data = await response.json();
+
+            if (!data.liq_previa) {
+                alert(
+                    "No existe una liquidación previa para este empleado."
+                );
+                return;
+            }
+
+            const campos = data.liq_previa;
+
+            // Datos adicionales
+            setField(
+                "cantidad_dias_proporcionar_tope",
+                campos.cantidad_dias_proporcionar_tope,
+            );
+            setField(
+                "unidad_tiempo_trabajado",
+                campos.unidad_tiempo_trabajado,
+            );
+            setField(
+                "tiempo_trabajado",
+                campos.tiempo_trabajado,
+            );
+
+            setField(
+                "codigo_situacion",
+                campos.codigo_situacion,
+            );
+            setField(
+                "codigo_condicion",
+                campos.codigo_condicion,
+            );
+            setField(
+                "codigo_actividad",
+                campos.codigo_actividad,
+            );
+            setField(
+                "codigo_modalidad_contratacion",
+                campos.codigo_modalidad_contratacion,
+            );
+            setField(
+                "codigo_siniestrado",
+                campos.codigo_siniestrado,
+            );
+            setField(
+                "codigo_localidad",
+                campos.codigo_localidad,
+            );
+
+            setField(
+                "porcentaje_aporte_adicional_ss",
+                campos.porcentaje_aporte_adicional_ss,
+            );
+            setField(
+                "porcentaje_contrib_tarea_diferencial",
+                campos.porcentaje_contrib_tarea_diferencial,
+            );
+            setField(
+                "remuneracion_maternidad_anses",
+                campos.remuneracion_maternidad_anses,
+            );
+
+            setField(
+                "cantidad_adherentes_obra_social",
+                campos.cantidad_adherentes_obra_social,
+            );
+            setField(
+                "aporte_adicional_obra_social",
+                campos.aporte_adicional_obra_social,
+            );
+            setField(
+                "contrib_adicional_obra_social",
+                campos.contrib_adicional_obra_social,
+            );
+
+            setField(
+                "base_calc_diferencial_aportes_obra_social_fsr",
+                campos.base_calc_diferencial_aportes_obra_social_fsr,
+            );
+            setField(
+                "base_calc_diferencial_contrib_obra_social_fsr",
+                campos.base_calc_diferencial_contrib_obra_social_fsr,
+            );
+            setField(
+                "base_calc_diferencial_ley_riesgos_trabajo",
+                campos.base_calc_diferencial_ley_riesgos_trabajo,
+            );
+            setField(
+                "base_calc_diferencial_aportes_seg_social",
+                campos.base_calc_diferencial_aportes_seg_social,
+            );
+            setField(
+                "base_calc_diferencial_contrib_seg_social",
+                campos.base_calc_diferencial_contrib_seg_social,
+            );
+
+            // Observaciones
+            setField(
+                "observaciones_recibo",
+                campos.observaciones_recibo,
+            );
+            setField(
+                "observaciones_lsd",
+                campos.observaciones_lsd,
+            );
+
+        } catch (error) {
+            console.error(error);
+            alert(
+                "Ocurrió un error al obtener la liquidación previa."
+            );
+        } finally {
+            boton.disabled = false;
+        }
+    }
+
+    function setField(name, value) {
+        const field = document.querySelector(
+            `[name="${name}"]`,
+        );
+
+        if (!field) {
+            console.warn(
+                `No se encontró el campo "${name}".`,
+            );
+            return;
+        }
+
+        field.value = value ?? "";
+
+        // Permite que otros scripts reaccionen al cambio.
+        field.dispatchEvent(
+            new Event("change", {
+                bubbles: true,
+            }),
+        );
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -251,7 +407,23 @@
             );
         }
 
-        inlineTablaWrapper();
+        const boton = document.querySelector("#btn-liq-previa");
+        if (boton) {
+            boton.addEventListener(
+                "click",
+                async () => {
+                    const url = boton.dataset.url;
+
+                    if (!url) {
+                        return;
+                    }
+
+                    boton.disabled = true;
+
+                    await completarConLiqPrevia(boton, url);
+                }
+            )
+        }
 
         // Ayuda
         const dialogo = document.getElementById("modal-ayuda-liquidacion");

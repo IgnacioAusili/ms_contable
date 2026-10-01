@@ -1,6 +1,7 @@
 from django import forms
 
 from categoria_laboral.models import CategoriaLaboral
+from .choices import FormaPago
 from .models import Empleado, VersionEmpleado
 
 
@@ -49,7 +50,7 @@ class EmpleadoAdminForm(forms.ModelForm):
 
     forma_de_pago = forms.ChoiceField(
         label="Forma de pago",
-        choices=VersionEmpleado.FormaPago.choices,
+        choices=FormaPago.choices,
     )
 
     cct = forms.BooleanField(

@@ -20,16 +20,17 @@ class DetalleLiquidacionInline(admin.StackedInline):
             {
                 "classes": ("columnas-custom",),
                 "fields": (
-                    ("concepto", "grupo", "tipo", "categoria", "unidad"),
+                    ("concepto", "grupo", "tipo", "categoria",),
+                    ("unidad", "unidades", "formula_base",),
+                    ("base_display", "importe_display",),
                 ),
             },
         ),
         (
-            "Detalles",
+            "Detalles Registro 03 LSD Arca",
             {
                 "classes": ("columnas-custom",),
                 "fields": (
-                    ("unidades", "formula_base", "base_display", "importe_display"),
                     ("cantidad", "unidades_lsd", "debito_credito", "periodo_ajuste_retroactivo"),
                 ),
             },

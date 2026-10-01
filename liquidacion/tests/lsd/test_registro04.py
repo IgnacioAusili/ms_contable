@@ -1,11 +1,7 @@
 from django.test import SimpleTestCase
 from decimal import Decimal
-
-from liquidacion.lsd.registro04 import (
-    DatosRegistro04,
-    TipoEmpleador,
-    GeneradorRegistro04,
-)
+from liquidacion.lsd.registro04 import DatosRegistro04, GeneradorRegistro04
+from empresa.choices import TipoEmpleador
 
 
 class TestGeneradorRegistro04(SimpleTestCase):

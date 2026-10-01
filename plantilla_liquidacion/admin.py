@@ -11,7 +11,7 @@ from .models import PlantillaLiquidacion, DetallePlantillaLiquidacion
 from .forms import DetallePlantillaLiquidacionForm
 
 
-class DetallePlantillaLiquidacionInline(admin.TabularInline):
+class DetallePlantillaLiquidacionInline(admin.StackedInline):
     model = DetallePlantillaLiquidacion
     form = DetallePlantillaLiquidacionForm
 
@@ -19,14 +19,26 @@ class DetallePlantillaLiquidacionInline(admin.TabularInline):
     can_delete = True
     show_change_link = True
 
-    fields = (
-        "concepto",
-        "grupo",
-        "tipo",
-        "categoria",
-        "unidad",
-        "unidades",
-        "formula_base",
+    fieldsets = (
+        (
+            "Concepto",
+            {
+                "classes": ("columnas-custom",),
+                "fields": (
+                    ("concepto", "grupo", "tipo", "categoria",),
+                    ("unidad", "unidades", "formula_base"),
+                ),
+            },
+        ),
+        (
+            "Detalles Registro 03 LSD Arca",
+            {
+                "classes": ("columnas-custom",),
+                "fields": (
+                    ("cantidad", "unidades_lsd", "debito_credito", "periodo_ajuste_retroactivo"),
+                ),
+            },
+        ),
     )
 
     readonly_fields = (

@@ -1,7 +1,8 @@
 from django.test import SimpleTestCase
 from decimal import Decimal
 from datetime import date
-from liquidacion.lsd.registro03 import DatosRegistro03, Unidad, DebitoCredito, GeneradorRegistro03
+from liquidacion.lsd.registro03 import DatosRegistro03, GeneradorRegistro03
+from liquidacion.choices import DebitoCredito, UnidadesLsd
 
 
 class TestGeneradorRegistro03(SimpleTestCase):
@@ -10,7 +11,7 @@ class TestGeneradorRegistro03(SimpleTestCase):
             "cuil_trabajador": "33693450239",
             "codigo_arca_concepto": "800810",
             "cantidad": Decimal("132.24"),
-            "unidades": Unidad.MONEDA,
+            "unidades": UnidadesLsd.MONEDA,
             "importe": Decimal("520.37"),
             "debito_credito": DebitoCredito.DEBITO,
             "periodo_ajuste_retractivo": date(2026, 9, 30)

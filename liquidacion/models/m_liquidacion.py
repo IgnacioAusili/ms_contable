@@ -1,22 +1,14 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+from liquidacion.choices import TipoEnvio, TipoLiquidacion
+
 
 class Liquidacion(models.Model):
     class Estado(models.TextChoices):
         BORRADOR = "borrador", "Borrador"
         EN_RECTIFICACION = "en_rectificacion", "En Rectificación"
         CERRADA = "cerrada", "Cerrada"
-
-    class TipoEnvio(models.TextChoices):
-        SJ = "SJ", "SJ (Informar Liquidación)"
-        RE = "RE", "RE (Rectificar DJ F931)"
-
-    class TipoLiquidacion(models.TextChoices):
-        M = "M", "Mes"
-        Q = "Q", "Quincena"
-        D = "D", "Días"
-        H = "H", "Horas"
 
     id = models.BigAutoField(
         primary_key=True,
@@ -69,13 +61,6 @@ class Liquidacion(models.Model):
         blank=True,
     )
 
-    observaciones = models.CharField(
-        max_length=80,
-        null=False,
-        blank=True,
-        help_text="Observaciones para Libro de Sueldos Digital de ARCA. Max 80 caracteres.",
-    )
-
     domicilio_empresa = models.CharField(
         max_length=255,
         null=False,
@@ -114,14 +99,14 @@ class Liquidacion(models.Model):
                     )
                 })
 
-        if self.tipo_envio == self.TipoEnvio.RE and self.tipo_liquidacion != "":
+        if self.tipo_envio == TipoEnvio.RE and self.tipo_liquidacion != "":
             raise ValidationError({
                 "tipo_liquidacion": (
                     "El tipo de liquidación debe quedar vacio cuando el tipo de envío es 'RE'."
                 )
             })
 
-        if self.tipo_envio == self.TipoEnvio.RE and self.numero:
+        if self.tipo_envio == TipoEnvio.RE and self.numero:
             raise ValidationError({
                 "numero": (
                     "El numero de liquidacion no debe especificarse cuando el tipo de envío es 'RE'."
@@ -133,13 +118,13 @@ class Liquidacion(models.Model):
             self.estado = self.Estado.BORRADOR
             self.domicilio_empresa = self.empresa.domicilio
 
-            if self.tipo_envio == self.TipoEnvio.SJ:
+            if self.tipo_envio == TipoEnvio.SJ:
                 ultima = (
                     type(self).objects
                     .filter(
                         empresa=self.empresa,
                         periodo=self.periodo,
-                        tipo_envio=self.TipoEnvio.SJ,
+                        tipo_envio=TipoEnvio.SJ,
                     )
                     .order_by("-numero")
                     .first()

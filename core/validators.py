@@ -74,8 +74,10 @@ def validar_cuil(value):
 
 
 def validar_cbu(cbu: str) -> bool:  # tmb sirve para cvu's
-    cbu_digito_verificador_1_valido(cbu)
-    cbu_digito_verificador_2_valido(cbu)
+    return (
+        cbu_digito_verificador_1_valido(cbu) and
+        cbu_digito_verificador_2_valido(cbu)
+    )
 
 
 def cbu_digito_verificador_1_valido(cbu: str) -> bool:

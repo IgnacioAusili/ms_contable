@@ -1,30 +1,10 @@
 from dataclasses import dataclass
 from typing import ClassVar
-from enum import StrEnum
 from datetime import date
 from decimal import Decimal
-
 from core.validators import validar_cuil
+from liquidacion.choices import UnidadesLsd, DebitoCredito
 from liquidacion.lsd.utils import validar_datos_obligatorios_dataclass
-
-
-class Unidad(StrEnum):
-    """
-    $=moneda; %=porcentuales; A=año; Q=quincena; M=mes; D=días; H=horas.
-    Valor optativo, puede informarse en blanco.
-    """
-    MONEDA = "$"
-    PORCENTAJE = "%"
-    ANIO = "A"
-    MES = "M"
-    QUINCENA = "Q"
-    DIAS = "D"
-    HORAS = "H"
-
-
-class DebitoCredito(StrEnum):
-    DEBITO = "D"
-    CREDITO = "C"
 
 
 @dataclass
@@ -35,9 +15,9 @@ class DatosRegistro03:
     codigo_arca_concepto: str  # alfanumerico, longitud 10
     # Optativos
     cantidad: Decimal | None  # Longitud 5: 3 enteros y 2 decimales
-    unidades: Unidad | None
+    unidades: str | None
     importe: Decimal | None  # Longitud 15: 13 enteros y 2 decimales
-    debito_credito: DebitoCredito | None
+    debito_credito: str | None
     periodo_ajuste_retractivo: date | None  # formato AAAAMM
     """
     Para los conceptos liquidados del período informado en el registro 1, este valor se informa en 0. 
@@ -104,7 +84,7 @@ class FormateadorRegistro03:
         unidades = self.datos.unidades
 
         if unidades:
-            return unidades.value
+            return unidades
         else:
             return " "
 
@@ -121,7 +101,7 @@ class FormateadorRegistro03:
         debito_credito = self.datos.debito_credito
 
         if debito_credito:
-            return debito_credito.value
+            return debito_credito
         else:
             return " "
 
@@ -143,7 +123,9 @@ class ValidadorRegistro03:
         self._validar_cuil()
         self._validar_codigo_arca_concepto()
         self._validar_cantidad()
+        self._validar_unidades()
         self._validar_importe()
+        self._validar_debito_credito()
 
     def _validar_cuil(self):
         cuil = self.datos.cuil_trabajador
@@ -175,6 +157,17 @@ class ValidadorRegistro03:
                 "La cantidad no es valida. Debe contener, como máximo, 3 digitos para la parte entera y 2 decimales."
             )
 
+    def _validar_unidades(self):
+        unidades = self.datos.unidades
+
+        if not unidades:
+            return
+
+        if unidades not in UnidadesLsd.values:
+            raise Exception(
+                f"La unidad {unidades} no es válida."
+            )
+
     def _validar_importe(self):
         importe = self.datos.importe
 
@@ -184,4 +177,15 @@ class ValidadorRegistro03:
         if not 0 <= importe < 10000000000000:
             raise Exception(
                 "El importe no es valido. Debe contener, como máximo, 13 digitos para la parte entera y 2 decimales."
+            )
+
+    def _validar_debito_credito(self):
+        debito_credito = self.datos.debito_credito
+
+        if not debito_credito:
+            return
+
+        if debito_credito not in DebitoCredito.values:
+            raise Exception(
+                f"El valor {debito_credito} no es válido."
             )

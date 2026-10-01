@@ -76,6 +76,10 @@ classDiagram
     class DetallePlantillaLiquidacion {
         +unidades
         +formulaBase
+        +cantidad
+        +unidadesLSD
+        +debitoCredito
+        +periodoAjusteRetroactivo
     }
 
     class Liquidacion {
@@ -122,6 +126,7 @@ classDiagram
     }
 
     class TramoSituacionRevista {
+        +codigoSituacion
         +diaInicio
     }
 

@@ -7,16 +7,22 @@ class TramoSituacionRevista(models.Model):
         primary_key=True,
     )
 
+    liquidacion_empleado = models.ForeignKey(
+        "liquidacion.LiquidacionEmpleado",
+        on_delete=models.CASCADE,
+        related_name="situaciones_revista",
+    )
+
+    codigo_situacion = models.CharField(
+        max_length=2,
+        null=False,
+        blank=True,
+    )
+
     dia_inicio = models.PositiveIntegerField(
         null=False,
         blank=False,
         validators=[MinValueValidator(1), MaxValueValidator(31)]
-    )
-
-    liquidacion_empleado = models.ForeignKey(
-        "liquidacion.LiquidacionEmpleado",
-        on_delete=models.PROTECT,
-        related_name="situaciones_revista",
     )
 
     class Meta:

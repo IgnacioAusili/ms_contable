@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 
 from base_imponible.models import BaseImponible
-from concepto.utils import normalizar_identificador
+from core.utils import normalizar_identificador
 
 
 class ConceptoQuerySet(models.QuerySet):

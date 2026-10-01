@@ -1,6 +1,8 @@
 from django.test import SimpleTestCase
 from datetime import date
-from liquidacion.lsd.registro02 import DatosRegistro02, FormaPago, GeneradorRegistro02
+
+from empleado.choices import FormaPago
+from liquidacion.lsd.registro02 import DatosRegistro02, GeneradorRegistro02
 
 
 class TestGeneradorRegistro02(SimpleTestCase):

@@ -55,6 +55,14 @@ erDiagram
         decimal unidades "NOT_NULL"
         %% DJANGO BLANK: false
         string formula_base "NOT_NULL"
+        %% cantidad informada en Registro 03 del LSD
+        decimal cantidad "NOT_NULL"
+        %% DJANGO BLANK: false
+        %% unidades informadas en Registro 03 del LSD
+        UNIDADES_LSD unidades_lsd "NOT_NULL"
+        %% por defecto toma el valor del concepto, se puede cambiar
+        DEBITO_CREDITO debito_credito "NOT_NULL"
+        date periodo_ajuste_retroactivo
     }
 
     CATEGORIA_LABORAL {
@@ -242,6 +250,7 @@ erDiagram
     
     TRAMO_SITUACION_REVISTA {
         int id PK
+        string codigo_situacion "NOT_NULL"
         int dia_inicio "NOT_NULL"
     }
 ```

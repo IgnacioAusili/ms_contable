@@ -108,7 +108,7 @@ class ReciboSueldoService:
 
             "neto_en_letras": self.neto_en_letras(le.neto),
 
-            "observaciones": le.observaciones if le.observaciones else "-",
+            "observaciones": le.observaciones_recibo if le.observaciones_recibo else "-",
 
             "detalle": self.obtener_detalle_composicion(detalles),
 

@@ -13,7 +13,12 @@ class LiquidacionEmpleadoForm(forms.ModelForm):
         model = LiquidacionEmpleado
         fields = "__all__"
         widgets = {
-            "observaciones": forms.Textarea(
+            "observaciones_recibo": forms.Textarea(
+                attrs={
+                    "rows": 2,
+                }
+            ),
+            "observaciones_lsd": forms.Textarea(
                 attrs={
                     "rows": 2,
                 }
@@ -64,7 +69,7 @@ class LiquidacionEmpleadoInlineFormSet(BaseInlineFormSet):
 class TramoSituacionRevistaInlineForm(forms.ModelForm):
     class Meta:
         model = TramoSituacionRevista
-        fields = ("dia_inicio",)
+        fields = ("codigo_situacion", "dia_inicio",)
 
 
 class ImporteResultadoWidget(forms.NumberInput):

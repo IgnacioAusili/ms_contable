@@ -1,22 +1,24 @@
 from django.contrib import admin
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
-from django.utils.html import format_html
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.urls import path
 from django.template.loader import render_to_string
+from django.utils.html import format_html
 
 from base_imponible.models import ResultadoBaseImponible
 from plantilla_liquidacion.models import PlantillaLiquidacion
 from plantilla_liquidacion.services import PlantillaLiquidacionService
 from .a_detalles_liquidacion import DetalleLiquidacionInline
-from ..models import TramoSituacionRevista
+from ..models import TramoSituacionRevista, Liquidacion
 from ..models.m_liquidacion_empleado import LiquidacionEmpleado
 from ..models.m_detalles_liquidacion import DetalleLiquidacion
 from ..forms.f_liquidacion_empleado import (
-    LiquidacionEmpleadoForm, LiquidacionEmpleadoInlineForm,
-    LiquidacionEmpleadoInlineFormSet,
-    ResultadoBaseImponibleInlineForm, TramoSituacionRevistaInlineForm
+    LiquidacionEmpleadoForm,
+    ResultadoBaseImponibleInlineForm,
+    TramoSituacionRevistaInlineForm
 )
 from ..services.s_expresiones import LiquidacionEmpleadoService
 from ..services.s_recibo import ReciboSueldoService
@@ -33,6 +35,7 @@ class TramoSituacionRevistaInline(admin.TabularInline):
 
     fields = (
         "situacion_revista",
+        "codigo_situacion",
         "dia_inicio",
     )
 
@@ -68,7 +71,11 @@ class ResultadoBaseImponibleInline(admin.TabularInline):
 
 @admin.register(LiquidacionEmpleado)
 class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
-    inlines = [TramoSituacionRevistaInline, DetalleLiquidacionInline, ResultadoBaseImponibleInline]
+    inlines = [
+        TramoSituacionRevistaInline,
+        ResultadoBaseImponibleInline,
+        DetalleLiquidacionInline,
+    ]
     form = LiquidacionEmpleadoForm
 
     fieldsets = (
@@ -76,10 +83,11 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             "fields": (
                 "liquidacion",
                 "empleado",
+                "liq_previa"
             ),
         }),
         ("Datos Adicionales", {
-            "classes": ("columnas-custom",),
+            "classes": ("columnas-custom-2",),
             "fields": (
                 ("fecha_rubrica", "cantidad_dias_proporcionar_tope", "unidad_tiempo_trabajado", "tiempo_trabajado"),
                 ("codigo_situacion", "codigo_condicion", "codigo_actividad",
@@ -92,22 +100,26 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
                  "base_calc_diferencial_contrib_seg_social")
             )
         }),
+        ("Observaciones", {
+            "classes": ("columnas-custom-2",),
+            "fields": (
+                ("observaciones_recibo", "observaciones_lsd",),
+            ),
+        }),
         ("Totales de liquidación", {
-            "classes": ("columnas-custom",),  # "totales-liquidacion",),
+            "classes": ("columnas-custom-2",),
             "fields": (
                 ("remunerativo_display", "bruto_display", "descuentos_display",),
                 ("no_remunerativo_display", "neto_display", "contribuciones_display",),
                 ("costo_laboral_display",),
             ),
         }),
-        ("Observaciones", {
-            "fields": ("observaciones",),
-        }),
     )
 
     readonly_fields = (
         "liquidacion",
         "empleado",
+        "liq_previa",
         "remunerativo_display",
         "no_remunerativo_display",
         "bruto_display",
@@ -117,68 +129,25 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         "costo_laboral_display",
     )
 
-    # @admin.display(
-    #     description=format_html(
-    #         '<span class="nombre-campo">Remunerativo:</span>'
-    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["remunerativo"]}</small>'
-    #     )
-    # )
-    # def remunerativo_display(self, obj):
-    #     return obj.remunerativo_display
-    #
-    # @admin.display(
-    #     description=format_html(
-    #         '<span class="nombre-campo">No Remunerativo:</span>'
-    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["no_remunerativo"]}</small>'
-    #     )
-    # )
-    # def no_remunerativo_display(self, obj):
-    #     return obj.no_remunerativo_display
-    #
-    # @admin.display(
-    #     description=format_html(
-    #         '<span class="nombre-campo">Bruto:</span>'
-    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["bruto"]}</small>'
-    #     )
-    # )
-    # def bruto_display(self, obj):
-    #     return obj.bruto_display
-    #
-    # @admin.display(
-    #     description=format_html(
-    #         '<span class="nombre-campo">Descuentos:</span>'
-    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["descuentos"]}</small>'
-    #     )
-    # )
-    # def descuentos_display(self, obj):
-    #     return obj.descuentos_display
-    #
-    # @admin.display(
-    #     description=format_html(
-    #         '<span class="nombre-campo">Neto:</span>'
-    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["neto"]}</small>'
-    #     )
-    # )
-    # def neto_display(self, obj):
-    #     return obj.neto_display
-    #
-    # @admin.display(
-    #     description=format_html(
-    #         '<span class="nombre-campo">Contribuciones:</span>'
-    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["contribuciones"]}</small>'
-    #     )
-    # )
-    # def contribuciones_display(self, obj):
-    #     return obj.contribuciones_display
-    #
-    # @admin.display(
-    #     description=format_html(
-    #         '<span class="nombre-campo">Costo Laboral:</span>'
-    #         f'<small class="identificador-campo">{IDENTIFICADORES_LE["costo_laboral"]}</small>'
-    #     )
-    # )
-    # def costo_laboral_display(self, obj):
-    #     return obj.costo_laboral_display
+    @admin.display(description="Liquidación previa")
+    def liq_previa(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+
+        url = reverse(
+            "admin:liquidacionempleado_previa",
+            args=[obj.pk],
+        )
+
+        return format_html(
+            '<button type="button" '
+            'class="button" '
+            'id="btn-liq-previa" '
+            'data-url="{}">'
+            'Completar con liquidación previa'
+            '</button>',
+            url,
+        )
 
     change_form_template = "admin/liquidacion/change_form.html"
 
@@ -222,6 +191,11 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
         custom = [
             path(
+                "<int:liquidacion_empleado_id>/previa/",
+                self.admin_site.admin_view(self.liq_previa_view),
+                name="liquidacionempleado_previa",
+            ),
+            path(
                 "<int:object_id>/recibo/",
                 self.admin_site.admin_view(self.recibo_view),
                 name="liquidacionempleado_recibo",
@@ -246,6 +220,66 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.path)
 
         return super().response_change(request, obj)
+
+    def liq_previa_view(self, request, liquidacion_empleado_id):
+        actual = LiquidacionEmpleado.objects.get(pk=liquidacion_empleado_id)
+
+        liq_previa = (
+            LiquidacionEmpleado.objects
+            .filter(
+                empleado=actual.empleado,
+                liquidacion__empresa=actual.liquidacion.empresa,
+            )
+            .filter(
+                Q(  # periodo es menor al período actual
+                    liquidacion__periodo__lt=actual.liquidacion.periodo,
+                )
+                | Q(  # tiene el mismo periodo, pero un numero menor
+                    liquidacion__periodo=actual.liquidacion.periodo,
+                    liquidacion__numero__lt=actual.liquidacion.numero,
+                )
+            )
+            .order_by(
+                "-liquidacion__periodo",
+                "-liquidacion__numero",
+            )
+            .first()
+        )
+
+        if liq_previa:
+            datos = {
+                "cantidad_dias_proporcionar_tope": liq_previa.cantidad_dias_proporcionar_tope,
+                "unidad_tiempo_trabajado": liq_previa.unidad_tiempo_trabajado,
+                "tiempo_trabajado": liq_previa.tiempo_trabajado,
+
+                "codigo_situacion": liq_previa.codigo_situacion,
+                "codigo_condicion": liq_previa.codigo_condicion,
+                "codigo_actividad": liq_previa.codigo_actividad,
+                "codigo_modalidad_contratacion": liq_previa.codigo_modalidad_contratacion,
+                "codigo_siniestrado": liq_previa.codigo_siniestrado,
+                "codigo_localidad": liq_previa.codigo_localidad,
+
+                "porcentaje_aporte_adicional_ss": liq_previa.porcentaje_aporte_adicional_ss,
+                "porcentaje_contrib_tarea_diferencial": liq_previa.porcentaje_contrib_tarea_diferencial,
+                "remuneracion_maternidad_anses": liq_previa.remuneracion_maternidad_anses,
+
+                "cantidad_adherentes_obra_social": liq_previa.cantidad_adherentes_obra_social,
+                "aporte_adicional_obra_social": liq_previa.aporte_adicional_obra_social,
+                "contrib_adicional_obra_social": liq_previa.contrib_adicional_obra_social,
+
+                "base_calc_diferencial_aportes_obra_social_fsr": liq_previa.base_calc_diferencial_aportes_obra_social_fsr,
+                "base_calc_diferencial_contrib_obra_social_fsr": liq_previa.base_calc_diferencial_contrib_obra_social_fsr,
+                "base_calc_diferencial_ley_riesgos_trabajo": liq_previa.base_calc_diferencial_ley_riesgos_trabajo,
+                "base_calc_diferencial_aportes_seg_social": liq_previa.base_calc_diferencial_aportes_seg_social,
+                "base_calc_diferencial_contrib_seg_social": liq_previa.base_calc_diferencial_contrib_seg_social,
+
+                "observaciones_recibo": liq_previa.observaciones_recibo,
+                "observaciones_lsd": liq_previa.observaciones_lsd,
+            }
+
+            return JsonResponse({"liq_previa": datos})
+        else:
+            return JsonResponse({"liq_previa": None}, encoder=DjangoJSONEncoder)
 
     def recibo_view(self, request, object_id):
         tipo = request.GET.get("tipo", "original")
@@ -278,6 +312,10 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
                 "concepto": detalle.concepto.versiones.ultima().id,
                 "unidades": str(detalle.unidades),
                 "formula_base": plantilla_service.reemplazar_identificadores_formula(detalle.formula_base),
+                "cantidad": detalle.cantidad,
+                "unidades_lsd": detalle.unidades_lsd,
+                "debito_credito": detalle.debito_credito,
+                "periodo_ajuste_retroactivo": detalle.periodo_ajuste_retroactivo,
             }
             for detalle in plantilla.detalles.all()
         ]
@@ -301,85 +339,3 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             "categoria": concepto.get_categoria_display(),
             "unidad": concepto.get_unidad_display(),
         })
-
-
-class LiquidacionEmpleadoInline(admin.TabularInline):
-    model = LiquidacionEmpleado
-    form = LiquidacionEmpleadoInlineForm
-    formset = LiquidacionEmpleadoInlineFormSet
-
-    extra = 0
-    can_delete = True
-    show_change_link = True
-
-    fields = (
-        "detalle_link",
-        "empleado",
-        "remunerativo_display",
-        "no_remunerativo_display",
-        "bruto_display",
-        "descuentos_display",
-        "neto_display",
-        "contribuciones_display",
-        "costo_laboral_display",
-        "recibo_sueldo",
-    )
-
-    readonly_fields = (
-        "detalle_link",
-        "remunerativo_display",
-        "no_remunerativo_display",
-        "bruto_display",
-        "descuentos_display",
-        "neto_display",
-        "contribuciones_display",
-        "costo_laboral_display",
-        "recibo_sueldo",
-    )
-
-    @admin.display(description="")
-    def detalle_link(self, obj):
-        if not obj.pk:
-            return ""
-
-        url = reverse(
-            "admin:liquidacion_liquidacionempleado_change",
-            args=[obj.pk],
-        )
-
-        return format_html(
-            '<a href="{}">Ver detalle</a>',
-            url,
-        )
-
-    @admin.display(description="Recibo")
-    def recibo_sueldo(self, obj):
-        if not obj or not obj.pk:
-            return "-"
-
-        return format_html(
-            '{} {}',
-            self._boton_recibo(obj, "original", "Original"),
-            self._boton_recibo(obj, "duplicado", "Duplicado"),
-        )
-
-    def _boton_recibo(self, obj, tipo, etiqueta):
-        url = reverse(
-            "admin:liquidacionempleado_recibo",
-            args=[obj.pk],
-        )
-
-        url = f"{url}?tipo={tipo}"
-        filename = f"recibo-{obj.pk}-{tipo}.pdf"
-
-        return format_html(
-            '<a href="{}" target="_blank" '
-            'class="button js-recibo-pdf" '
-            'style="display: inline-block; margin-right: 4px;" '
-            'data-url="{}" '
-            'data-filename="{}">{}</a>',
-            url,
-            url,
-            filename,
-            etiqueta,
-        )

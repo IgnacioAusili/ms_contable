@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from liquidacion.choices import UnidadesLsd, DebitoCredito
 
 
 class PlantillaLiquidacion(models.Model):
@@ -62,6 +63,33 @@ class DetallePlantillaLiquidacion(models.Model):
         max_length=500,
         null=False,
         blank=False,
+    )
+
+    cantidad = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        null=False,
+        blank=False,
+    )
+
+    unidades_lsd = models.CharField(
+        max_length=10,
+        choices=UnidadesLsd.choices,
+        null=False,
+        blank=True,
+    )
+
+    debito_credito = models.CharField(
+        max_length=10,
+        choices=DebitoCredito.choices,
+        null=False,
+        blank=False,
+    )
+
+    periodo_ajuste_retroactivo = models.DateField(
+        null=True,
+        blank=True,
     )
 
     class Meta:

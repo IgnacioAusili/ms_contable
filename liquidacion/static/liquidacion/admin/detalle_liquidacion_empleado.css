@@ -1,15 +1,122 @@
-/* Filas: sin bordes ni padding extra */
+.inline-group .inline-related:has(.columnas-custom) {
+    --cols: 4;              /* campos por fila */
+    --campo-alto: 1.875rem; /* alto de inputs y de campos de solo lectura */
+    --titulo-seccion: 6.5rem; /* ancho de la columna con "Concepto", "Detalles" */
+}
+
+/* --- 1. Cada formulario del inline = una tarjeta compacta ---------------- */
+
+.inline-group .inline-related:has(.columnas-custom) {
+    margin: 0 0 0.5rem;
+    padding: 0;
+    border: 1px solid var(--border-color, #ccc);
+    border-left: 4px solid var(--primary, #417690);
+    border-radius: 6px;
+    background: var(--body-bg, #fff);
+    overflow: hidden;
+    font-size: 0.8125rem;
+}
+
+/* Cebra: alterna el fondo para ubicar rápido dónde termina una y empieza otra */
+.inline-group .inline-related:has(.columnas-custom):nth-of-type(even) {
+    background: color-mix(in srgb, var(--darkened-bg, #f4f4f4) 60%, var(--body-bg, #fff));
+}
+
+/* La tarjeta donde estás escribiendo se destaca */
+.inline-group .inline-related:has(.columnas-custom):focus-within {
+    border-color: var(--primary, #417690);
+    box-shadow: 0 0 0 1px var(--primary, #417690);
+}
+
+/* Cabecera: una sola línea baja, con el título + eliminar */
+.inline-group .inline-related:has(.columnas-custom) > h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--body-loud-color, #000);
+    background: var(--darkened-bg, #f1f1f1);
+    border: 0;
+    border-bottom: 1px solid var(--border-color, #ccc);
+}
+
+.inline-group .inline-related:has(.columnas-custom) > h3 b {
+    font-weight: 600;
+}
+
+.inline-group .inline-related:has(.columnas-custom) > h3 .inline_label {
+    color: var(--primary, #417690);
+}
+
+.inline-group .inline-related:has(.columnas-custom) > h3 .inlinechangelink {
+    font-weight: 400;
+    font-size: 0.75rem;
+}
+
+/* El "Eliminar" va a la derecha */
+.inline-group .inline-related:has(.columnas-custom) > h3 .delete,
+.inline-group .inline-related:has(.columnas-custom) > h3 .inline-deletelink {
+    margin-left: auto;
+    font-weight: 400;
+}
+
+/* Marcada para eliminar */
+.inline-group .inline-related.has_original:has(input[name$="-DELETE"]:checked) {
+    border-left-color: var(--error-fg, #ba2121);
+    opacity: 0.55;
+}
+
+/* --- 2. Secciones: el título va a la izquierda (ahorra altura) ----------- */
+
+.inline-related .columnas-custom {
+    display: grid;
+    grid-template-columns: var(--titulo-seccion) minmax(0, 1fr);
+    column-gap: 0.75rem;
+    row-gap: 0;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    background: transparent;
+}
+
+.inline-related .columnas-custom + .columnas-custom {
+    border-top: 1px solid var(--border-color, #ccc);
+}
+
+.inline-related .columnas-custom > h2 {
+    grid-column: 1;
+    grid-row: 1 / span 6;
+    align-self: start;
+    margin: 0;
+    padding: 0.25rem 0 0;
+    background: none;
+    color: var(--body-loud-color, #000);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.inline-related .columnas-custom > :not(h2) {
+    grid-column: 2;
+}
+
+/* --- 3. Filas y columnas: grilla fija de 4, alineada entre filas ---------- */
+
 .columnas-custom .form-row {
-    padding: 0.5rem 0;
+    padding: 0.1875rem 0;
     border: 0;
     width: 100%;
 }
 
-/* Columnas automáticas: tantas como entren, mínimo 14rem cada una */
 .columnas-custom .form-multiline {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
-    gap: 0.75rem 1.5rem;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    align-items: end; /* los inputs quedan alineados aunque un label ocupe 2 líneas */
+    gap: 0.375rem 0.75rem;
     width: 100%;
 }
 
@@ -20,14 +127,205 @@
     padding: 0;
 }
 
-/* Label arriba, input abajo (evita las superposiciones del layout "aligned") */
 .columnas-custom .flex-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.125rem;
+}
+
+/* --- 4. Labels ------------------------------------------------------------ */
+
+.columnas-custom .form-row label {
+    width: auto;
+    min-width: 0;
+    padding: 0;
+    float: none;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    font-weight: 500;
+    color: var(--body-quiet-color, #666);
+}
+
+.columnas-custom .form-row label.required {
+    font-weight: 700;
+    color: var(--body-fg, #333);
+}
+
+.columnas-custom .form-row label.required::after {
+    content: " *";
+    color: var(--error-fg, #ba2121);
+}
+
+.columnas-custom .flex-container.checkbox-row {
+    flex-direction: row;
+    align-items: center;
+    min-height: var(--campo-alto);
+}
+
+/* --- 5. Inputs editables --------------------------------------------------- */
+
+.columnas-custom input:not([type="checkbox"]):not([type="radio"]),
+.columnas-custom select,
+.columnas-custom textarea,
+.columnas-custom .related-widget-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.inline-related .columnas-custom input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.inline-related .columnas-custom select,
+.inline-related .columnas-custom textarea {
+    padding: 0.25rem 0.5rem;
+    height: var(--campo-alto);
+    min-height: var(--campo-alto);
+    font-size: 0.8125rem;
+    background: var(--body-bg, #fff);
+    color: var(--body-fg, #333);
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.inline-related .columnas-custom textarea {
+    height: auto;
+    min-height: 3.5rem;
+}
+
+.inline-related .columnas-custom input:focus,
+.inline-related .columnas-custom select:focus,
+.inline-related .columnas-custom textarea:focus {
+    outline: 0;
+    border-color: var(--primary, #417690);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #417690) 25%, transparent);
+}
+
+/* Selects con links de agregar/editar/ver: el select se queda con el ancho,
+   los iconitos entran al costado sin romper la columna */
+.columnas-custom .related-widget-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.columnas-custom .related-widget-wrapper > select,
+.columnas-custom .related-widget-wrapper > .select2-container {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto !important;
+}
+
+.columnas-custom .related-widget-wrapper-link {
+    flex: none;
+    line-height: 1;
+}
+
+/* --- 6. Solo lectura (base_display, importe_display, etc.) ---------------- */
+
+.inline-related .columnas-custom .readonly {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    min-height: var(--campo-alto);
+    background: var(--darkened-bg, #f1f1f1);
+    color: var(--body-loud-color, #000);
+    border: 1px dashed var(--border-color, #ccc);
+    border-radius: 4px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* --- 7. Ayudas y errores -------------------------------------------------- */
+
+.columnas-custom .help {
+    margin: 0.0625rem 0 0;
+    padding: 0;
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    color: var(--body-quiet-color, #666);
+}
+
+.columnas-custom .errorlist {
+    margin: 0 0 0.125rem;
+    padding: 0;
+    font-size: 0.6875rem;
+}
+
+.columnas-custom .form-row.errors,
+.columnas-custom .form-multiline > div.errors {
+    background: transparent;
+    border: 0;
+}
+
+.inline-related .columnas-custom .errors input:not([type="checkbox"]),
+.inline-related .columnas-custom .errors select,
+.inline-related .columnas-custom .errors textarea {
+    border-color: var(--error-fg, #ba2121);
+}
+
+/* --- 8. Pantallas más angostas -------------------------------------------- */
+
+/* Notebook chica / ventana partida: 2 campos por fila, título de sección arriba */
+@media (max-width: 1100px) {
+    .inline-group .inline-related:has(.columnas-custom) {
+        --cols: 2;
+    }
+
+    .inline-related .columnas-custom {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .inline-related .columnas-custom > h2 {
+        grid-column: 1;
+        grid-row: auto;
+        padding-bottom: 0.25rem;
+    }
+
+    .inline-related .columnas-custom > :not(h2) {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 600px) {
+    .inline-group .inline-related:has(.columnas-custom) {
+        --cols: 1;
+    }
+}
+
+/* ============================================= */
+
+/* Filas: sin bordes ni padding extra */
+.columnas-custom-2 .form-row {
+    padding: 0.5rem 0;
+    border: 0;
+    width: 100%;
+}
+
+/* Columnas automáticas: tantas como entren, mínimo 14rem cada una */
+.columnas-custom-2 .form-multiline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 0.75rem 1.5rem;
+    width: 100%;
+}
+
+.columnas-custom-2 .form-multiline > div {
+    width: auto !important;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/* Label arriba, input abajo (evita las superposiciones del layout "aligned") */
+.columnas-custom-2 .flex-container {
     flex-direction: column;
     align-items: stretch;
     gap: 0.25rem;
 }
 
-.columnas-custom .form-row label {
+.columnas-custom-2 .form-row label {
     width: auto;
     min-width: 0;
     padding: 0;
@@ -37,54 +335,30 @@
 }
 
 /* Checkboxes: label al lado */
-.columnas-custom .flex-container.checkbox-row {
+.columnas-custom-2 .flex-container.checkbox-row {
     flex-direction: row;
     align-items: center;
 }
 
 /* Widgets a todo el ancho de su celda */
-.columnas-custom input:not([type="checkbox"]):not([type="radio"]),
-.columnas-custom select,
-.columnas-custom textarea,
-.columnas-custom .related-widget-wrapper {
+.columnas-custom-2 input:not([type="checkbox"]):not([type="radio"]),
+.columnas-custom-2 select,
+.columnas-custom-2 textarea,
+.columnas-custom-2 .related-widget-wrapper {
     width: 100%;
     box-sizing: border-box;
 }
 
 /* Django indenta help/readonly ~170px por el layout "aligned" */
-.columnas-custom .help,
-.columnas-custom .readonly {
+.columnas-custom-2 .help,
+.columnas-custom-2 .readonly {
     margin: 0;
     padding: 0;
 }
 
 /* Separación entre formularios en un inline */
-.columnas-custom .inline-related + .inline-related {
+.columnas-custom-2 .inline-related + .inline-related {
     margin-top: 0.5rem;
-}
-
-/* ============================================= */
-
-.totales-liquidacion .fieldBox > label {
-    font-size: 0;
-}
-
-.totales-liquidacion .nombre-campo {
-    display: block;
-    font-size: 0.8125rem;
-}
-
-.totales-liquidacion .identificador-campo {
-    display: block;
-    margin-top: 2px;
-    font-size: 0.5rem;
-    font-weight: normal;
-    color: var(--body-quiet-color);
-    font-family: monospace;
-}
-
-.totales-liquidacion .identificador-campo::before {
-    content: "identificador: ";
 }
 
 /* ============================================= */
@@ -101,28 +375,6 @@
     color: var(--body-quiet-color);
     border-color: var(--border-color) !important;
     cursor: not-allowed;
-}
-
-.detalles-table-wrapper {
-    max-height: 700px;
-    overflow-y: auto;
-    position: relative;
-}
-
-#detalles-group .tabular thead th {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background-color: var(--body-bg);
-}
-
-#detalles-group .field-formula_base textarea {
-    width: 90%;
-    min-height: 2em;
-    max-height: 7.5em;
-    resize: none;
-    overflow-y: auto;
-    box-sizing: border-box;
 }
 
 /* ============================================= */

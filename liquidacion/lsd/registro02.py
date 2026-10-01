@@ -1,16 +1,9 @@
 from dataclasses import dataclass
 from typing import ClassVar
-from enum import StrEnum
 from datetime import date
 from core.validators import validar_cuil, validar_cbu
+from empleado.choices import FormaPago
 from liquidacion.lsd.utils import validar_datos_obligatorios_dataclass
-
-
-class FormaPago(StrEnum):
-    EFECTIVO = "1"
-    CHEQUE = "2"
-    ACREDITACION_EN_CUENTA = "3"
-    PAGO_EXTERNO = "4"
 
 
 @dataclass
@@ -19,7 +12,7 @@ class DatosRegistro02:
     TIPO_REGISTRO: ClassVar[str] = "02"
     cuil_trabajador: str  # 11 enteros
     fecha_pago: date  # numerico, formato AAAAMMDD
-    forma_pago: FormaPago
+    forma_pago: int
     # Optativos
     legajo_trabajador: str | None  # alfanumerico, longitud 10
     dependencia_revista_trabajador: str | None  # alfanumerico, longitud 50
@@ -51,7 +44,7 @@ class GeneradorRegistro02:
             f"{self.formateador.cantidad_dias_tope_formateada()}"
             f"{fecha_pago}"
             f"{self.formateador.fecha_rubrica_formateada()}"
-            f"{self.datos.forma_pago.value}"
+            f"{self.datos.forma_pago}"
         )
 
         if len(resultado) == 115:
@@ -115,6 +108,7 @@ class ValidadorRegistro02:
     def validar(self):
         validar_datos_obligatorios_dataclass(self.datos)
         self._validar_cuil()
+        self._validar_forma_pago()
         self._validar_legajo()
         self._validar_dependencia_revista()
         self._validar_cbu()
@@ -129,6 +123,14 @@ class ValidadorRegistro02:
             )
 
         validar_cuil(cuil)
+
+    def _validar_forma_pago(self):
+        forma_pago = self.datos.forma_pago
+
+        if forma_pago not in FormaPago.values:
+            raise Exception(
+                f"La forma de pago {forma_pago} no es válida."
+            )
 
     def _validar_legajo(self):
         legajo = self.datos.legajo_trabajador

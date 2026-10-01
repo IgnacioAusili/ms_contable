@@ -4,18 +4,22 @@
     const SELECTOR = 'select[id$="-concepto"]';
 
     function actualizarDetalles(select) {
-        const fila = select.closest("tr");
-        if (!fila) return;
+        const detalle = select.closest(".inline-related");
+        if (!detalle) return;
 
-        const spanUnidad = fila.querySelector(".unidad-display");
-        const spanCategoria = fila.querySelector(".categoria-display");
-        const spanTipo = fila.querySelector(".tipo-display");
-        const spanGrupo = fila.querySelector(".grupo-display");
+        const spanUnidad = detalle.querySelector(".unidad-display");
+        const spanCategoria = detalle.querySelector(".categoria-display");
+        const spanTipo = detalle.querySelector(".tipo-display");
+        const spanGrupo = detalle.querySelector(".grupo-display");
+        const spanIdentificador = detalle.querySelector(".inline_label");
 
-        if (!spanUnidad || !spanCategoria || !spanTipo || !spanGrupo) return;
-
-        const celdaOriginal = fila.querySelector(".original");
-        let parrafoIdentificador = celdaOriginal?.querySelector("p");
+        if (
+            !spanUnidad ||
+            !spanCategoria ||
+            !spanTipo ||
+            !spanGrupo ||
+            !spanIdentificador
+        ) return;
 
         const conceptoId = select.value;
 
@@ -24,17 +28,11 @@
             spanGrupo.textContent = "-";
             spanUnidad.textContent = "-";
             spanCategoria.textContent = "-";
-
-            if (parrafoIdentificador) {
-                parrafoIdentificador.textContent = "";
-            }
+            spanIdentificador.textContent = "";
 
             return;
         }
 
-        // URL relativa al change_form actual:
-        // /admin/app/liquidacionempleado/<pk>/change/  ->  ../../concepto-detalles/<id>/
-        // /admin/app/liquidacionempleado/add/          ->  ../concepto-detalles/<id>/
         const base = window.location.pathname.includes("/add/")
             ? "../concepto-detalles/"
             : "../../concepto-detalles/";
@@ -47,30 +45,14 @@
                 spanTipo.textContent = data.tipo || "no_encontrado";
                 spanGrupo.textContent = data.grupo || "-";
 
-                // Identificador mostrado por Django en .original
-                if (celdaOriginal) {
-                    if (!parrafoIdentificador) {
-                        parrafoIdentificador = document.createElement("p");
-                        celdaOriginal.prepend(parrafoIdentificador);
-                    }
-
-                    parrafoIdentificador.textContent =
-                        data.identificador
-                            ? `identificador: ${data.identificador}`
-                            : "";
-
-                    fila.classList.toggle("has_original", Boolean(data.identificador));
-                }
+                spanIdentificador.textContent = data.identificador || "";
             })
             .catch(() => {
                 spanUnidad.textContent = "-";
                 spanCategoria.textContent = "-";
                 spanTipo.textContent = "-";
                 spanGrupo.textContent = "-";
-
-                if (parrafoIdentificador) {
-                    parrafoIdentificador.textContent = "";
-                }
+                spanIdentificador.textContent = "";
             });
     }
 
@@ -85,20 +67,6 @@
             textarea.scrollHeight,
             maxHeight
         )}px`;
-    }
-
-    function inlineTablaWrapper() {
-        const group = document.getElementById("detalles-group");
-        if (!group) return;
-
-        const table = group.querySelector("table");
-        if (!table) return;
-
-        const wrapper = document.createElement("div");
-        wrapper.className = "detalles-table-wrapper";
-
-        table.parentNode.insertBefore(wrapper, table);
-        wrapper.appendChild(table);
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -117,8 +85,6 @@
         document.querySelectorAll(
             "#detalles-group .field-formula_base textarea"
         ).forEach(ajustarAlturaTextarea);
-
-        inlineTablaWrapper();
 
         const dialogo = document.getElementById("modal-ayuda-liquidacion");
         const abrirAyuda = document.getElementById("abrir-ayuda");

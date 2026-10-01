@@ -1,30 +1,9 @@
 from dataclasses import dataclass
 from typing import ClassVar
-from enum import StrEnum
 from datetime import date
 from core.validators import validar_cuit
+from liquidacion.choices import TipoLiquidacion, TipoEnvio
 from liquidacion.lsd.utils import validar_datos_obligatorios_dataclass
-
-
-class TipoEnvio(StrEnum):
-    """
-    'SJ': informa la liquidacion de SyJ y datos de la DJ F931.
-    'RE': solo informa DJ F931 para casos donde se debe rectificar.
-    """
-    SYJ_DJF931 = "SJ"
-    RECTIFICAR_DJF931 = "RE"
-
-
-class TipoLiquidacion(StrEnum):
-    """
-    Si tipo_envio='SJ', los valores permitidos son mes='M' o quincena='Q', dias='D', horas='H'
-    Si tipo_envio='RE', queda en blanco
-    Este dato es solo informativo
-    """
-    MES = "M"
-    QUINCENA = "Q"
-    DIAS = "D"
-    HORAS = "H"
 
 
 @dataclass
@@ -33,7 +12,7 @@ class DatosRegistro01:
     TIPO_REGISTRO: ClassVar[str] = "01"
     DIAS_BASE: ClassVar[str] = "30"
     cuit_empleador: str  # 11 enteros
-    tipo_envio: TipoEnvio
+    tipo_envio: str
     periodo_liquidacion: date  # periodo de la liquidacion de SyJ o de la DJ. Se informa en formato AAAAMM
     """
     Si tipo_envio='SJ', es el numero de liquidacion de SyJ del empleador. De existir liquidaciones ya ingresadas para 
@@ -43,7 +22,7 @@ class DatosRegistro01:
     cantidad_trabajadores: int  # cantidad de trabajadores informados en registro 04. Se informa en fomrato 6 enteros
     # Optativos
     numero_liquidacion: int | None
-    tipo_liquidacion: TipoLiquidacion | None
+    tipo_liquidacion: str | None
 
 
 class GeneradorRegistro01:
@@ -61,7 +40,7 @@ class GeneradorRegistro01:
         resultado = (
             f"{self.datos.TIPO_REGISTRO}"
             f"{self.datos.cuit_empleador}"
-            f"{self.datos.tipo_envio.value}"
+            f"{self.datos.tipo_envio}"
             f"{self.formateador.periodo_liquidacion_formateado()}"
             f"{self.formateador.tipo_liquidacion_formateado()}"
             f"{self.formateador.numero_liquidacion_formateado()}"
@@ -113,7 +92,7 @@ class ValidadorRegistro01:
     def validar(self):
         validar_datos_obligatorios_dataclass(self.datos)
         self._validar_cuit()
-        self._validar_tipo_liquidacion()
+        self._validar_tipos()
         self._validar_numero_liquidacion()
         self._validar_cantidad_trabajadores()
 
@@ -127,32 +106,42 @@ class ValidadorRegistro01:
 
         validar_cuit(cuit)
 
-    def _validar_tipo_liquidacion(self):
+    def _validar_tipos(self):
         tipo_envio = self.datos.tipo_envio
         tipo_liq = self.datos.tipo_liquidacion
 
-        if tipo_envio == TipoEnvio.RECTIFICAR_DJF931:
+        if tipo_envio not in TipoEnvio.values:
+            raise Exception(
+                f"El tipo de envío {tipo_envio} no es válido."
+            )
+
+        if tipo_envio == TipoEnvio.RE:
             if tipo_liq:
                 raise Exception(
                     "El tipo de liquidación debe quedar vacío cuando el tipo de envío es RE."
                 )
-        elif tipo_envio == TipoEnvio.SYJ_DJF931:
+        elif tipo_envio == TipoEnvio.SJ:
             if not tipo_liq:
                 raise Exception(
                     "El tipo de liquidación debe ser M o Q cuando el tipo de envío es SJ."
+                )
+
+            if tipo_liq not in TipoLiquidacion.values:
+                raise Exception(
+                    f"El tipo de liquidación {tipo_liq} no es válido."
                 )
 
     def _validar_numero_liquidacion(self):
         tipo_envio = self.datos.tipo_envio
         numero_liq = self.datos.numero_liquidacion
 
-        if tipo_envio == TipoEnvio.RECTIFICAR_DJF931:
+        if tipo_envio == TipoEnvio.RE:
             if numero_liq and numero_liq != 0:
                 raise Exception(
                     "El número de liquidación debe quedar vacío cuando el tipo de envío es RE."
                 )
 
-        elif tipo_envio == TipoEnvio.SYJ_DJF931:
+        elif tipo_envio == TipoEnvio.SJ:
             if numero_liq == "":
                 raise Exception(
                     "El número de liquidación es obligatorio cuando el tipo de envío es SJ."

@@ -5,23 +5,11 @@ from django.core.exceptions import ValidationError
 from django.contrib import admin
 from concepto.models import VersionConcepto
 from core.utils import format_decimal_2
+from liquidacion.choices import UnidadesLsd, DebitoCredito
 
 
 # TODO - Validar que si la liquidacion esta cerrada, este detalle tampoco se pueda modificar
 class DetalleLiquidacion(models.Model):
-    class UnidadesLsd(models.TextChoices):
-        MONEDA = "$", "Moneda"
-        PORCENTAJE = "%", "Porcentaje"
-        A = "A", "Año"
-        M = "M", "Mes"
-        Q = "Q", "Quincena"
-        D = "D", "Días"
-        H = "H", "Horas"
-
-    class DebitoCredito(models.TextChoices):
-        DEBITO = "D", "Débito"
-        CREDITO = "C", "Crédito"
-
     id = models.BigAutoField(
         primary_key=True,
     )
