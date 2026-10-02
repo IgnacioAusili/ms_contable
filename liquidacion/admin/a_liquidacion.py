@@ -1,13 +1,14 @@
-from django.contrib import admin
-from django.http import HttpResponse
-from django.urls import reverse
+from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse, Http404
+from django.shortcuts import redirect
+from django.urls import reverse, path
 from django.utils.html import format_html
 
 from core.utils import normalizar_identificador
 from ..forms import LiquidacionEmpleadoInlineForm, LiquidacionEmpleadoInlineFormSet
 from ..models import LiquidacionEmpleado
 from ..models.m_liquidacion import Liquidacion
-from ..forms.f_liquidacion import LiquidacionForm
 from ..services.TxtLsdArca import LsdTxtArcaService
 
 
@@ -71,6 +72,18 @@ class LiquidacionEmpleadoInline(admin.TabularInline):
             self._boton_recibo(obj, "duplicado", "Duplicado"),
         )
 
+    def has_add_permission(self, request, obj):
+        if obj and not obj.editable():
+            return False
+
+        return super().has_add_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and not obj.editable():
+            return False
+
+        return super().has_delete_permission(request, obj)
+
     def _boton_recibo(self, obj, tipo, etiqueta):
         url = reverse(
             "admin:liquidacionempleado_recibo",
@@ -95,7 +108,6 @@ class LiquidacionEmpleadoInline(admin.TabularInline):
 
 @admin.register(Liquidacion)
 class LiquidacionAdmin(admin.ModelAdmin):
-    form = LiquidacionForm
     inlines = [LiquidacionEmpleadoInline]
     actions = None
 
@@ -105,6 +117,20 @@ class LiquidacionAdmin(admin.ModelAdmin):
         "fecha_pago",
         "tipo_envio",
         "tipo_liquidacion",
+        "estado",
+    )
+
+    fields = (
+        "empresa",
+        "estado",
+        "periodo",
+        "tipo_envio",
+        "tipo_liquidacion",
+        "fecha_pago",
+    )
+
+    readonly_fields = (
+        "empresa",
         "estado",
     )
 
@@ -118,18 +144,85 @@ class LiquidacionAdmin(admin.ModelAdmin):
 
     change_form_template = "admin/liquidacion/change_form.html"
 
-    def response_change(self, request, obj):
-        if "_txt" in request.POST:
-            txt = LsdTxtArcaService(obj.id).generar()
+    def has_change_permission(self, request, obj=None):
+        if obj and not obj.editable():
+            return False
 
-            response = HttpResponse(
-                txt,
-                content_type="text/plain",
+        return super().has_change_permission(request, obj)
+
+    def get_urls(self):
+        urls = super().get_urls()
+
+        custom_urls = [
+            path(
+                "<path:object_id>/txt/",
+                self.admin_site.admin_view(self.generar_txt_view),
+                name="liquidacion_generar_txt",
+            ),
+            path(
+                "<path:object_id>/rectificar/",
+                self.admin_site.admin_view(self.rectificar_view),
+                name="liquidacion_rectificar",
+            ),
+        ]
+
+        return custom_urls + urls
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        extra_context = extra_context or {}
+
+        obj = self.get_object(request, object_id)
+
+        extra_context["liq_editable"] = obj is None or obj.editable()
+
+        return super().changeform_view(
+            request,
+            object_id,
+            form_url,
+            extra_context=extra_context,
+        )
+
+    def generar_txt_view(self, request, object_id):
+        if request.method != "POST":
+            raise PermissionDenied
+
+        obj = self.get_object(request, object_id)
+
+        if obj is None:
+            raise Http404
+
+        txt = LsdTxtArcaService(obj.id).generar()
+        obj.cerrar()
+
+        response = HttpResponse(
+            txt,
+            content_type="text/plain",
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="liquidacion_'
+            f'{normalizar_identificador(obj.empresa.nombre)}_'
+            f'{obj.periodo.strftime("%m_%Y")}_{obj.numero}.txt"'
+        )
+
+        return response
+
+    def rectificar_view(self, request, object_id):
+        obj = self.get_object(request, object_id)
+
+        if obj is None:
+            raise Http404
+
+        obj.rectificar()
+
+        self.message_user(
+            request,
+            "La liquidación se encuentra en rectificación, puede ser modificada.",
+            messages.SUCCESS,
+        )
+
+        return redirect(
+            reverse(
+                "admin:liquidacion_liquidacion_change",
+                args=[obj.pk],
             )
-            response["Content-Disposition"] = (
-                f'attachment; filename="liquidacion_{normalizar_identificador(obj.empresa.nombre)}_{obj.periodo.strftime("%m_%Y")}_{obj.numero}.txt"'
-            )
-
-            return response
-
-        return super().response_change(request, obj)
+        )

@@ -1,4 +1,3 @@
-from .f_liquidacion import LiquidacionForm
 from .f_liquidacion_empleado import (
     LiquidacionEmpleadoInlineForm,
     LiquidacionEmpleadoInlineFormSet,

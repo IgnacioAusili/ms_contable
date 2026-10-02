@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="{% static 'liquidacion/admin/detalle_liquidacion_empleado.css' %}">
 {% endblock %}
 
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'liquidacion/admin/liquidacion.js' %}"></script>
+{% endblock %}
+
 {% block after_field_sets %}
     {{ block.super }}
 
@@ -19,6 +24,7 @@
             Ayuda
         </button>
 
+        {% if liq_editable %}
         <div class="module">
             <h2>Aplicar plantilla de liquidación</h2>
 
@@ -43,6 +49,7 @@
                 </button>
             </div>
         </div>
+        {% endif %}
 
         <dialog  id="modal-ayuda-liquidacion">
             <h2>Ayuda para liquidar el empleado</h2>
@@ -123,20 +130,24 @@
 
 {% block submit_buttons_bottom %}
     <div class="submit-row">
+    {% if liq_editable %}
         <input
             type="submit"
             value="Guardar"
             class="default"
             name="_continue"
         >
+    {% endif %}
 
-        {% if liquidacion_empleado %}
+    {% if liquidacion_empleado %}
+        {% if liq_editable %}
         <input
             type="submit"
             value="Calcular"
             class="botones-custom calcular-button"
             name="_calcular"
         >
+        {% endif %}
 
             {% if recibo_original_url %}
             <a
@@ -155,16 +166,30 @@
                 Recibo duplicado
             </a>
             {% endif %}
-        {% else %}
-            <input
+    {% else %}
+        {% if not liq_editable %}
+            <button
                 type="submit"
-                value="Generar TXT"
                 class="botones-custom"
-                name="_txt"
+                formaction="{% url 'admin:liquidacion_rectificar' original.pk %}"
+                formmethod="post"
+                name="_rectificar"
             >
+                Rectificar
+            </button>
         {% endif %}
+            <button
+                type="button"
+                class="botones-custom txt-button"
+                id="btn-generar-txt"
+                data-url="{% url 'admin:liquidacion_generar_txt' original.pk %}"
+                data-csrf-token="{{ csrf_token }}"
+            >
+                Generar TXT
+            </button>
+    {% endif %}
 
-        {% if change and has_delete_permission and not is_popup %}
+        {% if change and has_delete_permission and not is_popup and liq_editable %}
             {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
             <a href="{% add_preserved_filters delete_url %}" class="deletelink">
                 Eliminar

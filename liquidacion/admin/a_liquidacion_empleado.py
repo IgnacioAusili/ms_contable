@@ -43,6 +43,12 @@ class TramoSituacionRevistaInline(admin.TabularInline):
 
     ordering = ("dia_inicio",)
 
+    def has_change_permission(self, request, obj=None):
+        if obj and not obj.liquidacion.editable():
+            return False
+
+        return super().has_change_permission(request, obj)
+
     @admin.display(description="Situación de Revista")
     def situacion_revista(self, obj):
         return "Situación de Revista"
@@ -56,9 +62,38 @@ class ResultadoBaseImponibleInline(admin.TabularInline):
     max_num = 0
     can_delete = False
 
-    fields = ("base_imponible_display", "descripcion_display", "importe")
+    def get_fields(self, request, obj=None):
+        if obj and obj.liquidacion.editable():
+            return (
+                "base_imponible_display",
+                "descripcion_display",
+                "importe",  # usa el form y solo permite editar las detracciones
+            )
 
-    readonly_fields = ("base_imponible_display", "descripcion_display")
+        return (
+            "base_imponible_display",
+            "descripcion_display",
+            "importe_display",  # no usa el form xq has_change_permission=False
+        )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.liquidacion.editable():
+            return (
+                "base_imponible_display",
+                "descripcion_display",
+            )
+
+        return (
+            "base_imponible_display",
+            "descripcion_display",
+            "importe_display",
+        )
+
+    def has_change_permission(self, request, obj=None):
+        if obj and not obj.liquidacion.editable():
+            return False
+
+        return super().has_change_permission(request, obj)
 
     @admin.display(description="Base imponible")
     def base_imponible_display(self, obj):
@@ -82,7 +117,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         (None, {
             "fields": (
                 "liquidacion",
-                "empleado",
+                "empleado_display",
                 "liq_previa"
             ),
         }),
@@ -90,14 +125,12 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             "classes": ("columnas-custom-2",),
             "fields": (
                 ("fecha_rubrica", "cantidad_dias_proporcionar_tope", "unidad_tiempo_trabajado", "tiempo_trabajado"),
-                ("codigo_situacion", "codigo_condicion", "codigo_actividad",
-                 "codigo_modalidad_contratacion", "codigo_siniestrado", "codigo_localidad"),
-                ("porcentaje_aporte_adicional_ss", "porcentaje_contrib_tarea_diferencial",
-                 "remuneracion_maternidad_anses"),
-                ("cantidad_adherentes_obra_social", "aporte_adicional_obra_social", "contrib_adicional_obra_social"),
+                ("codigo_situacion", "codigo_condicion", "codigo_actividad", "codigo_modalidad_contratacion",),
+                ("codigo_siniestrado", "codigo_localidad", "porcentaje_aporte_adicional_ss", "porcentaje_contrib_tarea_diferencial",),
+                ("remuneracion_maternidad_anses", "cantidad_adherentes_obra_social", "aporte_adicional_obra_social", "contrib_adicional_obra_social"),
                 ("base_calc_diferencial_aportes_obra_social_fsr", "base_calc_diferencial_contrib_obra_social_fsr",
-                 "base_calc_diferencial_ley_riesgos_trabajo", "base_calc_diferencial_aportes_seg_social",
-                 "base_calc_diferencial_contrib_seg_social")
+                 "base_calc_diferencial_ley_riesgos_trabajo", "base_calc_diferencial_aportes_seg_social",),
+                ("base_calc_diferencial_contrib_seg_social",)
             )
         }),
         ("Observaciones", {
@@ -118,7 +151,7 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
     readonly_fields = (
         "liquidacion",
-        "empleado",
+        "empleado_display",
         "liq_previa",
         "remunerativo_display",
         "no_remunerativo_display",
@@ -129,9 +162,34 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         "costo_laboral_display",
     )
 
+    def has_change_permission(self, request, obj=None):
+        if obj and not obj.liquidacion.editable():
+            return False
+
+        return super().has_change_permission(request, obj)
+
+    @admin.display(description="Empleado")
+    def empleado_display(self, obj):
+        if not obj.empleado_id:
+            return "-"
+
+        url = reverse(
+            "admin:empleado_empleado_change",
+            args=[obj.empleado_id],
+        )
+
+        return format_html(
+            '<a href="{}">{}</a>',
+            url,
+            obj.version_empleado,
+        )
+
     @admin.display(description="Liquidación previa")
     def liq_previa(self, obj):
         if not obj or not obj.pk:
+            return "-"
+
+        if not obj.liquidacion.editable():
             return "-"
 
         url = reverse(
@@ -163,6 +221,8 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
         if object_id:
             obj = self.get_object(request, object_id)
+
+            extra_context["liq_editable"] = obj is None or obj.liquidacion.editable()
 
             recibo_url = reverse(
                 "admin:liquidacionempleado_recibo",

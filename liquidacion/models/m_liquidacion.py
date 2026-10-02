@@ -44,7 +44,6 @@ class Liquidacion(models.Model):
         choices=Estado.choices,
         null=False,
         blank=False,
-        editable=False
     )
 
     tipo_envio = models.CharField(
@@ -69,6 +68,43 @@ class Liquidacion(models.Model):
         help_text="Domicilio de la empresa al momento de realizar la liquidación.",
     )
 
+    def editable(self):
+        estado_db = self._estado_db()
+
+        if estado_db is None:
+            return True
+
+        return estado_db != self.Estado.CERRADA
+
+    def cerrar(self):
+        estado_db = self._estado_db()
+
+        if estado_db == self.Estado.CERRADA:
+            return
+
+        self.estado = self.Estado.CERRADA
+        self.save(update_fields=["estado"], _transition=True)
+
+    def rectificar(self):
+        estado_db = self._estado_db()
+
+        if estado_db == self.Estado.EN_RECTIFICACION:
+            return
+
+        if estado_db != self.Estado.CERRADA:
+            raise ValidationError(
+                "La liquidacion no puede pasar a estado 'En Rectificación' porque todavía no esta cerrada"
+            )
+
+        self.estado = self.Estado.EN_RECTIFICACION
+        self.save(update_fields=["estado"], _transition=True)
+
+    def _estado_db(self):
+        if self.pk is None:
+            return None
+
+        return type(self).objects.only("estado").get(pk=self.pk).estado
+
     class Meta:
         verbose_name = "liquidación"
         verbose_name_plural = "liquidaciones"
@@ -82,6 +118,11 @@ class Liquidacion(models.Model):
 
     def clean(self):
         super().clean()
+
+        if not self.editable():
+            raise ValidationError(
+                "Esta liquidación no se puede modificar."
+            )
 
         if self.periodo.day != 1:
             raise ValidationError(
@@ -134,16 +175,17 @@ class Liquidacion(models.Model):
             else:
                 self.numero = None
         else:
+            transition = kwargs.pop("_transition", False)
+            if not self.editable() and not transition:
+                raise ValidationError(
+                    "Esta liquidación no se puede modificar."
+                )
+
             original = type(self).objects.get(pk=self.pk)
 
             if self.empresa_id != original.empresa_id:
                 raise ValueError(
                     "La empresa de una liquidación no puede ser modificada."
-                )
-
-            if original.estado == self.Estado.CERRADA:
-                raise ValueError(
-                    "Una liquidación cerrada no puede ser modificada."
                 )
 
         super().save(*args, **kwargs)

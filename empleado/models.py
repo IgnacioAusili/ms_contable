@@ -235,3 +235,6 @@ class VersionEmpleado(models.Model):
             raise ValueError("Esta entidad no es editable.")
 
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.empleado.apellidos}, {self.empleado.nombres} ({self.version})"
