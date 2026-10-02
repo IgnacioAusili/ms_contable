@@ -16,7 +16,7 @@ DEVELOPER = "Schulz, Matias"
 SECRET_KEY = "django-insecure-!lwd(zr!xl^=&=cbnv$rcd9g2!8o6tv+#u^*2k8ypsh15f(4$u"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJ_DEBUG", False)
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 

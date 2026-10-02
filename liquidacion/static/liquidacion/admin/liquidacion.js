@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (!response.ok) {
+            alert("Error al generar TXT!");
             return;
         }
 

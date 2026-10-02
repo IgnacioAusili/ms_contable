@@ -12,13 +12,15 @@
         const spanTipo = detalle.querySelector(".tipo-display");
         const spanGrupo = detalle.querySelector(".grupo-display");
         const spanIdentificador = detalle.querySelector(".inline_label");
+        const fieldsetRegistro03 = detalle.querySelector(".registro03-fieldset");
 
         if (
             !spanUnidad ||
             !spanCategoria ||
             !spanTipo ||
             !spanGrupo ||
-            !spanIdentificador
+            !spanIdentificador ||
+            !fieldsetRegistro03
         ) return;
 
         const conceptoId = select.value;
@@ -29,6 +31,8 @@
             spanUnidad.textContent = "-";
             spanCategoria.textContent = "-";
             spanIdentificador.textContent = "";
+
+            fieldsetRegistro03.style.display = "none";
 
             return;
         }
@@ -46,6 +50,8 @@
                 spanGrupo.textContent = data.grupo || "-";
 
                 spanIdentificador.textContent = data.identificador || "";
+
+                fieldsetRegistro03.style.display = data.tiene_codigo_arca ? "" : "none";
             })
             .catch(() => {
                 spanUnidad.textContent = "-";
@@ -53,6 +59,8 @@
                 spanTipo.textContent = "-";
                 spanGrupo.textContent = "-";
                 spanIdentificador.textContent = "";
+
+                fieldsetRegistro03.style.display = "none";
             });
     }
 
@@ -369,6 +377,12 @@
                 actualizarDetalles(e.target);
             }
         });
+
+        document
+            .querySelectorAll(SELECTOR)
+            .forEach(function (select) {
+                actualizarDetalles(select);
+            });
 
         document.body.addEventListener("input", function (e) {
             if (e.target.matches("#detalles-group .field-formula_base textarea")) {

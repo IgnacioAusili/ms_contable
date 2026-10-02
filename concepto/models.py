@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from base_imponible.models import BaseImponible
 from concepto.choices import Categoria, Tipo, Unidad
 from concepto.rules import validar_tipo_categoria
+from concepto.validators import validar_no_remuneracion
 from core.utils import normalizar_identificador
 
 
@@ -142,13 +143,15 @@ class VersionConcepto(models.Model):
         max_length=255,
         null=False,
         blank=False,
+        validators=[validar_no_remuneracion, ]
     )
 
     # ARCA define el Código de concepto de sueldo ARCA como un campo alfanumérico de longitud 6
     codigo_arca = models.CharField(
         max_length=6,
         null=False,
-        blank=False,
+        blank=True,
+        default="",
         validators=[
             RegexValidator(
                 regex=r"^[A-Za-z0-9]{6}$",

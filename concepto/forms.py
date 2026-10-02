@@ -5,6 +5,7 @@ from .choices import Categoria, Tipo, Unidad
 from .models import Concepto, VersionConcepto
 from grupo_concepto.models import GrupoConcepto
 from .rules import validar_tipo_categoria
+from .validators import validar_no_remuneracion
 
 
 class ConceptoAdminForm(forms.ModelForm):
@@ -24,6 +25,7 @@ class ConceptoAdminForm(forms.ModelForm):
         label="Código ARCA",
         max_length=VersionConcepto._meta.get_field("codigo_arca").max_length,
         validators=VersionConcepto._meta.get_field("codigo_arca").validators,
+        required=False,
         help_text=(
             "Código del concepto de ARCA al que se parametriza "
             "el concepto de la empresa."
@@ -101,6 +103,7 @@ class ConceptoAdminForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        validar_no_remuneracion(denominacion=cleaned_data.get("denominacion"))
         validar_tipo_categoria(
             tipo=cleaned_data.get("tipo"),
             categoria=cleaned_data.get("categoria"),

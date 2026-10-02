@@ -21,6 +21,9 @@ class PlantillaLiquidacionService:
             denominacion = match.group("denominacion")
             concepto_id = int(match.group("id"))
 
+            if denominacion == "remuneracion":  # no es un concepto, es una base imponible. Los conceptos no pueden tener ese identificador
+                return match.string
+
             if concepto_id not in self._versiones.keys():
                 raise ValueError(
                     f"Concepto inexistente: {denominacion}_{concepto_id}"

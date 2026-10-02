@@ -13,11 +13,11 @@ class DatosRegistro03:
     TIPO_REGISTRO: ClassVar[str] = "03"
     cuil_trabajador: str  # 11 enteros
     codigo_arca_concepto: str  # alfanumerico, longitud 10
+    debito_credito: str
     # Optativos
     cantidad: Decimal | None  # Longitud 5: 3 enteros y 2 decimales
     unidades: str | None
     importe: Decimal | None  # Longitud 15: 13 enteros y 2 decimales
-    debito_credito: str | None
     periodo_ajuste_retractivo: date | None  # formato AAAAMM
     """
     Para los conceptos liquidados del período informado en el registro 1, este valor se informa en 0. 
@@ -45,7 +45,7 @@ class GeneradorRegistro03:
             f"{self.formateador.cantidad_formateada()}"
             f"{self.formateador.unidades_formateada()}"
             f"{self.formateador.importe_formateado()}"
-            f"{self.formateador.debito_credito_formateado()}"
+            f"{self.datos.debito_credito}"
             f"{self.formateador.periodo_ajuste_retractivo_formateado()}"
         )
 
@@ -96,14 +96,6 @@ class FormateadorRegistro03:
             return f"{importe:016}".replace(".", "")  # :016 considerando todavia el punnto decimal
         else:
             return "0" * 15
-
-    def debito_credito_formateado(self):
-        debito_credito = self.datos.debito_credito
-
-        if debito_credito:
-            return debito_credito
-        else:
-            return " "
 
     def periodo_ajuste_retractivo_formateado(self):
         periodo_ajuste_retractivo = self.datos.periodo_ajuste_retractivo
@@ -181,9 +173,6 @@ class ValidadorRegistro03:
 
     def _validar_debito_credito(self):
         debito_credito = self.datos.debito_credito
-
-        if not debito_credito:
-            return
 
         if debito_credito not in DebitoCredito.values:
             raise Exception(

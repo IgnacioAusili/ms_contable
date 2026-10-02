@@ -68,23 +68,23 @@ class DetallePlantillaLiquidacion(models.Model):
     cantidad = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        default=0,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
+        default=None,
     )
 
     unidades_lsd = models.CharField(
         max_length=10,
         choices=UnidadesLsd.choices,
-        null=False,
+        null=True,
         blank=True,
     )
 
     debito_credito = models.CharField(
         max_length=10,
         choices=DebitoCredito.choices,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
     )
 
     periodo_ajuste_retroactivo = models.DateField(

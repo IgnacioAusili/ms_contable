@@ -54,23 +54,50 @@ class Registro02Mapper:
 class Registro03Mapper:
     @staticmethod
     def obtener_datos(liquidacion: Liquidacion) -> list[DatosRegistro03]:
-        registros = []
+        registros = {}
 
         for le in liquidacion.empleados.all():
             for detalle in le.detalles.all():
-                registros.append(
-                    DatosRegistro03(
-                        cuil_trabajador=le.empleado.cuil,
-                        codigo_arca_concepto=detalle.concepto.codigo_arca,
-                        cantidad=detalle.cantidad,
-                        unidades=detalle.unidades_lsd,
-                        importe=detalle.importe,
-                        debito_credito=detalle.debito_credito,
-                        periodo_ajuste_retractivo=detalle.periodo_ajuste_retroactivo,
-                    )
-                )
+                if not detalle.concepto.codigo_arca:
+                    continue
 
-        return registros
+                key = (le.empleado.cuil, detalle.concepto.codigo_arca, )
+
+                registro = registros.get(key)
+
+                if registro is None:
+                    registros[key] = Registro03Mapper._crear_registro(le, detalle)
+                    continue
+
+                Registro03Mapper._validar_compatibilidad(registro, detalle)
+                registro.importe += detalle.importe
+
+        return list(registros.values())
+
+    @staticmethod
+    def _crear_registro(le, detalle) -> DatosRegistro03:
+        return DatosRegistro03(
+            cuil_trabajador=le.empleado.cuil,
+            codigo_arca_concepto=detalle.concepto.codigo_arca,
+            cantidad=detalle.cantidad,
+            unidades=detalle.unidades_lsd,
+            importe=detalle.importe,
+            debito_credito=detalle.debito_credito,
+            periodo_ajuste_retractivo=detalle.periodo_ajuste_retroactivo,
+        )
+
+    @staticmethod
+    def _validar_compatibilidad(
+        registro: DatosRegistro03,
+        detalle,
+    ) -> None:
+        if (
+            registro.cantidad != detalle.cantidad
+            or registro.unidades != detalle.unidades_lsd
+            or registro.debito_credito != detalle.debito_credito
+            or registro.periodo_ajuste_retractivo != detalle.periodo_ajuste_retroactivo
+        ):
+            raise ValueError("Los detalles con el mismo código ARCA deben tener los mismos datos excepto el importe.")
 
 
 class Registro04Mapper:

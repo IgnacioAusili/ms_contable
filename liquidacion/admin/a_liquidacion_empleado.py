@@ -388,9 +388,10 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
         try:
             concepto = VersionConceptoModel.objects.get(pk=concepto_id)
         except VersionConceptoModel.DoesNotExist:
-            return JsonResponse(
-                {"identificador": "", "grupo": "", "tipo": "", "categoria": "", "unidad": "", }
-            )
+            return JsonResponse({
+                "identificador": "", "grupo": "", "tipo": "", "categoria": "",
+                "unidad": "", "tiene_codigo_arca": False,
+            })
 
         return JsonResponse({
             "identificador": concepto.identificador_version,
@@ -398,4 +399,5 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
             "tipo": concepto.get_tipo_display(),
             "categoria": concepto.get_categoria_display(),
             "unidad": concepto.get_unidad_display(),
+            "tiene_codigo_arca": True if concepto.codigo_arca else False,
         })

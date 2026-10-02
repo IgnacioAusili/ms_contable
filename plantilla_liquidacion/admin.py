@@ -34,7 +34,7 @@ class DetallePlantillaLiquidacionInline(admin.StackedInline):
         (
             "Detalles Registro 03 LSD Arca",
             {
-                "classes": ("columnas-custom",),
+                "classes": ("columnas-custom", "registro03-fieldset", ),
                 "fields": (
                     ("cantidad", "unidades_lsd", "debito_credito", "periodo_ajuste_retroactivo"),
                 ),
@@ -255,9 +255,10 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
         try:
             version_concepto = Concepto.objects.get(pk=concepto_id).versiones.ultima()
         except Exception:
-            return JsonResponse(
-                {"identificador": "", "grupo": "", "tipo": "", "categoria": "", "unidad": "",}
-            )
+            return JsonResponse({
+                "identificador": "", "grupo": "", "tipo": "", "categoria": "",
+                "unidad": "", "tiene_codigo_arca": False,
+            })
 
         return JsonResponse({
             "identificador": version_concepto.identificador_concepto,
@@ -265,6 +266,7 @@ class PlantillaLiquidacionAdmin(admin.ModelAdmin):
             "tipo": version_concepto.get_tipo_display(),
             "categoria": version_concepto.get_categoria_display(),
             "unidad": version_concepto.get_unidad_display(),
+            "tiene_codigo_arca": True if version_concepto.codigo_arca else False,
         })
 
     def duplicar_view(self, request, object_id):
