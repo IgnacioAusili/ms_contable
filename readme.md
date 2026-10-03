@@ -1,4 +1,4 @@
-# Sistema de liquidación de sueldos
+# MS Contable - Liquidación de Sueldos
 
 Sistema para la gestión y liquidación de sueldos de empresas y la generación de documentación asociada, desarrollado como una aplicación local.
 
@@ -6,11 +6,13 @@ Sistema para la gestión y liquidación de sueldos de empresas y la generación 
 
 El sistema permite administrar la información necesaria para realizar liquidaciones de sueldos y generar los documentos correspondientes.
 
+Ver [imágenes ilustrativas](./docs/imgs_ilustrativas/).
+
 Entre sus principales funcionalidades se encuentran:
 
 * Gestión de empresas.
 * Gestión de empleados y categorías laborales.
-* Gestión de conceptos de liquidación y sus versiones.
+* Gestión de conceptos de liquidación.
 * Gestión de plantillas de liquidación.
 * Generación y cálculo de liquidaciones de sueldos.
 * Generación de recibos de sueldo en formato PDF.
@@ -25,25 +27,22 @@ El sistema contempla la gestión de empresas, empleados, conceptos de liquidaci�
 
 Las liquidaciones cerradas son inmutables y conservan la información necesaria para reproducir sus resultados independientemente de modificaciones posteriores en los datos maestros.
 
-Los conceptos de liquidación utilizan un esquema de versionado para conservar las versiones utilizadas en liquidaciones históricas.
+Los conceptos de liquidación y datos del empleado utilizan un esquema de versionado para conservar las versiones utilizadas en liquidaciones históricas.
 
 ## Fuera de alcance
 
 El proyecto no contempla:
 
+* Liquidación para trabajadores eventuales (registro 05 del txt de LSD de Arca)
+
+* Integración automática con ARCA.
+* Presentación automática del Libro de Sueldos Digital.
+
+* Auditoría y trazabilidad integral de las operaciones.
+
 * Uso simultáneo por múltiples usuarios.
 * Acceso remoto o funcionamiento como servicio en línea.
 * Autenticación y autorización de usuarios.
-* Integración automática con ARCA.
-* Presentación automática del Libro de Sueldos Digital.
-* Auditoría y trazabilidad integral de las operaciones.
-* Historial de versiones de los datos maestros de empresas y empleados.
-
-## Tecnologías
-
-* Django, Python
-* DB Relacional, SQLite
-* HTML, CSS y JavaScript
 
 ## Requisitos
 
@@ -51,27 +50,16 @@ Para ejecutar el proyecto se requiere Docker.
 
 ## Instalación
 
-Ver el artefacto de instalacion y uso en el Release de la version que se desea instalar.
+Ver el artefacto de instalación y uso en el [release](https://github.com/SMati000/ms_contable/releases) de la version que desea instalar.
 
 ## Documentación
 
-Toda la documentación se encuentra dentro del directorio `docs/`.
+Toda la documentación se encuentra dentro del directorio [docs](./docs/):
 
-## Modelo de dominio
-
-Ver [modelo UML del dominio](./docs/dominio/modelo_dominio.md).
-
-## Modelo de Casos de Uso
-
-Ver [modelo UML de casos de uso](./docs/casos_de_uso/00_modelo_uml.md) y sus definiciones adjuntas.
-
-## Diagrama Entidad-Relación
-
-Ver [modelo UML del DER](./docs/dominio/der.md).
-
-## Estructura del Proyecto
-
-Ver [estructura del proyecto](./docs/specs_internas/estructura-py.md).
+- Ver [modelo UML del dominio](./docs/dominio/modelo_dominio.md).
+- Ver [modelo UML de casos de uso](./docs/casos_de_uso/00_modelo_uml.md) y sus definiciones adjuntas.
+- Ver [modelo UML del DER](./docs/dominio/der.md).
+- Ver [estructura del proyecto](./docs/specs_internas/estructura-py.md).
 
 ## Flujo general
 
@@ -80,32 +68,30 @@ A grandes rasgos, el funcionamiento del sistema sigue el siguiente flujo:
 ```text
 Empresa
    │
-   ├── Empleados
-   ├── Categorías
-   └── Conceptos
-          │
-          └── Versiones
-                │
-                ▼
-         Generar liquidación
-                │
-                ▼
-         Liquidar empleados
-                │
-                ▼
-        Cerrar liquidación
-             /       \
-            /         \
-           ▼           ▼
-     Recibo PDF     TXT LSD
+   ├────────────── Categorías
+   │                   ↓
+   ├── Empleados ── Versiones │
+   │                          │ ───
+   └── Conceptos ── Versiones │    │
+                                   │
+                                   ▼
+                            Generar liquidación
+                                   │
+                                   ▼
+                            Liquidar empleados → Recibo PDF
+                                   │
+                                   ▼
+                            Cerrar liquidación → TXT LSD
 ```
 
 ## Conformidad con Normativa Legal y Sistemas Externos
 
 Ver: 
-- [Documentacion sobre el dominio del sistema](./docs/dominio.md)
+- [Documentacion sobre el dominio del sistema](./docs/dominio/readme.md)
 - [Documentacion sobre la conformidad con regulaciones y sistemas externos](./docs/specs_externas)
 
-## Licencia
+## Tecnologías
 
-[Definir licencia del proyecto]
+* Django, Python
+* DB Relacional, SQLite (pensado para uso local)
+* HTML, CSS y JavaScript

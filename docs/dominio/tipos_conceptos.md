@@ -94,51 +94,7 @@ Costo laboral =
 
 Las contribuciones patronales no reducen el importe neto del trabajador, sino que representan un costo adicional para el empleador.
 
-## 5. Modelo conceptual
-
-La clasificación puede representarse de manera más simple como dos dimensiones independientes:
-
-```mermaid
-flowchart TB
-    C[Concepto de liquidación]
-
-    C --> T[Tipo de concepto]
-    T --> R[Remunerativo]
-    T --> NR[No remunerativo]
-    T --> D[Descuento]
-    T --> CO[Contribución]
-
-    C --> G[Grupo de concepto]
-    G --> GS[Sindical]
-    G --> GSS[Seguridad social]
-    G --> GOS[Obra social]
-    G --> GI[INSSJP]
-    G --> GA[ART]
-    G --> GCE[Cámaras o entidades empresariales]
-    G --> GO[Otros rubros]
-```
-
-El diagrama no representa una jerarquía entre los cuatro tipos. Cada concepto tiene **un tipo** y puede pertenecer además a **un grupo**, siendo ambas clasificaciones independientes.
-
-Por ejemplo:
-
-```text
-Concepto: Aporte de obra social
-    Tipo:  Descuento
-    Grupo: Obra social
-```
-
-mientras que:
-
-```text
-Concepto: Contribución de obra social
-    Tipo:  Contribución
-    Grupo: Obra social
-```
-
-Esto permite distinguir el efecto económico del concepto de su pertenencia o destino.
-
-## 6. Regla de negocio
+## 5. Reglas de negocio
 
 **RN-TC-01 — Clasificación de conceptos**
 

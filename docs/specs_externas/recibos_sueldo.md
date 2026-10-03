@@ -11,7 +11,7 @@ El Decreto 407/2026 establece expresamente que el resumen de composición del co
 
 # Normativa
 
-17250,21297?
 - [Ley de Contrato de Trabajo 20.744](https://servicios.infoleg.gob.ar/infolegInternet/anexos/25000-29999/25552/norma.htm)
 - [Ley de Modernización Laboral 27.802](https://servicios.infoleg.gob.ar/infolegInternet/anexos/420000-424999/423680/norma.htm)
 - [Decreto 407/2026](https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=426270)
+- Otros: Leyes 17.250 y 21.297.

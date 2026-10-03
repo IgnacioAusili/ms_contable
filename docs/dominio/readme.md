@@ -4,9 +4,7 @@
 
 Este documento describe los principales conceptos y relaciones del dominio de la liquidación de sueldos que son relevantes para comprender el funcionamiento del sistema.
 
-Su objetivo es proporcionar una referencia para personas que no necesariamente poseen conocimientos previos sobre liquidación de haberes, explicando el significado de los principales conceptos utilizados por el sistema y la forma en que se relacionan entre sí.
-
-El documento se centra en el **dominio del problema** y no en su implementación técnica.
+Su objetivo es proporcionar una referencia sobre la lógica de dominio implementada en el sistema. El documento se centra en el **dominio del problema** y no en su implementación técnica.
 
 Los detalles correspondientes a formatos de archivos, códigos de conceptos, parametrizaciones, aplicativos, procedimientos operativos y especificaciones de organismos externos se documentan por separado.
 
@@ -51,6 +49,10 @@ Por lo tanto:
 
 Este principio permite conservar la coherencia de los resultados históricos y regenerar los documentos asociados sin necesidad de mantener un historial general de todos los datos maestros.
 
+Sin embargo,
+
+> **Que una liquidación conserve su información histórica no implica necesariamente que la generación futura de los documentos derivados sea reproducible idénticamente. El sistema conserva los datos históricos, pero el formato y criterio utilizados para generar los recibos/TXT puede cambiar con el tiempo.**
+
 ## Período y liquidación
 
 Una **liquidación** es el proceso mediante el cual se determinan los haberes correspondientes a los empleados de una empresa para un determinado período. En el sistema, dicho proceso queda representado por un registro que conserva sus resultados.
@@ -67,45 +69,15 @@ Durante su preparación, una liquidación puede modificarse y recalcularse. Una 
 
 La liquidación está compuesta por diferentes **conceptos**, cada uno de los cuales representa un componente particular de los haberes del trabajador, una retención o un costo a cargo del empleador.
 
-Un concepto puede representar, por ejemplo:
-
-* sueldo básico;
-* antigüedad;
-* presentismo;
-* horas extras;
-* un aporte o retención a cargo del trabajador;
-* una contribución a cargo del empleador;
-* un ajuste o redondeo.
+Un concepto puede representar, por ejemplo: sueldo básico, antigüedad, etc.
 
 Cada concepto posee características que determinan cómo interviene en la liquidación.
 
 ### Tipos de conceptos
 
-Los conceptos se clasifican de acuerdo con su naturaleza. Esta clasificación determina cómo participa cada concepto en los distintos resultados de la liquidación.
+Los conceptos se clasifican de acuerdo con su naturaleza. Esta clasificación determina cómo participa cada concepto en los distintos resultados de la liquidación. Ver [tipos de concepto](tipos_conceptos.md).
 
-Se distinguen principalmente:
-
-**Remunerativos**
-
-Representan importes que forman parte de la remuneración del trabajador y que, de acuerdo con la normativa aplicable, pueden integrar determinadas bases para el cálculo de aportes y contribuciones.
-
-**No remunerativos**
-
-Representan importes que se abonan al trabajador pero que reciben un tratamiento diferente al de los conceptos remunerativos a efectos laborales o de seguridad social, según la normativa aplicable.
-
-**Descuentos**
-
-Representan importes que se retienen al trabajador al momento de liquidar sus haberes. Reducen el importe que finalmente percibe el empleado.
-
-**Contribuciones**
-
-Representan importes a cargo del empleador que se generan como consecuencia de la relación laboral. No reducen el importe neto que percibe el trabajador, sino que forman parte del costo que debe afrontar el empleador.
-
-**Redondeos**
-
-Representan ajustes destinados a compensar diferencias de redondeo que puedan surgir durante la liquidación.
-
-## Versiones de los conceptos
+## Versionado
 
 Un **concepto** representa la identidad lógica de un componente de liquidación, mientras que una **versión del concepto** representa las características que ese concepto posee en un determinado momento.
 
@@ -114,6 +86,8 @@ Esta distinción permite que un concepto pueda evolucionar sin alterar la interp
 Por ejemplo, si cambian las características de un concepto, las nuevas liquidaciones pueden utilizar una nueva versión mientras que las liquidaciones históricas continúan haciendo referencia a la versión que correspondía en el momento en que fueron realizadas.
 
 De esta forma, el historial necesario para interpretar una liquidación se conserva a nivel de los conceptos utilizados en ella, sin requerir que todos los datos maestros del sistema posean un mecanismo general de versionado.
+
+Lo mismo aplica para los datos editables de **Empleado**.
 
 ## Grupos de conceptos
 
@@ -124,6 +98,8 @@ Esta clasificación es independiente del tipo de concepto.
 Por ejemplo, un concepto puede ser una **contribución** a cargo del empleador y, al mismo tiempo, pertenecer al grupo **Seguridad social**.
 
 Los grupos son utilizados principalmente para representar la **composición del costo laboral**, permitiendo agrupar varios conceptos individuales en categorías de mayor nivel.
+
+Por defecto, el sistema incorpora los grupos mínimos requeridos por la legislación vigente para conformar la composición del costo laboral. Ver sección "Composición del costo laboral" más abajo.
 
 Los grupos de conceptos no reemplazan la clasificación entre remunerativos, no remunerativos, descuentos y contribuciones. Ambas clasificaciones responden a dimensiones diferentes del dominio.
 
@@ -137,7 +113,7 @@ La **unidad** determina cómo debe interpretarse ese valor, por ejemplo como una
 
 La **base de cálculo** representa el valor sobre el cual se aplica el concepto.
 
-La **fórmula de cálculo** determina cómo se obtiene la base de cálculo y puede utilizar otros conceptos de la misma liquidación.
+La **fórmula de cálculo** determina cómo se obtiene la base de cálculo y puede utilizar otros conceptos o bases imponibles de la misma liquidación.
 
 El **importe** se obtiene aplicando las unidades a la base de cálculo de acuerdo con la unidad correspondiente.
 
@@ -148,11 +124,9 @@ El **importe** se obtiene aplicando las unidades a la base de cálculo de acuerd
 | Sueldo básico            | Cantidad   |       30 |        $65.000 | $1.950.000 |
 | Adicional por antigüedad | Porcentaje |      2 % | $1.950.000 (*) |    $39.000 |
 
-*(*) La base corresponde al importe del Sueldo básico.*
+*(\*) La base corresponde al importe del Sueldo básico.*
 
-La fórmula de cálculo del adicional podría utilizar el importe del Sueldo básico para determinar su base.
-
-Por lo tanto, los conceptos de una liquidación pueden depender de otros conceptos. El cálculo completo de una liquidación debe respetar dichas dependencias.
+Por lo tanto, los conceptos de una liquidación pueden depender de otros conceptos o bases imponibles (Ver sección "Bases imponibles" más abajo). El cálculo completo de una liquidación debe respetar dichas dependencias.
 
 ## Composición de la remuneración
 
@@ -190,7 +164,7 @@ El **costo laboral** representa el costo económico que implica para el empleado
 
 A efectos del dominio del sistema, puede entenderse conceptualmente como:
 
-`Costo laboral total = remuneración bruta + conceptos a cargo del empleador`
+`Costo laboral total = remuneración bruta + contribuciones del empleador`
 
 Los conceptos a cargo del empleador pueden incluir contribuciones y otros conceptos originados en disposiciones legales o convencionales.
 
@@ -210,9 +184,7 @@ Por lo tanto, esta clasificación permite pasar del detalle de conceptos individ
 
 Por ejemplo, varias contribuciones diferentes pueden pertenecer al grupo **Seguridad social** y ser consideradas conjuntamente al representar la composición del costo laboral.
 
-Un mismo grupo puede contener conceptos a cargo del empleador y conceptos a cargo del trabajador. Para representar la composición del costo laboral se consideran específicamente los importes correspondientes al empleador.
-
-El **costo laboral total** utilizado para esta representación incluye la remuneración bruta y los conceptos adicionales a cargo del empleador.
+El **costo laboral total** utilizado para esta representación incluye la remuneración bruta, descuentos y contribuciones del empleador.
 
 ### Representación en el recibo
 
@@ -250,6 +222,8 @@ ARCA utiliza bases identificadas del 1 al 10 para distintos subsistemas. Entre e
 Además de estas bases, existen bases destinadas al cálculo de diferenciales de aportes y contribuciones de seguridad social. Las bases 6 y 7 tienen aplicación en situaciones específicas y no necesariamente intervienen en todas las relaciones laborales.
 
 Por lo tanto, **remuneración bruta** y **base imponible** son conceptos diferentes que pueden, o no, coincidir según las reglas aplicables.
+
+Ver [Bases Imponibles ARCA](../specs_externas/arca_bases_imponibles.md).
 
 ## Detracciones
 

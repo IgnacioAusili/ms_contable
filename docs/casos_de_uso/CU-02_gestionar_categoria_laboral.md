@@ -14,11 +14,11 @@ Contador
 
 ## Disparador
 
-El contador selecciona la opción de gestión de categorías laborales de una empresa.
+El contador selecciona la opción de gestión de categorías laborales.
 
 ## Flujo principal
 
-1. El sistema muestra las categorías laborales registradas para la empresa.
+1. El sistema muestra las categorías laborales registradas.
 2. El contador selecciona una operación sobre una categoría: registrar, consultar, modificar o eliminar.
 3. El sistema solicita o muestra la información correspondiente a la operación seleccionada.
 4. El contador proporciona o modifica la información requerida.
@@ -30,10 +30,6 @@ El contador selecciona la opción de gestión de categorías laborales de una em
 ### EX-01 — Datos inválidos
 
 Si alguno de los datos ingresados no cumple las validaciones establecidas, el sistema informa los errores y solicita su corrección.
-
-### EX-02 — Categoría laboral no perteneciente a la empresa
-
-Si se intenta asociar o modificar una categoría laboral de manera que no pertenezca a la empresa correspondiente, el sistema rechaza la operación.
 
 ## Postcondiciones
 
@@ -61,4 +57,4 @@ No se modifica el estado del sistema.
 
 ## Observaciones
 
-La categoría laboral asignada a un empleado puede ser conservada como parte de la información histórica de una liquidación, de modo que modificaciones posteriores de la categoría no alteren liquidaciones ya realizadas.
+La categoría laboral asignada a un empleado se asocia a una version particular de los datos de dicho empleado, de modo que modificaciones posteriores de la categoría no alteren liquidaciones ya realizadas.

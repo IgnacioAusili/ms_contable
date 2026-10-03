@@ -16,7 +16,7 @@ Contador
 
 ## Disparador
 
-El contador selecciona una liquidación cerrada y solicita generar el archivo TXT para el Libro de Sueldos Digital.
+El contador selecciona una liquidación y solicita generar el archivo TXT para el Libro de Sueldos Digital.
 
 ## Flujo principal
 
@@ -28,6 +28,7 @@ El contador selecciona una liquidación cerrada y solicita generar el archivo TX
 6. El sistema valida el formato y los datos requeridos para la generación del archivo.
 7. El sistema genera el archivo de texto con extensión `.txt`.
 8. El sistema entrega el archivo generado al contador.
+9. El sistema modifica, de ser necesario, el estado de la liquidación a **Cerrada**.
 
 ## Excepciones
 
@@ -40,6 +41,8 @@ Si alguno de los datos no puede representarse de acuerdo con las especificacione
 ### Generación exitosa
 
 El sistema entrega al contador un archivo `.txt` estructurado de acuerdo con el formato de intercambio requerido por el Libro de Sueldos Digital de ARCA.
+
+La liquidación queda en estado **Cerrada**.
 
 ### Error
 
@@ -56,11 +59,14 @@ No se genera un archivo que contenga información incompleta o que no cumpla las
 * RN-07: La generación del archivo no modifica la liquidación ni sus resultados.
 * RN-08: El archivo debe poder regenerarse a partir de la misma liquidación y su información histórica.
 * RN-09: La generación del archivo no implica su presentación ni carga automática en el sistema de ARCA.
+* RN-10: La generación del archivo automáticamente implica que la liquidación pase a estado **Cerrada**.
 
 ## Observaciones
 
 El archivo generado constituye un archivo de intercambio destinado a ser utilizado posteriormente en el servicio **Libro de Sueldos Digital de ARCA**. El sistema no realiza una integración automática con ARCA ni efectúa la presentación del archivo.
 
 La correspondencia entre los conceptos propios del empleador y los conceptos de ARCA forma parte de la parametrización requerida por el Libro de Sueldos Digital. ARCA indica que los conceptos utilizados en la liquidación deben asociarse con los conceptos predefinidos en su grilla universal.
+
+Que una liquidación sea inmutable no implica necesariamente que la generación futura de los documentos derivados sea reproducible idénticamente. El sistema conserva los datos históricos, pero el formato y criterio utilizados para generar los recibos/TXT puede cambiar con el tiempo.
 
 El formato concreto del archivo deberá mantenerse conforme a la versión vigente de las especificaciones publicadas por ARCA al momento de implementar o actualizar esta funcionalidad.

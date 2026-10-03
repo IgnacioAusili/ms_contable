@@ -23,7 +23,7 @@ El contador inicia la generación de una liquidación para una empresa y un per�
 1. El contador selecciona la empresa y el período a liquidar.
 2. El sistema crea la liquidación en estado **Borrador**.
 3. El contador incorpora los empleados que serán incluidos en la liquidación.
-4. Para cada empleado, se determinan los conceptos que corresponden y sus valores.
+4. Para cada empleado, se determinan los datos y conceptos que correspondan.
 5. Se calculan los resultados de la liquidación de cada empleado.
 6. El sistema consolida los resultados de los empleados incluidos en la liquidación.
 7. El contador verifica los resultados obtenidos.
@@ -52,13 +52,15 @@ El contador puede obtener el recibo de sueldo de un empleado de la liquidación,
 
 La generación del recibo no modifica el estado ni los resultados de la liquidación.
 
+El contador elige si quiere generar la version original o duplicado del recibo.
+
 ### FA-03 — Generar archivo TXT LSD
 
-El contador puede generar el archivo TXT correspondiente a la liquidación.
+El contador puede generar el archivo TXT correspondiente a la liquidación, independientemente de que la liquidación se encuentre en estado **Borrador**, **Rectificación** o **Cerrada**, siempre que exista información suficiente para generarlo.
 
 La generación del TXT se realiza a partir de la información histórica y los resultados registrados en la liquidación.
 
-Si la generación finaliza correctamente, la liquidación pasa a estado **Cerrada**.
+Si la generación finaliza correctamente, de no estarlo, la liquidación pasa a estado **Cerrada**.
 
 ## Excepciones
 
@@ -146,8 +148,10 @@ La liquidación representa el conjunto de resultados correspondientes a una empr
 
 El estado **Cerrada** representa que los resultados de la liquidación han quedado definitivos e inmutables. En la implementación actual, esta transición se produce como consecuencia de una generación exitosa del archivo TXT LSD.
 
-La generación del recibo de sueldo y del archivo TXT son operaciones independientes. Ninguna de ellas requiere que la otra se haya realizado previamente.
-
 Una liquidación cerrada puede ser sometida posteriormente a una **Rectificación**. En ese caso, los resultados vuelven a ser modificables y la liquidación debe volver a cerrarse mediante una nueva generación exitosa del archivo TXT.
 
+La generación del recibo de sueldo y del archivo TXT son operaciones independientes. Ninguna de ellas requiere que la otra se haya realizado previamente.
+
 La generación de documentos derivados no constituye una modificación de los resultados de la liquidación.
+
+Que una liquidación sea inmutable no implica necesariamente que la generación futura de los documentos derivados sea reproducible idénticamente. El sistema conserva los datos históricos, pero el formato y criterio utilizados para generar los recibos/TXT puede cambiar con el tiempo.

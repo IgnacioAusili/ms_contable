@@ -26,6 +26,22 @@ El contador selecciona la opción de gestión de plantillas de liquidación de u
 5. El sistema valida la información ingresada.
 6. El sistema ejecuta la operación solicitada e informa su resultado.
 
+## Flujos alternativos
+
+### FA-01 — Cargar todos los conceptos
+
+Al crear una plantilla, el usuario puede elegir cargar todos los conceptos asociados a la empresa.
+
+1. El contador elige cargar todos los conceptos asociados a la empresa.
+2. El sistema carga todos los conceptos y permite al usuario editarlos posteriormente.
+
+### FA-02 — Duplicar plantilla
+
+Al crear una plantilla, el usuario puede elegir duplicar una plantilla existente.
+
+1. El contador elige duplicar una plantilla existente.
+2. El sistema crea la plantilla duplicada.
+
 ## Excepciones
 
 ### EX-01 — Datos inválidos
@@ -64,7 +80,7 @@ No se modifica el estado del sistema.
 * RN-02: La denominación de una plantilla debe ser única dentro de una empresa.
 * RN-03: Cada detalle de una plantilla referencia un `Concepto`.
 * RN-04: Una plantilla solamente puede contener conceptos pertenecientes a la misma empresa.
-* RN-05: Los detalles de una plantilla almacenan la configuración inicial de los conceptos, incluyendo las unidades y la fórmula base.
+* RN-05: Los detalles de una plantilla almacenan la configuración inicial de los conceptos, incluyendo las unidades, fórmula base y otros datos.
 * RN-06: La plantilla no almacena los valores calculados de base ni importe.
 * RN-07: Al aplicar una plantilla se generan nuevos detalles independientes para la liquidación correspondiente.
 * RN-08: Las modificaciones posteriores de una plantilla no alteran las liquidaciones que hayan sido creadas previamente a partir de ella.

@@ -56,4 +56,4 @@ No se modifica el estado del sistema.
 ## Reglas de negocio
 
 * **RN-01:** Cada empresa se identifica de manera única mediante su CUIT.
-* **RN-02:** El nombre de la empresa es obligatorio.
+* **RN-02:** El nombre y tipo de empleador de la empresa es obligatorio.

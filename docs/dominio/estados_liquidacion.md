@@ -31,7 +31,7 @@ stateDiagram-v2
         La liquidación puede ser modificada.
         Mientras se encuentra en este estado,
         puede reflejar cambios en las entidades
-        referenciadas.
+        referenciadas (*).
     end note
 
     note right of En_Rectificacion
@@ -56,7 +56,7 @@ Mientras permanece en este estado:
 * Se pueden incorporar, modificar o eliminar empleados de la liquidación.
 * Se pueden modificar los detalles de liquidación de los empleados.
 * Se pueden recalcular los importes de los empleados.
-* La liquidación puede reflejar cambios en las entidades referenciadas que todavía no hayan sido materializados como información histórica de la liquidación.
+* La liquidación puede reflejar cambios en las entidades referenciadas que todavía no hayan sido materializados como información histórica de la liquidación (*).
 
 El estado Borrador representa, por lo tanto, una liquidación que todavía no constituye una versión histórica definitiva de sus resultados.
 
@@ -113,7 +113,7 @@ Una vez finalizadas las modificaciones, la operación **Generar TXT - LSD ARCA**
 
 La rectificación se diferencia del estado Borrador principalmente por su relación con los datos históricos.
 
-En Borrador, la liquidación todavía se encuentra en proceso de construcción y puede tomar información actualizada de las entidades referenciadas cuando corresponda.
+En Borrador, la liquidación todavía se encuentra en proceso de construcción y puede tomar información actualizada de las entidades referenciadas cuando corresponda (*).
 
 En Rectificación, en cambio, se parte de una liquidación que ya fue cerrada. Por lo tanto, la información histórica que forma parte de ella debe conservarse y no debe ser reemplazada automáticamente por los valores actuales de las entidades maestras.
 
@@ -158,3 +158,7 @@ En una versión posterior podrían separarse ambas operaciones si los requisitos
 | Rectificación | Generar TXT - LSD ARCA correctamente | Cerrada        |
 
 Una generación del TXT que no pueda completarse correctamente **no produce una transición de estado**.
+
+# Notas
+
+(*) pendiente de ser implementado

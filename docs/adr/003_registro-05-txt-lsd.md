@@ -1,4 +1,4 @@
-# No modelar trabajadores eventuales en v1 -- ADR
+# No modelar trabajadores eventuales -- ADR
 
 ### Contexto
 
@@ -16,14 +16,14 @@ Estos datos no forman parte del flujo habitual de liquidación modelado actualme
 
 Se decide **no soportar trabajadores eventuales ni generar el Registro 05 en la primera versión**.
 
-El Registro 05 corresponde a una situación laboral específica que requiere información y relaciones que no son necesarias para el flujo principal del sistema. Incorporarlas únicamente para satisfacer la estructura del TXT agregaría complejidad al modelo sin aportar funcionalidad al alcance actual.
+El Registro 05 corresponde a una situación laboral específica que requiere información y relaciones que no son necesarias para el flujo principal del sistema.
 
 Cuando se incorpore el soporte para trabajadores eventuales, se evaluará su modelado como una extensión específica del dominio, en lugar de incorporar estos datos como atributos genéricos de `EMPLEADO` o `VERSION_EMPLEADO`.
 
 ### Consecuencias
 
-* El sistema no podrá liquidar ni generar el Registro 05 para trabajadores eventuales en v1.
+* El sistema no podrá liquidar ni generar el Registro 05 para trabajadores eventuales.
 * Se evita incorporar al modelo datos y relaciones específicas de una modalidad no soportada.
 * Se mantiene `EMPLEADO` y `VERSION_EMPLEADO` enfocados en los datos necesarios para el flujo habitual.
-* La generación del TXT deberá contemplar explícitamente que el Registro 05 está fuera del alcance de v1.
+* La generación del TXT deberá contemplar explícitamente que el Registro 05 está fuera del alcance.
 * Incorporar trabajadores eventuales posteriormente requerirá una decisión de diseño específica para modelar esta modalidad.

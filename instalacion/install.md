@@ -3,6 +3,7 @@
 ## Requisitos
 
 * Docker instalado y ejecutándose.
+    * Si usa windows: [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
 * Conexión a Internet durante la instalación y las actualizaciones.
 
 ## Instalación

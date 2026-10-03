@@ -14,9 +14,11 @@ Se busca permitir reutilizar una configuración inicial de conceptos sin introdu
 
 ### Decisión y Justificación
 
-Se utilizarán **plantillas de liquidación asociadas a una empresa**, compuestas por detalles que referencian una `VERSION_CONCEPTO` y contienen las unidades y la fórmula base inicial.
+Se utilizarán **plantillas de liquidación asociadas a una empresa**, compuestas por detalles que referencian siempre a la version vigente del concepto y contienen las unidades, fórmula base inicial y otros datos.
 
 Al aplicar una plantilla se crearán nuevos `DETALLE_LIQUIDACION` para la liquidación correspondiente.
+
+Se le permite al usuario duplicar plantillas y, al crear una plantilla nueva, cargar todos los conceptos asociados a la empresa en cuestión.
 
 ### Consecuencias
 

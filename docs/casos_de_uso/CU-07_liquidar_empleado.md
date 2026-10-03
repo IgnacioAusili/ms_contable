@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Permitir al contador calcular y registrar la liquidación correspondiente a un empleado dentro de una liquidación de su empresa, determinando los conceptos, bases, importes y subtotales que componen su remuneración.
+Permitir al contador calcular y registrar la liquidación correspondiente a un empleado dentro de una liquidación de su empresa, determinando los datos relevantes, conceptos, bases, importes y subtotales que componen su remuneración.
 
 ## Actor
 
@@ -22,30 +22,35 @@ El contador selecciona un empleado asociado a una liquidación y solicita realiz
 ## Flujo principal
 
 1. El sistema muestra la información del empleado y los conceptos configurados para su liquidación.
-2. El contador agrega, modifica o elimina los conceptos que correspondan.
-3. El contador puede aplicar una plantilla de liquidación para incorporar una configuración inicial de conceptos.
+2. El contador carga los datos necesarios.
+3. El contador agrega, modifica o elimina los conceptos que correspondan.
 4. El sistema incorpora los detalles de los conceptos seleccionados a la liquidación del empleado.
 5. El contador configura las unidades y las fórmula base correspondiente a cada concepto.
 6. El sistema identifica las referencias requeridas en base a la fórmula base de cada concepto.
-7. El contador puede guardar la liquidacion eligiendo calcular, o no, todas las fórmulas e importes. 
+7. El contador puede guardar la liquidacion eligiendo calcular, o no, todas las fórmulas e importes.
+8. El contador puede generar el recibo de sueldo, version original o duplicado. 
 
 ## Flujos alternativos
 
-### FA-01 — Aplicar plantilla de liquidación
+### FA-01 — Completar datos de liquidación previa
+
+El contador puede elegir completar los datos necesarios a partir de la liquidación inmediatamente anterior de ese mismo empleado.
+
+### FA-02 — Aplicar plantilla de liquidación
 
 En el paso 3 del flujo principal, el contador puede seleccionar una plantilla de liquidación disponible para la empresa.
 
-1. El sistema muestra las plantillas disponibles.
+1. El sistema muestra las plantillas disponibles para la empresa en cuestión.
 2. El contador selecciona una plantilla.
 3. El sistema incorpora a la liquidación los detalles configurados en la plantilla.
 4. Los detalles incorporados pueden ser modificados por el contador antes de confirmar la liquidación.
 5. La plantilla original no se modifica.
 
-### FA-02 — Guardar Borrador
+### FA-03 — Guardar Borrador
 1. El contador utiliza la opcion "Guardar"
 2. El sistema guarda la liquidación tal y como esta, sin resolver las fórmulas ni calcular los importes. 
 
-### FA-03 — Calcular Liquidacion
+### FA-04 — Calcular Liquidacion
 1. El contador utiliza la opcion "Calcular"
 2. El sistema obtiene los importes de los conceptos referenciados y evalúa las fórmulas base.
 3. El sistema determina el importe de cada detalle de liquidación.
@@ -53,7 +58,7 @@ En el paso 3 del flujo principal, el contador puede seleccionar una plantilla de
 5. El sistema guarda la liquidación. 
 6. El sistema muestra los resultados obtenidos para su verificación.
 
-### FA-04 — Recalcular liquidación
+### FA-05 — Recalcular liquidación
 
 Si el contador modifica unidades, expresiones o referencias después de un cálculo previo:
 
@@ -79,7 +84,7 @@ Si una expresión de cálculo no cumple la sintaxis o las operaciones permitidas
 
 ### EX-05 — Dependencia circular
 
-Si las referencias entre conceptos generan una dependencia circular que impide determinar los valores necesarios para el cálculo, el sistema informa el error y no permite completar la liquidación.
+Si las referencias entre conceptos/bases imponibles generan una dependencia circular que impide determinar los valores necesarios para el cálculo, el sistema informa el error y no permite completar la liquidación.
 
 ### EX-06 — Liquidación no modificable
 
@@ -102,9 +107,9 @@ Si ocurre una excepción durante el cálculo, no se confirma la liquidación del
 ## Reglas de negocio
 
 * RN-01: Un empleado solamente puede ser liquidado dentro de una liquidación correspondiente a su empresa.
-* RN-02: Cada detalle de liquidación referencia una versión concreta de un concepto.
-* RN-03: Las versiones de conceptos utilizadas en una liquidación deben conservarse para mantener la información histórica.
-* RN-04: Una expresión de cálculo puede utilizar referencias a otros detalles de la misma liquidación del empleado.
+* RN-02: Cada detalle de liquidación referencia una versión concreta de los conceptos y empleado asociados.
+* RN-03: Las versiones de conceptos y empelados utilizadas en una liquidación deben conservarse para mantener la información histórica.
+* RN-04: Una expresión de cálculo puede utilizar referencias a otros detalles (conceptos y/o bases imponibles) de la misma liquidación del empleado.
 * RN-05: Cada identificador utilizado en una expresión debe corresponder con el identificador provisto al usuario en cada detalle.
 * RN-06: Las referencias utilizan el importe del detalle referenciado como valor de entrada para la expresión.
 * RN-07: Las expresiones de cálculo solamente pueden utilizar las operaciones admitidas por el sistema.
@@ -124,4 +129,6 @@ Las fórmulas base pueden utilizar identificadores correspondientes a otros conc
 
 La aplicación de una plantilla constituye únicamente una forma de cargar una configuración inicial. Una vez incorporados, los detalles pertenecen a la liquidación y pueden ser modificados independientemente de la plantilla.
 
-Los resultados calculados forman parte de la información histórica de la liquidación y no deben depender de los valores actuales de los datos maestros ni de versiones posteriores de los conceptos.
+Los resultados calculados forman parte de la información histórica de la liquidación y no deben depender de los valores actuales de los datos maestros ni de versiones posteriores de los conceptos o empleados.
+
+Que una liquidación sea inmutable no implica necesariamente que la generación futura de los documentos derivados sea reproducible idénticamente. El sistema conserva los datos históricos, pero el formato y criterio utilizados para generar los recibos/TXT puede cambiar con el tiempo.

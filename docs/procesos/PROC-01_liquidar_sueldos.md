@@ -16,6 +16,8 @@ La generación del **recibo de sueldo** y del **archivo TXT compatible con el Li
 
 El proceso debe conservar la información necesaria para reproducir posteriormente los resultados de la liquidación, independientemente de modificaciones posteriores realizadas sobre los datos maestros utilizados para generarla.
 
+Que una liquidación conserve su información histórica no implica necesariamente que la generación futura de los documentos derivados sea reproducible idénticamente. El sistema conserva los datos históricos, pero el formato y criterio utilizados para generar los recibos/TXT puede cambiar con el tiempo.
+
 ---
 
 # Vista funcional y organizacional
@@ -23,19 +25,16 @@ El proceso debe conservar la información necesaria para reproducir posteriormen
 Las actividades del proceso se representan junto con los principales productos de información que consumen y generan. Todas las actividades son realizadas por el **contador**.
 
 ```mermaid
-flowchart TB
+flowchart LR
 
     subgraph CONTADOR["Rol: Contador"]
-
         A["Preparar liquidación"]
         B["Determinar conceptos<br/>aplicables"]
         C["Calcular remuneraciones"]
         D["Verificar resultados"]
-        E["Finalizar liquidación"]
         F["Rectificar liquidación"]
         G["Obtener recibo de sueldo"]
         H["Obtener archivo TXT LSD"]
-
     end
 
     P1["Empresa + período + fecha de pago"]
@@ -71,8 +70,8 @@ flowchart TB
     P7 --> D
     D --> P8
 
-    P8 --> E
-    E --> P9
+    P8 --> H
+    H --> P9
 
     P9 --> F
     F --> P10
@@ -103,7 +102,7 @@ Para cada empleado se determina el conjunto de conceptos que corresponde conside
 
 Los conceptos pueden determinarse individualmente o a partir de una configuración predefinida.
 
-Los conceptos utilizados en una liquidación se materializan mediante una **versión concreta de cada concepto**, de manera que las modificaciones posteriores en sus características no alteren los resultados históricos.
+Los datos del empleado y conceptos utilizados en una liquidación se materializan mediante una **versión concreta de cada entidad**, de manera que las modificaciones posteriores en sus características no alteren los resultados históricos.
 
 #### Calcular remuneraciones
 
@@ -133,12 +132,6 @@ La verificación puede llevar a modificar los conceptos, los valores utilizados 
 
 Mientras la liquidación no haya sido finalizada, este ciclo puede repetirse hasta obtener los resultados considerados correctos.
 
-#### Finalizar liquidación
-
-Una vez verificados los resultados, la liquidación se considera finalizada y pasa al estado **Cerrada**.
-
-La liquidación cerrada constituye el registro histórico de los resultados correspondientes al período liquidado y se considera inmutable.
-
 #### Rectificar liquidación
 
 Una liquidación cerrada puede ser reabierta mediante una **Rectificación** cuando resulte necesario modificar sus resultados.
@@ -162,6 +155,10 @@ La obtención del recibo no modifica los resultados ni el estado de la liquidaci
 A partir de la información de la liquidación se obtiene el archivo compatible con el Libro de Sueldos Digital de ARCA.
 
 El archivo representa información de la liquidación destinada a su utilización con dicho sistema.
+
+Al generar el TXT, la liquidación se considera finalizada y pasa al estado **Cerrada**.
+
+La liquidación cerrada constituye el registro histórico de los resultados correspondientes al período liquidado y se considera inmutable.
 
 La obtención del archivo no constituye conceptualmente una etapa posterior obligatoria a la generación del recibo, ni existe un orden de negocio establecido entre ambos productos.
 
@@ -196,7 +193,9 @@ flowchart TB
 
     K["Ajustar conceptos,<br/>valores o cálculos"]
 
-    L["Finalizar liquidación"]
+    L["Generar TXT"]
+
+    L1["Generar Recibos de Sueldo"]
 
     M{"¿Se requiere<br/>rectificación?"}
 
@@ -230,7 +229,9 @@ flowchart TB
     J -->|No| K
     K --> D
 
-    J -->|Sí| L
+    J -->|Sí| L1
+
+    L1 --> L
 
     L --> M
 
@@ -258,7 +259,7 @@ flowchart TB
 * Los resultados de cada empleado se consolidan como parte de la liquidación.
 * Los resultados pueden ser revisados y, cuando sea necesario, recalculados.
 * Mientras la liquidación se encuentre en preparación, el ciclo de determinación, cálculo y revisión puede repetirse.
-* Una vez que los resultados se consideran definitivos, la liquidación puede finalizarse y pasar a estado **Cerrada**.
+* Una vez que los resultados se consideran definitivos, cuando el contador genere el TXT la liquidación pasará a estado **Cerrada**.
 * Una liquidación cerrada conserva los resultados obtenidos y no debe modificarse.
 * Si una liquidación cerrada requiere modificaciones posteriores, se inicia una **Rectificación**.
 * La rectificación parte de la información histórica de la liquidación y permite modificar sus detalles y recalcular sus resultados.

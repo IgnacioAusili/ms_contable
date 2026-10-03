@@ -14,11 +14,11 @@ Contador
 
 ## Disparador
 
-El contador selecciona la opción de gestión de conceptos de liquidación de una empresa.
+El contador selecciona la opción de gestión de conceptos de liquidación.
 
 ## Flujo principal
 
-1. El sistema muestra los conceptos activos registrados para la empresa.
+1. El sistema muestra los conceptos activos registrados.
 2. El contador selecciona una operación: registrar, consultar, modificar, eliminar o restaurar un concepto.
 3. El sistema solicita o muestra la información correspondiente a la operación seleccionada.
 4. El contador proporciona o modifica la información requerida.
