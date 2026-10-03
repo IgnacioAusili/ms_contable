@@ -144,10 +144,7 @@ class ReciboSueldoService:
         }
 
         def total(codigo):
-            return grupos.get(codigo, {}).get(
-                "total",
-                Decimal("0"),
-            )
+            return grupos.get(codigo, {}).get("total", Decimal("0"), )
 
         otros = sum(
             (
@@ -165,9 +162,7 @@ class ReciboSueldoService:
             obra_social=total("obra_social"),
             inssjp=total("inssjp"),
             art_scvo=total("art") + total("scvo"),
-            entidades_empresariales=total(
-                "entidades_empresariales"
-            ),
+            entidades_empresariales=total("entidades_empresariales"),
             otros=otros,
         )
 
@@ -187,22 +182,13 @@ class ReciboSueldoService:
             codigo: {
                 "denominacion": denominacion,
                 "total": self._decimal_a_string(
-                    grupos.get(codigo, {}).get(
-                        "total",
-                        Decimal("0"),
-                    )
+                    grupos.get(codigo, {}).get("total", Decimal("0"), )
                 ),
                 "empleador": self._decimal_a_string(
-                    grupos.get(codigo, {}).get(
-                        "empleador",
-                        Decimal("0"),
-                    )
+                    grupos.get(codigo, {}).get("empleador", Decimal("0"), )
                 ),
                 "trabajador": self._decimal_a_string(
-                    grupos.get(codigo, {}).get(
-                        "trabajador",
-                        Decimal("0"),
-                    )
+                    grupos.get(codigo, {}).get("trabajador", Decimal("0"), )
                 ),
             }
             for codigo, denominacion in categorias.items()
@@ -211,30 +197,18 @@ class ReciboSueldoService:
     @staticmethod
     def calcular_antiguedad(fecha_ingreso, fecha_referencia):
         if fecha_ingreso > fecha_referencia:
-            raise ValueError(
-                "La fecha de ingreso no puede ser posterior "
-                "a la fecha de referencia."
-            )
+            raise ValueError("La fecha de ingreso no puede ser posterior a la fecha de referencia.")
 
         anios = fecha_referencia.year - fecha_ingreso.year
 
-        if (
-            fecha_referencia.month,
-            fecha_referencia.day,
-        ) < (
-            fecha_ingreso.month,
-            fecha_ingreso.day,
-        ):
+        if (fecha_referencia.month, fecha_referencia.day, ) < (fecha_ingreso.month, fecha_ingreso.day, ):
             anios -= 1
 
         return anios
 
     @staticmethod
     def neto_en_letras(valor):
-        return num2words(
-            int(valor),
-            lang="es",
-        )
+        return num2words(int(valor), lang="es", )
 
     def _agrupar_por_grupo(self, detalles):
         resultado: dict[dict[str, Decimal]] = {}

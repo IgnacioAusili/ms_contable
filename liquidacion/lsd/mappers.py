@@ -113,7 +113,7 @@ class Registro04Mapper:
                 for resultado in le.resultados_bases_imponibles.all()
             }
 
-            tramos = le.situaciones_revista.all()
+            tramos = list(le.situaciones_revista.order_by("dia_inicio"))
 
             tramo_1 = tramos[0] if len(tramos) > 0 else None
             tramo_2 = tramos[1] if len(tramos) > 1 else None

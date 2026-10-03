@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
 from django.urls import reverse
@@ -276,7 +276,16 @@ class LiquidacionEmpleadoAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         if "_calcular" in request.POST:
-            LiquidacionEmpleadoService(obj).liquidar()
+            try:
+                LiquidacionEmpleadoService(obj).liquidar()
+                self.message_user(
+                    request,
+                    "Liquidación calculada correctamente.",
+                    messages.SUCCESS,
+                )
+            except Exception as e:
+                self.message_user(request, str(e), messages.ERROR, )
+
             return HttpResponseRedirect(request.path)
 
         return super().response_change(request, obj)

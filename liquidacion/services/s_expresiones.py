@@ -95,10 +95,7 @@ class LiquidacionEmpleadoService:
         detalle o a una base imponible.
         """
         if identificador in self.nodos_por_identificador:
-            raise ValueError(
-                f"El identificador '{identificador}' "
-                "está definido para más de un nodo."
-            )
+            raise ValueError(f"El identificador '{identificador}' está definido para más de un nodo.")
 
         self.nodos_por_identificador[identificador] = nodo
 
@@ -123,36 +120,20 @@ class LiquidacionEmpleadoService:
             tipo = detalle.concepto.tipo
 
             if tipo not in subtotales:
-                raise ValueError(
-                    f"Tipo de concepto no soportado: {tipo}"
-                )
+                raise ValueError(f"Tipo de concepto no soportado: {tipo}")
 
             subtotales[tipo] += detalle.importe
 
-        remunerativo = subtotales[
-            Tipo.REMUNERATIVO
-        ]
-        no_remunerativo = subtotales[
-            Tipo.NO_REMUNERATIVO
-        ]
-        descuentos = subtotales[
-            Tipo.DESCUENTO
-        ]
-        contribuciones = subtotales[
-            Tipo.CONTRIBUCION
-        ]
+        remunerativo = subtotales[Tipo.REMUNERATIVO]
+        no_remunerativo = subtotales[Tipo.NO_REMUNERATIVO]
+        descuentos = subtotales[Tipo.DESCUENTO]
+        contribuciones = subtotales[Tipo.CONTRIBUCION]
 
         remuneracion_bruta = self.obtener_valor_base_imponible("remuneracion_total")
 
-        remuneracion_neta = (
-            remuneracion_bruta
-            - descuentos
-        )
+        remuneracion_neta = remuneracion_bruta - descuentos
 
-        costo = (
-            remuneracion_bruta
-            + contribuciones
-        )
+        costo = remuneracion_bruta + contribuciones
 
         liquidacion_empleado = self.liquidacion_empleado
 
@@ -190,23 +171,15 @@ class LiquidacionEmpleadoService:
                 self.nodos_por_identificador,
             )
 
-            orden_calculos = obtener_orden_calculo(
-                grafo_referencias
-            )
+            orden_calculos = obtener_orden_calculo(grafo_referencias)
 
             for nodo in orden_calculos:
                 if nodo[0] == "detalle":
-                    self.evaluar_y_asignar_importe(
-                        self.detalles[nodo]
-                    )
+                    self.evaluar_y_asignar_importe(self.detalles[nodo])
                 elif nodo[0] == "base":
-                    self.calcular_y_asignar_base_imponible(
-                        self.resultados_bases[nodo]
-                    )
+                    self.calcular_y_asignar_base_imponible(self.resultados_bases[nodo])
                 else:
-                    raise ValueError(
-                        f"Tipo de nodo no soportado: {nodo[0]}"
-                    )
+                    raise ValueError(f"Tipo de nodo no soportado: {nodo[0]}")
 
             DetalleLiquidacion.objects.bulk_update(
                 self.detalles.values(),
@@ -229,10 +202,7 @@ class LiquidacionEmpleadoService:
         detalle.base = base
 
         unidad = Unidad(detalle.concepto.unidad)
-        importe = unidad.calcular_importe(
-            detalle.unidades,
-            base,
-        )
+        importe = unidad.calcular_importe(detalle.unidades, base, )
 
         detalle.importe = importe
 
@@ -249,19 +219,14 @@ class LiquidacionEmpleadoService:
         """
         identificador = resultado_base.base_imponible.identificador
 
-        if identificador == "detracciones":
-            importe = resultado_base.importe
+        if identificador == "detracciones": importe = resultado_base.importe
 
-        elif identificador == "remuneracion_total":
-            importe = self.calcular_remuneracion_total()
+        elif identificador == "remuneracion_total": importe = self.calcular_remuneracion_total()
 
-        elif identificador == "remuneracion_10":
-            importe = self.calcular_remuneracion_10()
+        elif identificador == "remuneracion_10": importe = self.calcular_remuneracion_10()
 
         else:
-            importe = self.calcular_base_imponible_por_conceptos(
-                resultado_base
-            )
+            importe = self.calcular_base_imponible_por_conceptos(resultado_base)
 
         resultado_base.importe = importe
 
@@ -279,10 +244,7 @@ class LiquidacionEmpleadoService:
         importe = Decimal("0")
 
         for nodo, detalle in self.detalles.items():
-            if detalle.concepto.tipo in (
-                    Tipo.REMUNERATIVO,
-                    Tipo.NO_REMUNERATIVO,
-            ):
+            if detalle.concepto.tipo in (Tipo.REMUNERATIVO, Tipo.NO_REMUNERATIVO, ):
                 try:
                     importe += self.importes[nodo]
                 except KeyError:
@@ -297,12 +259,8 @@ class LiquidacionEmpleadoService:
         """
         Calcula remuneracion_10 como remuneracion_2 menos detracciones.
         """
-        nodo_remuneracion_2 = self.nodos_por_identificador.get(
-            "remuneracion_2"
-        )
-        nodo_detracciones = self.nodos_por_identificador.get(
-            "detracciones"
-        )
+        nodo_remuneracion_2 = self.nodos_por_identificador.get("remuneracion_2")
+        nodo_detracciones = self.nodos_por_identificador.get("detracciones")
 
         if nodo_remuneracion_2 is None:
             raise ReferenciaInexistente("remuneracion_2")
@@ -336,10 +294,7 @@ class LiquidacionEmpleadoService:
                 try:
                     importe += self.importes[nodo]
                 except KeyError:
-                    raise RuntimeError(
-                        f"El nodo '{version.identificador_version}' "
-                        "todavía no fue calculado."
-                    )
+                    raise RuntimeError(f"El nodo '{version.identificador_version}' todavía no fue calculado.")
 
         return importe
 
@@ -350,12 +305,8 @@ class LiquidacionEmpleadoService:
         """
         try:
             formula_normalizada = normalizar_formula(formula)
-            referencias = self.resolver_referencias(
-                formula_normalizada
-            )
-            expresion_evaluable, valores_numericos = preparar_formula(
-                formula_normalizada
-            )
+            referencias = self.resolver_referencias(formula_normalizada)
+            expresion_evaluable, valores_numericos = preparar_formula(formula_normalizada)
 
             evaluador = SimpleEval(
                 operators=self.OPERADORES,
@@ -365,9 +316,7 @@ class LiquidacionEmpleadoService:
                 },
             )
 
-            return evaluador.eval(
-                expr=expresion_evaluable,
-            )
+            return evaluador.eval(expr=expresion_evaluable, )
         except Exception as e:
             raise e  # pending, raise custom exception(s)
 
@@ -393,10 +342,7 @@ class LiquidacionEmpleadoService:
             try:
                 referencias[identificador] = self.importes[nodo]
             except KeyError:
-                raise RuntimeError(
-                    f"El nodo '{identificador}' "
-                    "todavía no fue calculado."
-                )
+                raise RuntimeError(f"El nodo '{identificador}' todavía no fue calculado.")
 
         return referencias
 
@@ -409,10 +355,7 @@ class LiquidacionEmpleadoService:
         try:
             return self.importes[nodo]
         except KeyError:
-            raise RuntimeError(
-                f"La base imponible '{identificador}' "
-                "todavía no fue calculada."
-            )
+            raise RuntimeError(f"La base imponible '{identificador}' todavía no fue calculada.")
 
 
 def normalizar_formula(formula):
@@ -468,7 +411,7 @@ def obtener_orden_calculo(grafo):
         if nodo in en_camino:
             indice = en_camino.index(nodo)
             ciclo = en_camino[indice:] + [nodo]
-            raise ReferenciaCiclica(ciclo)
+            raise ReferenciaCiclica(f"Las referencias en las formulas generan una dependencia circular: {ciclo}")
 
         if nodo in visitados:
             return
@@ -532,10 +475,7 @@ def obtener_grafo_referencias(
 
     grafo = {
         nodo: []
-        for nodo in (
-            *detalles.keys(),
-            *resultados_bases.keys(),
-        )
+        for nodo in (*detalles.keys(), *resultados_bases.keys(), )
     }
 
     for nodo, detalle in detalles.items():
@@ -570,10 +510,7 @@ def obtener_grafo_referencias(
 
         if identificador_base == "remuneracion_total":
             for nodo_detalle, detalle in detalles.items():
-                if detalle.concepto.tipo in (
-                        Tipo.REMUNERATIVO,
-                        Tipo.NO_REMUNERATIVO,
-                ):
+                if detalle.concepto.tipo in (Tipo.REMUNERATIVO, Tipo.NO_REMUNERATIVO, ):
                     grafo[nodo].append(nodo_detalle)
 
             continue
@@ -608,9 +545,6 @@ def agregar_nodo_por_identificador(
     nodo,
 ):
     if identificador in nodos_por_identificador:
-        raise ValueError(
-            f"El identificador '{identificador}' "
-            "está definido para más de un nodo."
-        )
+        raise ValueError(f"El identificador '{identificador}' está definido para más de un nodo.")
 
     nodos_por_identificador[identificador] = nodo
