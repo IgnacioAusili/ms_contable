@@ -1,0 +1,10 @@
+.git
+.gitignore
+.idea/
+.venv/
+db.sqlite3
+logs/
+instalacion/
+staticfiles/
+docs/
+readme.md

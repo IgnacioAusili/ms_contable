@@ -1,0 +1,9 @@
+services:
+  ms_contable:
+    image: matiasschulz/ms_contable:${APP_VERSION}
+    ports:
+      - "${PORT}:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: on-failure:3

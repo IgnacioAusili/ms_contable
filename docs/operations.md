@@ -1,5 +1,4 @@
-Por el momento, este proyecto no tiene CI/CD automatizado. Se documentan aca los criterios y 
-los pasos que se realizan manualmente.
+Por el momento, este proyecto no tiene CI/CD automatizado. Se documentan aca los criterios y pasos que se realizan manualmente.
 
 # Releases
 
@@ -7,25 +6,26 @@ los pasos que se realizan manualmente.
 
 - Cambiar la version en el Proyecto (`settings.VERSION`)
 
-- Hacer un squash de todas las migraciones de BD durante el desarrollo de la nueva version \
-Importante: solo de la nueva version, dejar las migraciones de versiones previas. \
-Eliminar las migraciones intermedias que son propias de la etapa de desarrollo, pero que no fueron lanzadas
-para que usen los usuarios. \
-Deberia haber, como maximo, una migracion por cada version que se lanza. \
-`python manage.py squashmigrations <app> <start_migration> <end_migration>`
+- DEBUG = False
+
+- Eliminar las migraciones intermedias que son propias de la etapa de desarrollo, pero que no fueron lanzadas para que usen los usuarios.
+    - Ejecutar `python manage.py makemigrations`
 
 - Generar imagen Docker y subirla a [Dockerhub](https://hub.docker.com/repository/docker/matiasschulz/ms_contable/tags)
-    - El dockerfile deberia ejecutar todos los tests
-    - DEBUG = False
     - python manage.py collectstatic
-    - python manage.py runserver  --insecure
+    - crear imagen:
+        ```shell
+        docker build -t matiasschulz/ms_contable:0.1.0 .
+        docker push matiasschulz/ms_contable:0.1.0
+        docker tag matiasschulz/ms_contable:0.1.0 matiasschulz/ms_contable:latest
+        docker push matiasschulz/ms_contable:latest
+        ```
 
-- Generar Tag con la version en el repositorio de Github
-
-- Generar Release, con sus artefactos y release notes, en el repositorio de Github \
+- Generar, en el repositorio de Github, Tag con la version y Release con sus artefactos y release notes \
 Artefactos:
+    - Archivos minimos para instalacion/uso (formato de nombre: ms_contable-vX.Y.Z-windows.zip)
+        - dir instalacion/ - cambiar .env.example por .env con la version especifica
     - Release notes
-    - Archivos minimos para instalacion/uso
     - Codigo fuente
 
 # Extras
