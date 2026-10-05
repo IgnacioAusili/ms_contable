@@ -1,3 +1,47 @@
+function showHelpDialog(dialog) {
+    if (dialog.open || typeof dialog.showModal !== "function") {
+        return;
+    }
+
+    dialog.showModal();
+}
+
+function containDialogScrollEvents(event) {
+    const dialog = document.querySelector("dialog.help-dialog[open]");
+    if (!dialog) {
+        return;
+    }
+
+    const content = dialog.querySelector(".help-dialog__content");
+    const target = event.target instanceof Element ? event.target : null;
+
+    if (!content?.contains(target)) {
+        event.preventDefault();
+    }
+
+    event.stopPropagation();
+}
+
+document.addEventListener("wheel", containDialogScrollEvents, {
+    capture: true,
+    passive: false,
+});
+document.addEventListener("touchmove", containDialogScrollEvents, {
+    capture: true,
+    passive: false,
+});
+document.addEventListener("keydown", function (event) {
+    const dialog = document.querySelector("dialog.help-dialog[open]");
+    const pageScrollKeys = ["ArrowDown", "ArrowUp", "End", "Home", "PageDown", "PageUp"];
+
+    if (dialog && pageScrollKeys.includes(event.key)) {
+        const content = dialog.querySelector(".help-dialog__content");
+        if (!content?.contains(event.target)) {
+            event.preventDefault();
+        }
+    }
+}, true);
+
 document.addEventListener("click", function (event) {
     if (!(event.target instanceof Element)) {
         return;
@@ -6,8 +50,8 @@ document.addEventListener("click", function (event) {
     const trigger = event.target.closest("[data-help-target]");
     if (trigger) {
         const dialog = document.getElementById(trigger.dataset.helpTarget);
-        if (dialog && typeof dialog.showModal === "function") {
-            dialog.showModal();
+        if (dialog) {
+            showHelpDialog(dialog);
         }
         return;
     }
