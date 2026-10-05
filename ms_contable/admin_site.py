@@ -22,6 +22,14 @@ class MSContableAdminSite(AdminSite):
         ("plantilla_liquidacion", "plantillaliquidacion"): "plantillas-de-liquidacion",
     }
 
+    def app_index(self, request, app_label, extra_context=None):
+        if app_label == "admin":
+            extra_context = {
+                **(extra_context or {}),
+                "title": "Registro de actividad",
+            }
+        return super().app_index(request, app_label, extra_context)
+
     def get_urls(self):
         urls = super().get_urls()
         route_slugs = {
