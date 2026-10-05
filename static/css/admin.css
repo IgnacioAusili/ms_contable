@@ -54,3 +54,19 @@
 .footer-help a:hover {
     text-decoration: underline;
 }
+
+.messagelist > li {
+    transition: opacity 250ms ease, transform 250ms ease;
+}
+
+.messagelist > li.message-dismissed {
+    opacity: 0;
+    transform: translateY(-0.4rem);
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .messagelist > li {
+        transition: none;
+    }
+}
