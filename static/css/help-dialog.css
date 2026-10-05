@@ -4,20 +4,19 @@
     gap: 0.55rem;
     margin: 0 0 1rem auto;
     padding: 0.55rem 1rem;
-    color: #fff;
-    background: #365486;
-    border: 1px solid #2c456f;
-    border-radius: 999px;
+    color: var(--button-fg);
+    background: var(--button-bg);
+    border: 1px solid var(--button-bg);
+    border-radius: 4px;
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+    transition: background-color 150ms ease, transform 100ms ease;
 }
 
 .help-trigger:hover {
-    background: #2c456f;
-    box-shadow: 0 3px 10px rgb(20 39 69 / 18%);
+    background: var(--button-hover-bg);
 }
 
 .help-trigger:active {
@@ -36,7 +35,7 @@
     height: 1.2rem;
     place-items: center;
     border: 1px solid rgb(255 255 255 / 75%);
-    border-radius: 50%;
+    border-radius: 2px;
     font-size: 0.75rem;
     line-height: 1;
 }
@@ -50,13 +49,12 @@
     color: var(--body-fg);
     background: var(--body-bg);
     border: 1px solid var(--hairline-color);
-    border-radius: 1rem;
-    box-shadow: 0 1.5rem 4rem rgb(12 25 45 / 30%);
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
 }
 
 .help-dialog::backdrop {
-    background: rgb(12 22 38 / 62%);
-    backdrop-filter: blur(3px);
+    background: rgb(0 0 0 / 62%);
 }
 
 .help-dialog__panel {
@@ -70,14 +68,14 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.5rem 1.75rem 1.25rem;
-    background: linear-gradient(135deg, #f5f8fc, #edf3fa);
+    padding: 0.9rem 1.75rem;
+    background: var(--header-bg);
     border-bottom: 1px solid var(--hairline-color);
 }
 
 .help-dialog__eyebrow {
     margin: 0 0 0.35rem;
-    color: #536b89;
+    color: var(--header-color);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.09em;
@@ -86,7 +84,7 @@
 
 .help-dialog__header h2 {
     margin: 0;
-    color: #1d3049;
+    color: var(--header-color);
     font-size: 1.25rem;
     line-height: 1.35;
 }
@@ -97,18 +95,18 @@
     height: 2rem;
     flex: 0 0 auto;
     place-items: center;
-    color: #43566e;
-    background: #fff;
-    border: 1px solid #d3dce7;
-    border-radius: 50%;
+    color: var(--body-fg);
+    background: var(--body-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
     font-size: 1.35rem;
     line-height: 1;
     cursor: pointer;
 }
 
 .help-dialog__icon-close:hover {
-    color: #172b46;
-    background: #e9eff7;
+    color: var(--body-loud-color);
+    background: var(--darkened-bg);
 }
 
 .help-dialog__content {
@@ -129,13 +127,13 @@
 
 .help-dialog__content h3 {
     margin: 0 0 0.4rem;
-    color: #304d72;
+    color: var(--link-fg);
     font-size: 0.98rem;
 }
 
 .help-dialog__content h4 {
     margin: 0.8rem 0 0.25rem;
-    color: #34475d;
+    color: var(--body-medium-color);
     font-size: 0.84rem;
 }
 
@@ -156,9 +154,9 @@
 
 .help-dialog__content code {
     padding: 0.08rem 0.3rem;
-    color: #29486e;
-    background: #eef3f9;
-    border-radius: 0.25rem;
+    color: var(--body-fg);
+    background: var(--darkened-bg);
+    border-radius: 2px;
     font-size: 0.9em;
 }
 
@@ -166,9 +164,9 @@
     margin: 0.5rem 0 0.75rem;
     padding: 0.75rem 1rem;
     overflow-x: auto;
-    background: #f3f6fa;
-    border: 1px solid #dfe6ef;
-    border-radius: 0.5rem;
+    background: var(--darkened-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
 }
 
 .help-dialog__content pre code {
@@ -179,17 +177,17 @@
 .help-dialog__footer {
     display: flex;
     justify-content: flex-end;
-    padding: 1rem 1.75rem;
-    background: #f8fafc;
+    padding: 0.65rem 1.75rem;
+    background: var(--darkened-bg);
     border-top: 1px solid var(--hairline-color);
 }
 
 .help-dialog__close {
     padding: 0.55rem 1rem;
     color: #fff;
-    background: #365486;
-    border: 1px solid #2c456f;
-    border-radius: 0.45rem;
+    background: var(--button-bg);
+    border: 1px solid var(--button-bg);
+    border-radius: 4px;
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
@@ -197,7 +195,7 @@
 }
 
 .help-dialog__close:hover {
-    background: #2c456f;
+    background: var(--button-hover-bg);
 }
 
 @media (max-width: 600px) {
