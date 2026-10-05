@@ -31,6 +31,15 @@
     gap: 7px;
 }
 
+.footer-info a {
+    text-decoration: none;
+}
+
+.footer-info a:hover,
+.footer-info a:focus-visible {
+    text-decoration: underline;
+}
+
 .footer-separator {
     color: #aaa;
 }
