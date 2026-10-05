@@ -14,6 +14,7 @@ DATABASES = {
     },
 }
 
+ROOT_URLCONF = "ms_contable.urls_test"
 SECRET_KEY = f"{SECRET_KEY}-test"
 SESSION_COOKIE_NAME = "ms_contable_test_sessionid"
 CSRF_COOKIE_NAME = "ms_contable_test_csrftoken"

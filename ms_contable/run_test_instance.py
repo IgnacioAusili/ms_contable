@@ -55,7 +55,7 @@ def main():
     call_command("migrate", interactive=False)
     ensure_test_account()
     address = f"127.0.0.1:{settings.TEST_SERVER_PORT}"
-    print(f"Instancia de prueba: http://{address}/admin/")
+    print(f"Instancia de prueba: http://{address}/test/")
     call_command("runserver", address, use_reloader=False)
 
 
