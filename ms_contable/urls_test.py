@@ -36,16 +36,18 @@ def test_login(request):
     return admin.site.login(request)
 
 
-admin.site.admin_view = test_admin_view
-admin_patterns, admin_app_name, admin_namespace = admin.site.urls
-admin_patterns = [
-    pattern
-    for pattern in admin_patterns
-    if getattr(pattern, "name", None) != "login"
-]
+if settings.DEBUG:
+    admin.site.admin_view = test_admin_view
+    admin_patterns, admin_app_name, admin_namespace = admin.site.urls
+    admin_patterns = [
+        pattern
+        for pattern in admin_patterns
+        if getattr(pattern, "name", None) != "login"
+    ]
 
-
-urlpatterns = [
-    path("", test_login, name="test_login"),
-    path("test/", include((admin_patterns, admin_app_name), namespace=admin_namespace)),
-]
+    urlpatterns = [
+        path("", test_login, name="test_login"),
+        path("test/", include((admin_patterns, admin_app_name), namespace=admin_namespace)),
+    ]
+else:
+    urlpatterns = []

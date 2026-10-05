@@ -42,6 +42,11 @@ def ensure_test_account():
 
 
 def main():
+    if not settings.DEBUG:
+        raise SystemExit(
+            "La instancia de test solo puede iniciarse con DEBUG=True en ms_contable/settings.py."
+        )
+
     if not 1 <= settings.TEST_SERVER_PORT <= 65535:
         raise SystemExit("MS_CONTABLE_TEST_PORT debe estar entre 1 y 65535.")
 
