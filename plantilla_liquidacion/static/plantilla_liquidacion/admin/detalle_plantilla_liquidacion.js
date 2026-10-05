@@ -37,7 +37,7 @@
             return;
         }
 
-        const base = window.location.pathname.includes("/add/")
+        const base = window.location.pathname.includes("/agregar/")
             ? "../concepto-detalles/"
             : "../../concepto-detalles/";
 

@@ -3,8 +3,9 @@ from urllib.parse import unquote
 from django.contrib.admin import AdminSite
 from django.contrib.admin.apps import AdminConfig
 from django.http import Http404
-from django.urls import include, path
-from django.urls.resolvers import URLResolver
+from django.urls import include, path, re_path
+from django.urls.resolvers import URLPattern, URLResolver
+from django.views.generic import RedirectView
 
 
 class MSContableAdminConfig(AdminConfig):
@@ -12,6 +13,31 @@ class MSContableAdminConfig(AdminConfig):
 
 
 class MSContableAdminSite(AdminSite):
+    app_route_slugs = {
+        "admin": "administracion",
+        "base_imponible": "parametros-salariales",
+        "categoria_laboral": "estructura-laboral",
+        "concepto": "configuracion-salarial",
+        "empleado": "personal",
+        "empresa": "organizacion",
+        "grupo_concepto": "organizacion-de-conceptos",
+        "liquidacion": "procesos-de-liquidacion",
+        "plantilla_liquidacion": "configuracion-de-liquidaciones",
+    }
+    admin_route_slugs = {
+        "login/": "ingresar/",
+        "logout/": "cerrar-sesion/",
+        "password_change/": "cambiar-clave/",
+        "password_change/done/": "clave-actualizada/",
+        "autocomplete/": "autocompletar/",
+        "jsi18n/": "traducciones-js/",
+    }
+    model_action_route_slugs = {
+        "add/": "agregar/",
+        "<path:object_id>/history/": "<path:object_id>/historial/",
+        "<path:object_id>/delete/": "<path:object_id>/eliminar/",
+        "<path:object_id>/change/": "<path:object_id>/editar/",
+    }
     model_route_slugs = {
         ("admin", "logentry"): "registro-de-actividad",
         ("base_imponible", "baseimponible"): "bases-imponibles",
@@ -47,22 +73,73 @@ class MSContableAdminSite(AdminSite):
             if isinstance(url, URLResolver) and slug:
                 model_urls = []
                 for pattern in url.url_patterns:
-                    route = getattr(pattern.pattern, "_route", None)
-                    model_admin = getattr(pattern.callback, "model_admin", None)
-                    callback = pattern.callback
-                    if model_admin is not None and "<path:object_id>" in (route or ""):
-                        callback = self.admin_view(
-                            self._missing_object_404_view(callback, model_admin)
-                        )
-                        pattern = path(
-                            route, callback, pattern.default_args, name=pattern.name
-                        )
-                    model_urls.append(pattern)
+                    model_urls.extend(
+                        self._replace_route(pattern, self.model_action_route_slugs)
+                    )
                 custom_urls.append(path(f"{slug}/", include(model_urls)))
+            elif isinstance(url, URLPattern) and url.name == "app_list":
+                registered_apps = {
+                    model._meta.app_label for model in self._registry
+                }
+                for app_label, app_slug in self.app_route_slugs.items():
+                    if app_label in registered_apps:
+                        custom_urls.append(
+                            path(
+                                f"{app_slug}/",
+                                url.callback,
+                                {"app_label": app_label},
+                                name=url.name,
+                            )
+                        )
+                custom_urls.append(
+                    re_path(
+                        url.pattern.regex.pattern,
+                        RedirectView.as_view(
+                            pattern_name=f"{self.name}:{url.name}",
+                            permanent=False,
+                            query_string=True,
+                        ),
+                    )
+                )
+            elif isinstance(url, URLPattern):
+                custom_urls.extend(self._replace_route(url, self.admin_route_slugs))
             else:
                 custom_urls.append(url)
 
         return custom_urls
+
+    def _replace_route(self, url, route_slugs):
+        route = getattr(url.pattern, "_route", None)
+        model_admin = getattr(url.callback, "model_admin", None)
+        callback = url.callback
+        if model_admin is not None and "<path:object_id>" in (route or ""):
+            callback = self.admin_view(
+                self._missing_object_404_view(callback, model_admin)
+            )
+
+        if route == "<path:object_id>/" and url.name is None:
+            if model_admin is not None:
+                return [path(route, callback)]
+
+        localized_route = route_slugs.get(route)
+        if localized_route is None:
+            if callback is not url.callback:
+                return [path(route, callback, url.default_args, name=url.name)]
+            return [url]
+        localized_url = path(
+            localized_route, callback, url.default_args, name=url.name
+        )
+        if url.name is None:
+            return [localized_url]
+        legacy_url = path(
+            route,
+            RedirectView.as_view(
+                pattern_name=f"{self.name}:{url.name}",
+                permanent=False,
+                query_string=True,
+            ),
+        )
+        return [localized_url, legacy_url]
 
     def _missing_object_404_view(self, view, model_admin):
         def show_not_found(request, object_id, *args, **kwargs):
