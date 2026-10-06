@@ -59,6 +59,46 @@ class MSContableAdminSite(AdminSite):
             }
         return super().app_index(request, app_label, extra_context)
 
+    def get_app_list(self, request, app_label=None):
+        app_list = super().get_app_list(request, app_label)
+        if app_label not in (None, "plantilla_liquidacion"):
+            return app_list
+
+        combined_app_list = (
+            app_list
+            if app_label is None
+            else super().get_app_list(request)
+        )
+        apps_by_label = {app["app_label"]: app for app in combined_app_list}
+        liquidation_app = apps_by_label.get("liquidacion")
+        templates_app = apps_by_label.get("plantilla_liquidacion")
+        if liquidation_app is None or templates_app is None:
+            return app_list
+
+        templates_app["models"].extend(liquidation_app["models"])
+        templates_app["models"].sort(key=lambda model: model["name"])
+        if app_label == "plantilla_liquidacion":
+            return [templates_app]
+
+        visible_app_list = [
+            app for app in app_list if app["app_label"] != "liquidacion"
+        ]
+        if app_label is None:
+            parameters_app = apps_by_label.get("base_imponible")
+            templates_index = next(
+                (
+                    index
+                    for index, app in enumerate(visible_app_list)
+                    if app["app_label"] == "plantilla_liquidacion"
+                ),
+                None,
+            )
+            if parameters_app is not None and templates_index is not None:
+                visible_app_list.remove(parameters_app)
+                visible_app_list.insert(templates_index, parameters_app)
+
+        return visible_app_list
+
     def get_urls(self):
         urls = super().get_urls()
         route_slugs = {
