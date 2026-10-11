@@ -61,10 +61,6 @@
     width: min(38rem, calc(100vw - 2rem));
 }
 
-.error-dialog .help-dialog__header {
-    border-top: 4px solid var(--error-fg, #ba2121);
-}
-
 .error-dialog .help-dialog__eyebrow {
     display: flex;
     align-items: center;
@@ -110,7 +106,6 @@
     gap: 1rem;
     padding: 0.9rem 1.75rem;
     background: var(--header-bg);
-    border-bottom: 1px solid var(--hairline-color);
 }
 
 .help-dialog__eyebrow {
