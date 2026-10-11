@@ -57,6 +57,46 @@
     background: rgb(0 0 0 / 62%);
 }
 
+.error-dialog {
+    width: min(38rem, calc(100vw - 2rem));
+}
+
+.error-dialog .help-dialog__header {
+    border-top: 4px solid var(--error-fg, #ba2121);
+}
+
+.error-dialog .help-dialog__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--error-fg, #ba2121);
+}
+
+.error-dialog__icon {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+}
+
+.error-dialog__content > p {
+    margin-top: 1rem;
+}
+
+.error-dialog__details {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0.75rem 0 0;
+    padding-left: 1.25rem;
+}
+
+.error-dialog__details:empty {
+    display: none;
+}
+
+.error-dialog__details li {
+    padding-left: 0.15rem;
+}
+
 .help-dialog__panel {
     display: flex;
     max-height: calc(100vh - 2rem);
