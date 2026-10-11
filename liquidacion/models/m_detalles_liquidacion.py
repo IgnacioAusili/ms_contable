@@ -32,6 +32,7 @@ class DetalleLiquidacion(models.Model):
         decimal_places=5,
         null=False,
         blank=False,
+        help_text="Precisión de hasta 5 decimales",
     )
 
     formula_base = models.CharField(

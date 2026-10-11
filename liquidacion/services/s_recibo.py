@@ -77,7 +77,7 @@ class ReciboSueldoService:
                 ),
                 "legajo": empleado.legajo,
                 "sueldo_bruto": self._decimal_a_string(le.bruto),
-                "antiguedad": f"{self.calcular_antiguedad(empleado.fecha_ingreso, liquidacion.fecha_pago,)} AÑOS",
+                "antiguedad": f"{self.calcular_antiguedad(empleado.fecha_ingreso, liquidacion.periodo,)} AÑOS",
                 "fecha_ingreso": empleado.fecha_ingreso.strftime("%d/%m/%Y"),
                 "categoria": le.version_empleado.categoria_laboral,
                 "cuil": empleado.cuil_display,
@@ -106,7 +106,7 @@ class ReciboSueldoService:
             "total_descuentos": self._decimal_a_string(
                 le.descuentos
             ),
-            "sueldo_neto": self._decimal_a_string(int(le.neto)),
+            "sueldo_neto": self._decimal_a_string(le.neto),
 
             "neto_en_letras": self.neto_en_letras(le.neto),
 
@@ -208,7 +208,20 @@ class ReciboSueldoService:
 
     @staticmethod
     def neto_en_letras(valor):
-        return num2words(int(valor), lang="es", )
+        valor = valor.quantize(Decimal("0.01"))
+
+        parte_entera = int(valor)
+        centavos = int((valor - parte_entera) * 100)
+
+        letras = num2words(
+            parte_entera,
+            lang="es",
+        )
+
+        if centavos > 0:
+            return f"{letras} con {centavos:02d}/100"
+        else:
+            return f"{letras}"
 
     def _agrupar_por_grupo(self, detalles):
         resultado: dict[dict[str, Decimal]] = {}
