@@ -29,6 +29,119 @@ body.login #container {
     margin: auto;
 }
 
+body.login.first-run #container {
+    width: 760px;
+    max-width: 100%;
+}
+
+.first-run {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 28px;
+}
+
+body.login.first-run #content {
+    padding: 24px 28px;
+}
+
+#first-account-form .form-row {
+    margin-bottom: 8px;
+}
+
+#first-account-form .form-row input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 9px 10px;
+}
+
+#first-account-form .form-row input[type="checkbox"] {
+    width: auto;
+    padding: 0;
+}
+
+#first-account-form .form-row.remember-session-row,
+.login .form-row.remember-session-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#first-account-form .form-row.remember-session-row label,
+.login .form-row.remember-session-row label {
+    display: inline;
+    line-height: normal;
+    margin: 0;
+}
+
+#first-account-form .form-row.remember-session-row input[type="checkbox"],
+.login .form-row.remember-session-row input[type="checkbox"] {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+#first-account-form .help {
+    margin: 5px 0 0;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.first-run-intro {
+    margin-bottom: 22px;
+}
+
+.first-run-eyebrow {
+    margin: 0 0 8px;
+    color: var(--link-fg);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.first-run-intro h1 {
+    margin: 0 0 12px;
+    font-size: 24px;
+}
+
+.first-run-lead {
+    margin: 0;
+    line-height: 1.55;
+}
+
+.first-run-note {
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border-left: 3px solid var(--link-fg);
+    background: var(--darkened-bg);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+#first-account-form .submit-row input[type="submit"] {
+    width: 100%;
+    min-height: 36px;
+    cursor: pointer;
+}
+
+body.login.first-run #footer {
+    padding: 8px 14px;
+}
+
+body.login.first-run .footer-content {
+    gap: 4px;
+}
+
+@media (max-width: 700px) {
+    .first-run {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    body.login.first-run #content {
+        padding: 18px 20px;
+    }
+}
+
 #footer {
     padding: 12px 20px;
 }
@@ -50,6 +163,17 @@ body.login #container {
 
 .footer-separator {
     color: #aaa;
+}
+
+.footer-info a {
+    color: var(--link-fg);
+    text-decoration: none;
+}
+
+.footer-info a:hover,
+.footer-info a:focus-visible {
+    color: var(--link-hover-color);
+    text-decoration: underline;
 }
 
 .footer-help {

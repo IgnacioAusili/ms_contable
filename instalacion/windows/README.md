@@ -28,11 +28,11 @@ instalacion/windows/dist/MSContable-Setup-version.exe
 
 La versión del instalador se toma de `APP_VERSION` en `ms_contable/settings.py`.
 
-En cada push o pull request, GitHub Actions instala las dependencias en Windows, valida Python y Django, corre los tests, revisa la sintaxis de PowerShell, construye el `.exe` y lo instala en modo silencioso para probar migraciones, Waitress, la pantalla de acceso y sus estilos. Si todo pasa, publica el instalador como artefacto descargable durante 14 días. Para reconstruirlo localmente después de un cambio, ejecutá otra vez `build.ps1`.
+En cada push o pull request, GitHub Actions instala las dependencias en Windows, valida Python y Django, corre los tests, revisa la sintaxis de PowerShell, construye el `.exe` y lo instala en modo silencioso para probar migraciones, Waitress, la bienvenida inicial y los archivos estáticos. Si todo pasa, publica el instalador como artefacto descargable durante 14 días. Para reconstruirlo localmente después de un cambio, ejecutá otra vez `build.ps1`.
 
 ## Instalación y uso
 
-El instalador es por usuario y no requiere permisos de administrador. Al terminar, ofrece inicializar la base, crear el usuario administrador y abrir MS Contable. Si se migra desde Docker, detené la aplicación anterior y pegá la ruta completa a `data\db.sqlite3` cuando lo solicite.
+El instalador es por usuario y no requiere permisos de administrador. Al terminar, ofrece inicializar la base y abrir MS Contable. En el primer inicio, la pantalla de bienvenida permite crear la cuenta administradora. Si se migra desde Docker, detené la aplicación anterior y pegá la ruta completa a `data\db.sqlite3` cuando lo solicite.
 
 El menú Inicio contiene accesos para abrir MS Contable sin mostrar una terminal, detener el servidor e inicializar o actualizar la base. Este último abre PowerShell para solicitar los datos de configuración. Los datos y logs se conservan en:
 

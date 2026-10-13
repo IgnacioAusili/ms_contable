@@ -54,40 +54,6 @@ try {
         throw "No se pudieron aplicar las migraciones. El respaldo anterior sigue disponible en $Backup1."
     }
 
-    $probe = "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(is_superuser=True).exists())"
-    $hasSuperuser = & $Python manage.py shell -c $probe
-    if ($LASTEXITCODE -ne 0) {
-        throw "No se pudo comprobar el usuario administrador."
-    }
-
-    $superuserExists = $hasSuperuser | ForEach-Object { $_.Trim() } | Where-Object { $_ -in @("True", "False") } | Select-Object -Last 1
-    if ($superuserExists -ne "True") {
-        $username = Read-Host "Usuario administrador"
-        if ([string]::IsNullOrWhiteSpace($username)) {
-            throw "El usuario no puede estar vacío. Ejecutá nuevamente la inicialización para reintentar."
-        }
-
-        $password = Read-Host "Contraseña" -AsSecureString
-        $confirmation = Read-Host "Confirmar contraseña" -AsSecureString
-        $passwordText = [System.Net.NetworkCredential]::new("", $password).Password
-        $confirmationText = [System.Net.NetworkCredential]::new("", $confirmation).Password
-
-        if ([string]::IsNullOrEmpty($passwordText) -or $passwordText -ne $confirmationText) {
-            throw "Las contraseñas están vacías o no coinciden. Ejecutá nuevamente la inicialización para reintentar."
-        }
-
-        $env:DJANGO_SUPERUSER_USERNAME = $username
-        $env:DJANGO_SUPERUSER_PASSWORD = $passwordText
-        $env:DJANGO_SUPERUSER_EMAIL = ""
-        & $Python manage.py createsuperuser --noinput
-        $createStatus = $LASTEXITCODE
-        Remove-Item Env:DJANGO_SUPERUSER_USERNAME, Env:DJANGO_SUPERUSER_PASSWORD, Env:DJANGO_SUPERUSER_EMAIL -ErrorAction SilentlyContinue
-
-        if ($createStatus -ne 0) {
-            throw "No se pudo crear el usuario administrador. Ejecutá nuevamente la inicialización para reintentar."
-        }
-    }
-
     Write-Host "MS Contable quedó inicializado. Se abrirá en el navegador."
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $Launcher -Action Start
 }
