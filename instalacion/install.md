@@ -1,12 +1,22 @@
 # MS Contable — Instalación
 
-## Requisitos
+## Instalador nativo para Windows
+
+El instalador `MSContable-Setup-version.exe` instala una versión local de Python y las dependencias de la aplicación. No requiere Docker ni Python instalado previamente. El proceso de construcción está documentado en [windows](./windows/README.md).
+
+Al finalizar, el acceso directo **MS Contable** inicia el servidor local y abre el navegador. **Detener MS Contable** cierra el servidor. La base, sus respaldos y los logs quedan en `%LOCALAPPDATA%\MSContable`, fuera de la carpeta de la aplicación.
+
+Si ya usabas la instalación Docker, detené esa aplicación antes de instalar la versión nativa. Al finalizar la instalación, podés pegar la ruta a la base anterior `data\db.sqlite3` cuando el asistente la solicite; también copiará los dos respaldos si están junto a ella. Los datos no se borran al desinstalar.
+
+Para actualizar una instalación nativa, ejecutá el nuevo instalador en la misma cuenta de Windows. Antes de migrar la base, crea un respaldo y conserva los dos más recientes.
+
+## Requisitos para los scripts Docker
 
 * Docker instalado y ejecutándose.
     * Si usa windows: [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
 * Conexión a Internet durante la instalación y las actualizaciones.
 
-## Instalación
+## Instalación con Docker
 
 1. Descargar el paquete de instalación correspondiente a la versión.
 2. Extraer el archivo ZIP de instalacion para Windows o Linux segun sea necesario.

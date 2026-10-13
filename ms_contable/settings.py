@@ -5,7 +5,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 APP_NAME = "MS Contable"
-APP_VERSION = "0.1.1"
+APP_VERSION = "0.1.3"
 
 DEVELOPER = "Schulz, Matias"
 
@@ -77,10 +77,13 @@ WSGI_APPLICATION = "ms_contable.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+DATA_DIR = Path(os.environ.get("MSCONTABLE_DATA_DIR", BASE_DIR / "data")).expanduser()
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "data" / "db.sqlite3",
+        "NAME": DATA_DIR / "db.sqlite3",
     }
 }
 
@@ -121,8 +124,8 @@ USE_TZ = True
 
 # Logs
 
-LOG_DIR = BASE_DIR / "logs"
-LOG_DIR.mkdir(exist_ok=True)
+LOG_DIR = Path(os.environ.get("MSCONTABLE_LOG_DIR", BASE_DIR / "logs")).expanduser()
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {
     "version": 1,
