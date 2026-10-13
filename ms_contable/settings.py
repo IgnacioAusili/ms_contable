@@ -5,7 +5,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 APP_NAME = "MS Contable"
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.1.1"
 
 DEVELOPER = "Schulz, Matias"
 
@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "core",
     "base_imponible",
     "categoria_laboral",
     "concepto",

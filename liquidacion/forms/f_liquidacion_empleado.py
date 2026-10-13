@@ -79,7 +79,7 @@ class ImporteResultadoWidget(forms.NumberInput):
 class ResultadoBaseImponibleInlineForm(forms.ModelForm):
     importe = forms.DecimalField(
         label="Importe",
-        max_digits=20,
+        max_digits=ResultadoBaseImponible._meta.get_field("importe").max_digits,
         decimal_places=2,
         required=True,
         widget=ImporteResultadoWidget(),
