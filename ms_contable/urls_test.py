@@ -38,15 +38,33 @@ def test_login(request):
 
 if settings.DEBUG:
     admin.site.admin_view = test_admin_view
+    each_context = admin.site.each_context
+
+    def test_each_context(request):
+        context = each_context(request)
+        context["show_test_devtools"] = (
+            request.path_info.startswith("/test/")
+            and request.user.is_authenticated
+            and request.user.is_superuser
+        )
+        return context
+
+    admin.site.each_context = test_each_context
     admin_patterns, admin_app_name, admin_namespace = admin.site.urls
     admin_patterns = [
         pattern
         for pattern in admin_patterns
         if getattr(pattern, "name", None) != "login"
     ]
+    from .test_tools.views import test_tools_action
 
     urlpatterns = [
         path("", test_login, name="test_login"),
+        path(
+            "test/__devtools/<str:action>/",
+            admin.site.admin_view(test_tools_action),
+            name="test_devtools_action",
+        ),
         path("test/", include((admin_patterns, admin_app_name), namespace=admin_namespace)),
     ]
 else:
