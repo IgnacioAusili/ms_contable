@@ -9,6 +9,7 @@ APP_NAME = "MS Contable"
 APP_VERSION = "0.1.1"
 
 DEVELOPER = "Schulz, Matias"
+DEVELOPER_URL = "https://github.com/SMati000/ms_contable"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
