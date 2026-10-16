@@ -107,6 +107,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_REDIRECT_URL = "admin:index"
+
 FORMAT_MODULE_PATH = [
     "ms_contable.formats",
 ]

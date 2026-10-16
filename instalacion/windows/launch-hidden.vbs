@@ -1,13 +1,13 @@
 Option Explicit
 
-Dim shell, fileSystem, appDirectory, powershell, scriptPath, action, command, waitForExit
+Dim shell, fileSystem, scriptDirectory, powershell, scriptPath, action, command, waitForExit
 
 Set shell = CreateObject("WScript.Shell")
 Set fileSystem = CreateObject("Scripting.FileSystemObject")
 
-appDirectory = fileSystem.GetParentFolderName(WScript.ScriptFullName)
+scriptDirectory = fileSystem.GetParentFolderName(WScript.ScriptFullName)
 powershell = shell.ExpandEnvironmentStrings("%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe")
-scriptPath = fileSystem.BuildPath(appDirectory, "launch.ps1")
+scriptPath = fileSystem.BuildPath(scriptDirectory, "launch.ps1")
 action = "Start"
 
 If WScript.Arguments.Count > 0 Then
@@ -18,6 +18,6 @@ If action <> "Start" And action <> "Stop" Then
     WScript.Quit 2
 End If
 
-command = """" & powershell & """ -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & scriptPath & """ -Action " & action
+command = """" & powershell & """ -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & scriptPath & """ -Action " & action
 waitForExit = (action = "Stop")
 shell.Run command, 0, waitForExit

@@ -1,44 +1,19 @@
 # Instalador nativo de Windows
 
-El instalador copia una distribución portable de CPython, las dependencias de `requirements-windows.txt` y el código de MS Contable. Waitress ejecuta Django en `127.0.0.1:8000`. La computadora donde se instala no necesita Python, Docker ni conexión a Internet.
+El instalador usa Inno Setup, un runtime de Python embebido y Caddy. No requiere Docker. Está localizado en español y solicita permisos de administrador para instalar los binarios en `Program Files` y registrar el nombre local en `hosts`.
 
-## Construcción
+## Preparar y compilar
 
-Antes de construir por primera vez, instalá las herramientas de desarrollo dentro del proyecto:
+Ejecutá `build.ps1` desde PowerShell con CPython x64 3.11.9 a 3.13. El script prepara el runtime embebido, instala las dependencias de `requirements-windows.txt`, copia el código fuente sin datos locales y genera los archivos estáticos. Busca Inno Setup en `.tools` o en el `PATH`; si está en otra ubicación, indicá su ruta con `-InnoCompiler`. Caddy se reutiliza desde `build\caddy` o se descarga desde el sitio oficial junto con su licencia.
 
-```powershell
-.\instalacion\windows\setup-build-tools.ps1
-```
+La versión del instalador se toma de `APP_VERSION` en `ms_contable/settings.py`. El ejecutable queda en `dist\https\MSContable-Setup-version.exe`.
 
-Python e Inno Setup quedan en `instalacion/windows/.tools`, excluidos de Git. El script comprueba sus firmas y no modifica el `PATH`.
+## HTTPS local
 
-En Windows de 64 bits, el script deja CPython 3.13 e Inno Setup dentro del repositorio. Para construir necesita conexión a Internet para descargar el runtime embebible de Python y las dependencias fijadas.
+Caddy escucha solo en loopback y publica la aplicación en `https://mscontable` por el puerto HTTPS estándar 443. El instalador agrega `mscontable` al archivo `hosts` de Windows apuntando a `127.0.0.1` y `::1`; al desinstalar, quita únicamente el bloque que agregó. Waitress acepta conexiones solo desde `127.0.0.1:8000`; el puerto HTTP queda interno y no se abre en la red local. El panel administrativo de Caddy está desactivado.
 
-Desde la raíz del repositorio, ejecutá:
+Durante la instalación, el instalador agrega la autoridad certificadora local de Caddy al almacén `Root` del usuario actual, sin abrir el aviso de confianza de Windows. El certificado y su clave privada se conservan bajo `%LOCALAPPDATA%\MSContable\caddy`; el desinstalador quita la confianza y elimina esa carpeta. La base SQLite y los logs permanecen bajo `%LOCALAPPDATA%\MSContable\data` y `%LOCALAPPDATA%\MSContable\logs`.
 
-```powershell
-.\instalacion\windows\build.ps1
-```
+La configuración inicial permite importar opcionalmente una base anterior y aplicar las migraciones. No abre una consola ni solicita crear el usuario administrador: la primera cuenta se crea desde la página de bienvenida al abrir MS Contable. La instalación crea el acceso directo del menú Inicio; la casilla del escritorio y la opción de abrir la app al finalizar son independientes.
 
-El proceso prepara el runtime, copia el código sin incluir las carpetas locales de datos ni archivos PDF, ejecuta `collectstatic` y compila:
-
-```text
-instalacion/windows/dist/MSContable-Setup-version.exe
-```
-
-La versión del instalador se toma de `APP_VERSION` en `ms_contable/settings.py`.
-
-En cada push o pull request, GitHub Actions instala las dependencias en Windows, valida Python y Django, corre los tests, revisa la sintaxis de PowerShell, construye el `.exe` y lo instala en modo silencioso para probar migraciones, Waitress, la bienvenida inicial y los archivos estáticos. Si todo pasa, publica el instalador como artefacto descargable durante 14 días. Para reconstruirlo localmente después de un cambio, ejecutá otra vez `build.ps1`.
-
-## Instalación y uso
-
-El instalador es por usuario y no requiere permisos de administrador. Al terminar, ofrece inicializar la base y abrir MS Contable. En el primer inicio, la pantalla de bienvenida permite crear la cuenta administradora. Si se migra desde Docker, detené la aplicación anterior y pegá la ruta completa a `data\db.sqlite3` cuando lo solicite.
-
-El menú Inicio contiene accesos para abrir MS Contable sin mostrar una terminal, detener el servidor e inicializar o actualizar la base. Este último abre PowerShell para solicitar los datos de configuración. Los datos y logs se conservan en:
-
-```text
-%LOCALAPPDATA%\MSContable\data
-%LOCALAPPDATA%\MSContable\logs
-```
-
-Cada actualización detiene la instancia activa, conserva dos respaldos SQLite y ejecuta las migraciones. La desinstalación conserva datos, respaldos y logs.
+El certificado local habilita HTTPS entre el navegador y Caddy. Caddy reenvía a Waitress por HTTP en loopback; ambos puertos están limitados a este equipo.

@@ -18,7 +18,7 @@ OutputBaseFilename=MSContable-Setup-{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile=..\..\static\images\favicon.ico
+SetupIconFile=mscontable-setup.ico
 UninstallDisplayIcon={app}\static\images\favicon.ico
 
 [Languages]
@@ -38,7 +38,7 @@ Name: "{autodesktop}\MS Contable"; Filename: "{sys}\wscript.exe"; Parameters: ""
 Name: "desktopicon"; Description: "Crear un acceso directo en el escritorio"; GroupDescription: "Accesos directos:"
 
 [Run]
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\windows\initialize.ps1"""; Description: "Inicializar MS Contable y crear el usuario administrador"; Flags: postinstall runasoriginaluser waituntilterminated skipifsilent
+Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\windows\initialize.ps1"""; Description: "Preparar MS Contable"; Flags: postinstall runasoriginaluser waituntilterminated skipifsilent
 
 [UninstallRun]
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""{app}\windows\launch.ps1"" -Action Stop"; Flags: runhidden waituntilterminated; RunOnceId: "StopMSContable"

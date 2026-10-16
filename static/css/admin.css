@@ -12,6 +12,68 @@
     background: url("../images/logo-160.svg") center / contain no-repeat;
 }
 
+body.login #header h1#site-name {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: max-content;
+    margin: 0;
+    transform: translate(-50%, -50%);
+    font-size: 1.9rem;
+    font-weight: 600;
+}
+
+body.login #branding {
+    position: relative;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 56px;
+}
+
+body.login #header {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 840px;
+}
+
+body.login #branding > .theme-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    margin: 0;
+    padding: 7px;
+    transform: translateY(-50%);
+}
+
+body.login .theme-toggle svg {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+body.login .theme-toggle svg.theme-icon-when-dark {
+    width: 34px;
+    height: 34px;
+}
+
+body.login .theme-toggle svg.theme-icon-when-dark use {
+    width: 34px;
+    height: 34px;
+}
+
+body.login .login-brand-icon {
+    display: block;
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 10px);
+    width: 48px;
+    height: 48px;
+    transform: translateY(-50%);
+    object-fit: contain;
+}
+
 body.login {
     box-sizing: border-box;
     display: flex;
@@ -34,25 +96,62 @@ body.login.first-run #container {
     max-width: 100%;
 }
 
+body.login.first-run {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+body.login.first-run #header {
+    padding: 8px 16px;
+}
+
+body.login.first-run #branding {
+    min-height: 56px;
+}
+
+body.login.first-run #branding > .theme-toggle {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: max-content;
+    height: max-content;
+    padding: 7px;
+}
+
+body.login.first-run .theme-toggle svg {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+body.login.first-run .theme-toggle svg.theme-icon-when-dark {
+    width: 34px;
+    height: 34px;
+}
+
+body.login.first-run .theme-toggle svg.theme-icon-when-dark use {
+    width: 34px;
+    height: 34px;
+}
+
 .first-run {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;
-    gap: 28px;
+    gap: 20px;
 }
 
 body.login.first-run #content {
-    padding: 24px 28px;
+    padding: 18px 24px;
 }
 
 #first-account-form .form-row {
-    margin-bottom: 8px;
+    margin-bottom: 5px;
 }
 
 #first-account-form .form-row input {
     box-sizing: border-box;
     width: 100%;
-    padding: 9px 10px;
+    padding: 7px 9px;
 }
 
 #first-account-form .form-row input[type="checkbox"] {
@@ -87,11 +186,11 @@ body.login.first-run #content {
 }
 
 .first-run-intro {
-    margin-bottom: 22px;
+    margin-bottom: 12px;
 }
 
 .first-run-eyebrow {
-    margin: 0 0 8px;
+    margin: 0 0 5px;
     color: var(--link-fg);
     font-size: 11px;
     font-weight: 700;
@@ -99,22 +198,31 @@ body.login.first-run #content {
 }
 
 .first-run-intro h1 {
-    margin: 0 0 12px;
-    font-size: 24px;
+    margin: 0 0 8px;
+    font-size: 22px;
 }
 
 .first-run-lead {
     margin: 0;
-    line-height: 1.55;
+    line-height: 1.45;
 }
 
 .first-run-note {
-    margin: 12px 0 0;
-    padding: 10px 12px;
+    margin: 8px 0 0;
+    padding: 8px 10px;
     border-left: 3px solid var(--link-fg);
     background: var(--darkened-bg);
     font-size: 12px;
-    line-height: 1.5;
+    line-height: 1.4;
+}
+
+#first-account-form .help {
+    margin-top: 3px;
+    line-height: 1.4;
+}
+
+#first-account-form .submit-row {
+    padding-top: 9px;
 }
 
 #first-account-form .submit-row input[type="submit"] {
@@ -124,11 +232,11 @@ body.login.first-run #content {
 }
 
 body.login.first-run #footer {
-    padding: 8px 14px;
+    padding: 6px 12px;
 }
 
 body.login.first-run .footer-content {
-    gap: 4px;
+    gap: 3px;
 }
 
 @media (max-width: 700px) {

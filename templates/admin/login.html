@@ -7,6 +7,15 @@
 {% endblock %}
 
 {% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block branding %}
+<h1 id="site-name" class="login-brand">
+  <img class="login-brand-icon" src="{% static 'images/logo-160.svg' %}" alt="">
+  <span>{{ site_header }}</span>
+</h1>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
 {% block usertools %}{% endblock %}
 {% block nav-global %}{% endblock %}
 {% block nav-sidebar %}{% endblock %}
@@ -46,9 +55,11 @@
     {{ form.password.label_tag }} {{ form.password }}
     <input type="hidden" name="next" value="{{ next }}">
   </div>
-  <div class="form-row remember-session-row">
-    {{ form.remember_session }} {{ form.remember_session.label_tag }}
-  </div>
+  {% if form.remember_session %}
+    <div class="form-row remember-session-row">
+      {{ form.remember_session }} {{ form.remember_session.label_tag }}
+    </div>
+  {% endif %}
   {% url 'admin_password_reset' as password_reset_url %}
   {% if password_reset_url %}
   <div class="password-reset-link">

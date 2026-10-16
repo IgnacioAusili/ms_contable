@@ -1,41 +1,97 @@
 ﻿$ErrorActionPreference = "Stop"
-$AppDir = Split-Path -Parent $PSScriptRoot
-$Python = Join-Path $AppDir "python\python.exe"
+Add-Type -AssemblyName System.Windows.Forms
+
+$InstallDir = Split-Path -Parent $PSScriptRoot
+$Python = Join-Path $InstallDir "python\python.exe"
+$AppDir = $InstallDir
 $DataDir = Join-Path $env:LOCALAPPDATA "MSContable\data"
 $LogsDir = Join-Path $env:LOCALAPPDATA "MSContable\logs"
 $Database = Join-Path $DataDir "db.sqlite3"
 $Backup1 = Join-Path $DataDir "db.sqlite3.1.bak"
 $Backup2 = Join-Path $DataDir "db.sqlite3.2.bak"
 $Launcher = Join-Path $PSScriptRoot "launch.ps1"
+$PowerShell = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
+$SetupLog = Join-Path $LogsDir "initialize.log"
 
-New-Item -ItemType Directory -Force -Path $DataDir, $LogsDir | Out-Null
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $Launcher -Action Stop
-if ($LASTEXITCODE -ne 0) {
-    throw "No se pudo detener MS Contable antes de inicializar o actualizar."
+function Show-Message {
+    param(
+        [string] $Message,
+        [string] $Title,
+        [System.Windows.Forms.MessageBoxButtons] $Buttons,
+        [System.Windows.Forms.MessageBoxIcon] $Icon
+    )
+
+    return [System.Windows.Forms.MessageBox]::Show($Message, $Title, $Buttons, $Icon)
 }
 
-$env:MSCONTABLE_DATA_DIR = $DataDir
-$env:MSCONTABLE_LOG_DIR = $LogsDir
-Push-Location $AppDir
+function Select-LegacyDatabase {
+    $answer = Show-Message `
+        -Message "¿Querés importar una base SQLite existente? Elegí No para crear una base nueva." `
+        -Title "Base de datos de MS Contable" `
+        -Buttons ([System.Windows.Forms.MessageBoxButtons]::YesNo) `
+        -Icon ([System.Windows.Forms.MessageBoxIcon]::Question)
 
-try {
-    if (-not (Test-Path $Database)) {
-        $legacyDatabase = Read-Host "Base SQLite anterior (ruta a db.sqlite3; Enter para una instalación nueva)"
-        $legacyDatabase = $legacyDatabase.Trim().Trim('"')
+    if ($answer -ne [System.Windows.Forms.DialogResult]::Yes) {
+        return
+    }
 
-        if ($legacyDatabase) {
-            if (-not (Test-Path $legacyDatabase -PathType Leaf)) {
-                throw "No existe la base indicada: $legacyDatabase"
-            }
-
-            Copy-Item $legacyDatabase $Database
-            foreach ($suffix in @(".1.bak", ".2.bak")) {
-                $legacyBackup = "$legacyDatabase$suffix"
-                if (Test-Path $legacyBackup) {
-                    Copy-Item $legacyBackup ("$Database$suffix") -Force
-                }
+    $dialog = [System.Windows.Forms.OpenFileDialog]::new()
+    $dialog.Title = "Seleccionar base SQLite"
+    $dialog.Filter = "Bases SQLite (*.sqlite3;*.db)|*.sqlite3;*.db|Todos los archivos (*.*)|*.*"
+    $dialog.CheckFileExists = $true
+    $dialog.Multiselect = $false
+    if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        Copy-Item $dialog.FileName $Database
+        foreach ($suffix in @(".1.bak", ".2.bak")) {
+            $legacyBackup = "$($dialog.FileName)$suffix"
+            if (Test-Path $legacyBackup) {
+                Copy-Item $legacyBackup ("$Database$suffix") -Force
             }
         }
+    }
+    $dialog.Dispose()
+}
+
+function Invoke-ManageCommand {
+    param(
+        [string[]] $Arguments,
+        [string] $Operation
+    )
+
+    $name = ($Operation -replace "[^A-Za-z0-9]+", "-").Trim("-").ToLowerInvariant()
+    $stdout = Join-Path $LogsDir "$name.out.log"
+    $stderr = Join-Path $LogsDir "$name.err.log"
+    $process = Start-Process `
+        -FilePath $Python `
+        -ArgumentList $Arguments `
+        -WorkingDirectory $AppDir `
+        -WindowStyle Hidden `
+        -PassThru `
+        -Wait `
+        -RedirectStandardOutput $stdout `
+        -RedirectStandardError $stderr
+
+    if ($process.ExitCode -ne 0) {
+        throw "$Operation falló. Revisá los registros en $LogsDir."
+    }
+}
+
+try {
+    if (-not (Test-Path $Python) -or -not (Test-Path (Join-Path $AppDir "manage.py"))) {
+        throw "Faltan archivos de MS Contable. Volvé a ejecutar el instalador."
+    }
+
+    New-Item -ItemType Directory -Force -Path $DataDir, $LogsDir | Out-Null
+    $env:MSCONTABLE_DATA_DIR = $DataDir
+    $env:MSCONTABLE_LOG_DIR = $LogsDir
+
+    & $PowerShell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $Launcher -Action Stop
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudieron detener los servicios anteriores de MS Contable."
+    }
+
+    if (-not (Test-Path $Database)) {
+        Select-LegacyDatabase
     }
 
     if (Test-Path $Database) {
@@ -45,19 +101,21 @@ try {
             }
             Move-Item $Backup1 $Backup2 -Force
         }
-
         Copy-Item $Database $Backup1 -Force
     }
 
-    & $Python manage.py migrate --noinput
-    if ($LASTEXITCODE -ne 0) {
-        throw "No se pudieron aplicar las migraciones. El respaldo anterior sigue disponible en $Backup1."
-    }
-
-    Write-Host "MS Contable quedó inicializado. Se abrirá en el navegador."
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $Launcher -Action Start
+    Invoke-ManageCommand -Arguments @("manage.py", "migrate", "--noinput") -Operation "Aplicar migraciones"
+}
+catch {
+    New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null
+    Add-Content -Path $SetupLog -Value "$(Get-Date -Format o) $($_.Exception.Message)"
+    Show-Message `
+        -Message $_.Exception.Message `
+        -Title "No se pudo configurar MS Contable" `
+        -Buttons ([System.Windows.Forms.MessageBoxButtons]::OK) `
+        -Icon ([System.Windows.Forms.MessageBoxIcon]::Error) | Out-Null
+    exit 1
 }
 finally {
-    Pop-Location
     Remove-Item Env:MSCONTABLE_DATA_DIR, Env:MSCONTABLE_LOG_DIR -ErrorAction SilentlyContinue
 }

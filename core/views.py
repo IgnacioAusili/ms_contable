@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model, login
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
+from django.urls import reverse
 
 from .forms import FirstAdminAccountForm
 
@@ -43,6 +44,9 @@ def admin_login(request):
 
     if not user_model.objects.filter(is_superuser=True).exists():
         return redirect("first-run")
+
+    if request.method == "GET" and request.GET.get("next") == reverse("admin:index"):
+        return redirect("admin-login")
 
     response = admin.site.login(request)
     if request.method == "POST" and response.status_code == 302:

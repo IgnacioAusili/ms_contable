@@ -59,7 +59,7 @@ jobs:
       - name: Instalar y probar el paquete generado
         shell: pwsh
         run: |
-          $installer = Get-ChildItem instalacion/windows/dist -Filter MSContable-Setup-*.exe -File | Select-Object -First 1
+          $installer = Get-ChildItem instalacion/windows/dist/https -Filter MSContable-Setup-*.exe -File | Select-Object -First 1
           if (-not $installer) { throw "No se generó el instalador." }
           .\instalacion\windows\smoke-test.ps1 -SetupExe $installer.FullName
 
@@ -67,6 +67,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: MSContable-Setup-${{ github.sha }}
-          path: instalacion/windows/dist/MSContable-Setup-*.exe
+          path: instalacion/windows/dist/https/MSContable-Setup-*.exe
           if-no-files-found: error
           retention-days: 14
