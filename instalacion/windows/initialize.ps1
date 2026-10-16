@@ -84,6 +84,7 @@ try {
     New-Item -ItemType Directory -Force -Path $DataDir, $LogsDir | Out-Null
     $env:MSCONTABLE_DATA_DIR = $DataDir
     $env:MSCONTABLE_LOG_DIR = $LogsDir
+    $env:DJANGO_SETTINGS_MODULE = "ms_contable.settings_windows"
 
     & $PowerShell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $Launcher -Action Stop
     if ($LASTEXITCODE -ne 0) {
@@ -117,5 +118,5 @@ catch {
     exit 1
 }
 finally {
-    Remove-Item Env:MSCONTABLE_DATA_DIR, Env:MSCONTABLE_LOG_DIR -ErrorAction SilentlyContinue
+    Remove-Item Env:MSCONTABLE_DATA_DIR, Env:MSCONTABLE_LOG_DIR, Env:DJANGO_SETTINGS_MODULE -ErrorAction SilentlyContinue
 }
