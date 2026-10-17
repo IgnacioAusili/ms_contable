@@ -72,6 +72,13 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
+    if ExpandConstant('{param:SMOKETEST|0}') = '1' then
+    begin
+      if not SaveStringToFile(ExpandConstant('{app}\windows\smoke-test.marker'), '1', False) then
+        RaiseException('No se pudo marcar la instalación temporal de prueba.');
+      Exit;
+    end;
+
     WizardForm.StatusLabel.Caption := 'Configurando MS Contable...';
     WizardForm.StatusLabel.Update;
     WizardForm.Update;

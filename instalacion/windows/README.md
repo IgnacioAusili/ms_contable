@@ -6,7 +6,7 @@ El instalador usa Inno Setup, un runtime de Python embebido y Caddy. No requiere
 
 Ejecutá `build.ps1` desde PowerShell con CPython x64 3.11.9 a 3.13. El script prepara el runtime embebido, instala las dependencias de `requirements-windows.txt`, copia el código fuente sin datos locales y genera los archivos estáticos. Busca Inno Setup en `.tools` o en el `PATH`; si está en otra ubicación, indicá su ruta con `-InnoCompiler`. Caddy se reutiliza desde `build\caddy` o se descarga desde el sitio oficial junto con su licencia.
 
-La versión del instalador se toma de `APP_VERSION` en `ms_contable/settings.py`. El ejecutable queda en `dist\https\MSContable-Setup-version.exe`.
+La versión del instalador se toma de `APP_VERSION` en `ms_contable/settings.py`. El ejecutable queda en `dist\https\MSContable-Setup-version.exe`. Cada compilación exitosa reemplaza la salida anterior y deja un solo instalador en `dist`; la limpieza se hace después de verificar que el nuevo ejecutable se haya generado correctamente.
 
 El instalador incluye SQLCipher Community Edition y su licencia en `licenses\SQLCipher-LICENSE.txt`. La base de datos y sus dos respaldos se cifran con SQLCipher. La clave aleatoria se protege con DPAPI de Windows para el usuario que ejecuta la aplicación y se guarda en `%LOCALAPPDATA%\MSContable\config\database-key.dpapi`; no se escribe la clave en texto plano. Al importar una base SQLite anterior, el inicializador exporta y comprueba la base y los respaldos cifrados antes de continuar con las migraciones. Si una conversión falla, conserva el archivo de origen y cancela la inicialización.
 

@@ -7,13 +7,18 @@ $ErrorActionPreference = "Stop"
 $InstallerRoot = (Resolve-Path $PSScriptRoot).Path
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $BuildRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "build\release"))
+$DistributionRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "dist"))
 $InstallerScript = Join-Path $PSScriptRoot "MSContable.iss"
 $InstallerIcon = Join-Path $PSScriptRoot "mscontable-setup.ico"
-$OutputDir = Join-Path $PSScriptRoot "dist\https"
+$OutputDir = Join-Path $DistributionRoot "https"
+$StagingOutputDir = Join-Path $BuildRoot "installer-output"
 $SettingsFile = Join-Path $ProjectRoot "ms_contable\settings.py"
 
 if (-not $BuildRoot.StartsWith("$InstallerRoot\", [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "La carpeta temporal de compilación debe permanecer dentro de instalacion\windows."
+}
+if (-not $DistributionRoot.StartsWith("$InstallerRoot\", [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "La carpeta de distribución debe permanecer dentro de instalacion\windows."
 }
 if (-not (Test-Path $InstallerScript -PathType Leaf)) {
     throw "No se encontró MSContable.iss."
@@ -202,14 +207,14 @@ if (-not $versionMatch) {
     throw "No se pudo leer APP_VERSION desde $SettingsFile."
 }
 $AppVersion = $versionMatch.Matches[0].Groups[1].Value
-New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
+New-Item -ItemType Directory -Force -Path $StagingOutputDir | Out-Null
 
 $CompilerArgs = @(
     "/DAppVersion=$AppVersion"
     "/DPayloadDir=$Payload"
     "/DCaddyExePath=$CaddyExe"
     "/DCaddyLicensePath=$CaddyLicense"
-    "/O$OutputDir"
+    "/O$StagingOutputDir"
     $InstallerScript
 )
 & $InnoCompiler @CompilerArgs
@@ -217,4 +222,26 @@ if ($LASTEXITCODE -ne 0) {
     throw "Inno Setup no pudo compilar MS Contable."
 }
 
-Write-Host "Instalador generado en $(Join-Path $OutputDir "MSContable-Setup-$AppVersion.exe")"
+$InstallerFileName = "MSContable-Setup-$AppVersion.exe"
+$StagedInstaller = Join-Path $StagingOutputDir $InstallerFileName
+if (-not (Test-Path $StagedInstaller -PathType Leaf)) {
+    throw "Inno Setup finalizó sin generar el instalador esperado: $InstallerFileName."
+}
+
+if (Test-Path $DistributionRoot) {
+    $distributionItem = Get-Item -LiteralPath $DistributionRoot -Force
+    if ($distributionItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+        throw "La carpeta de distribución no puede ser un enlace: $DistributionRoot."
+    }
+    Remove-Item -LiteralPath $DistributionRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
+$PublishedInstaller = Join-Path $OutputDir $InstallerFileName
+Move-Item -LiteralPath $StagedInstaller -Destination $PublishedInstaller
+
+$PublishedInstallers = @(Get-ChildItem -LiteralPath $DistributionRoot -Filter "MSContable-Setup-*.exe" -File -Recurse)
+if ($PublishedInstallers.Count -ne 1 -or $PublishedInstallers[0].FullName -ne $PublishedInstaller) {
+    throw "La carpeta de distribución debe contener únicamente el instalador recién generado."
+}
+
+Write-Host "Instalador generado en $PublishedInstaller"

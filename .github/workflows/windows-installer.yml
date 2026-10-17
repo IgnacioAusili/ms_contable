@@ -59,8 +59,9 @@ jobs:
       - name: Instalar y probar el paquete generado
         shell: pwsh
         run: |
-          $installer = Get-ChildItem instalacion/windows/dist/https -Filter MSContable-Setup-*.exe -File | Select-Object -First 1
-          if (-not $installer) { throw "No se generó el instalador." }
+          $installers = @(Get-ChildItem instalacion/windows/dist -Filter MSContable-Setup-*.exe -File -Recurse)
+          if ($installers.Count -ne 1) { throw "Se esperaba un único instalador; se encontraron $($installers.Count)." }
+          $installer = $installers[0]
           .\instalacion\windows\smoke-test.ps1 -SetupExe $installer.FullName
 
       - name: Publicar el instalador generado

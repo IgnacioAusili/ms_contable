@@ -27,6 +27,7 @@ $installer = Start-Process `
         "/SUPPRESSMSGBOXES",
         "/NORESTART",
         "/NOICONS",
+        "/SMOKETEST=1",
         "/DIR=`"$InstallDir`""
     ) `
     -Wait `
