@@ -43,24 +43,22 @@ body.login #branding > .theme-toggle {
     position: absolute;
     top: 50%;
     right: 0;
+    display: block;
+    box-sizing: border-box;
+    width: 42px;
+    height: 42px;
     margin: 0;
-    padding: 7px;
+    padding: 0;
     transform: translateY(-50%);
 }
 
 body.login .theme-toggle svg {
-    width: 2.25rem;
-    height: 2.25rem;
-}
-
-body.login .theme-toggle svg.theme-icon-when-dark {
-    width: 34px;
-    height: 34px;
-}
-
-body.login .theme-toggle svg.theme-icon-when-dark use {
-    width: 34px;
-    height: 34px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    transform: translate(-50%, -50%);
 }
 
 body.login .login-brand-icon {
@@ -107,30 +105,6 @@ body.login.first-run #header {
 
 body.login.first-run #branding {
     min-height: 56px;
-}
-
-body.login.first-run #branding > .theme-toggle {
-    display: grid;
-    place-items: center;
-    box-sizing: border-box;
-    width: max-content;
-    height: max-content;
-    padding: 7px;
-}
-
-body.login.first-run .theme-toggle svg {
-    width: 2.25rem;
-    height: 2.25rem;
-}
-
-body.login.first-run .theme-toggle svg.theme-icon-when-dark {
-    width: 34px;
-    height: 34px;
-}
-
-body.login.first-run .theme-toggle svg.theme-icon-when-dark use {
-    width: 34px;
-    height: 34px;
 }
 
 .first-run {
