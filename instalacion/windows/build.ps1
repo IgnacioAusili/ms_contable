@@ -208,4 +208,24 @@ if ($LASTEXITCODE -ne 0) {
     throw "Inno Setup no pudo compilar MS Contable."
 }
 
-Write-Host "Instalador generado en $(Join-Path $OutputDir "MSContable-Setup-$AppVersion.exe")"
+$InstallerPath = Join-Path $OutputDir "MSContable-Setup-$AppVersion.exe"
+if (-not (Test-Path $InstallerPath -PathType Leaf)) {
+    throw "Inno Setup finalizó sin generar el instalador esperado: $InstallerPath."
+}
+
+$OutputRoot = [System.IO.Path]::GetFullPath($OutputDir)
+$OldInstallers = Get-ChildItem -LiteralPath $OutputRoot -Filter "MSContable-Setup-*.exe" -File -Recurse |
+    Where-Object { $_.FullName -ne $InstallerPath }
+foreach ($OldInstaller in $OldInstallers) {
+    if (-not $OldInstaller.FullName.StartsWith("$OutputRoot\", [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "El instalador anterior quedó fuera de la salida esperada: $($OldInstaller.FullName)."
+    }
+    Remove-Item -LiteralPath $OldInstaller.FullName -Force
+}
+
+$PublishedInstallers = @(Get-ChildItem -LiteralPath $OutputRoot -Filter "MSContable-Setup-*.exe" -File -Recurse)
+if ($PublishedInstallers.Count -ne 1 -or $PublishedInstallers[0].FullName -ne $InstallerPath) {
+    throw "La salida debe contener únicamente el instalador recién generado."
+}
+
+Write-Host "Instalador generado en $InstallerPath"

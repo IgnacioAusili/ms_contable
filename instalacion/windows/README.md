@@ -14,6 +14,8 @@ Caddy escucha solo en loopback y publica la aplicación en `https://mscontable` 
 
 Durante la instalación, el instalador agrega la autoridad certificadora local de Caddy al almacén `Root` del usuario actual, sin abrir el aviso de confianza de Windows. El certificado y su clave privada se conservan bajo `%LOCALAPPDATA%\MSContable\caddy`; el desinstalador quita la confianza y elimina esa carpeta. La base SQLite y los logs permanecen bajo `%LOCALAPPDATA%\MSContable\data` y `%LOCALAPPDATA%\MSContable\logs`. La clave secreta de Django se genera una vez y se conserva en `%LOCALAPPDATA%\MSContable\config\django-secret-key`.
 
-La configuración inicial permite importar opcionalmente una base anterior y aplicar las migraciones. No abre una consola ni solicita crear el usuario administrador: la primera cuenta se crea desde la página de bienvenida al abrir MS Contable. La instalación crea el acceso directo del menú Inicio; la casilla del escritorio y la opción de abrir la app al finalizar son independientes.
+La configuración inicial permite importar opcionalmente una base anterior y aplicar las migraciones. No abre una consola ni solicita crear el usuario administrador: la primera cuenta se crea desde la página de bienvenida al abrir MS Contable. Las casillas para crear accesos directos en el menú Inicio y en el escritorio son independientes; la opción de abrir la app al finalizar también lo es.
+
+El acceso **Desinstalar MS Contable** queda dentro de la carpeta de instalación; no se crea en el menú Inicio ni en el escritorio. Durante una desinstalación interactiva hay dos opciones: conservar los datos, o eliminarlos junto con sus registros. Las desinstalaciones silenciosas conservan los datos.
 
 El certificado local habilita HTTPS entre el navegador y Caddy. Caddy reenvía a Waitress por HTTP en loopback; ambos puertos están limitados a este equipo.

@@ -6,7 +6,7 @@ El instalador `MSContable-Setup-version.exe` instala una versión local de Pytho
 
 Al finalizar, el acceso directo **MS Contable** inicia el servidor local y abre el navegador. **Detener MS Contable** cierra el servidor. La base, sus respaldos y los logs quedan en `%LOCALAPPDATA%\MSContable`, fuera de la carpeta de la aplicación.
 
-Si ya usabas la instalación Docker, detené esa aplicación antes de instalar la versión nativa. Al finalizar la instalación, podés pegar la ruta a la base anterior `data\db.sqlite3` cuando el asistente la solicite; también copiará los dos respaldos si están junto a ella. Los datos no se borran al desinstalar.
+Si ya usabas la instalación Docker, detené esa aplicación antes de instalar la versión nativa. Al finalizar la instalación, podés pegar la ruta a la base anterior `data\db.sqlite3` cuando el asistente la solicite; también copiará los dos respaldos si están junto a ella. Durante una desinstalación interactiva, podés elegir conservar o eliminar los datos; las desinstalaciones silenciosas los conservan.
 
 Para actualizar una instalación nativa, ejecutá el nuevo instalador en la misma cuenta de Windows. Antes de migrar la base, crea un respaldo y conserva los dos más recientes.
 

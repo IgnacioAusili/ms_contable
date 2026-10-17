@@ -110,11 +110,6 @@ try {
 catch {
     New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null
     Add-Content -Path $SetupLog -Value "$(Get-Date -Format o) $($_.Exception.Message)"
-    Show-Message `
-        -Message $_.Exception.Message `
-        -Title "No se pudo configurar MS Contable" `
-        -Buttons ([System.Windows.Forms.MessageBoxButtons]::OK) `
-        -Icon ([System.Windows.Forms.MessageBoxIcon]::Error) | Out-Null
     exit 1
 }
 finally {

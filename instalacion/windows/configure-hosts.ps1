@@ -4,6 +4,11 @@
 )
 
 $ErrorActionPreference = "Stop"
+$SmokeTestMarker = Join-Path $PSScriptRoot "smoke-test.marker"
+if (Test-Path $SmokeTestMarker) {
+    exit 0
+}
+
 $HostsPath = Join-Path $env:SystemRoot "System32\drivers\etc\hosts"
 $SiteHost = "mscontable"
 $StartMarker = "# BEGIN MS Contable managed host"

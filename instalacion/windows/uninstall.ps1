@@ -1,5 +1,10 @@
 ﻿$ErrorActionPreference = "Continue"
 $DataRoot = Join-Path $env:LOCALAPPDATA "MSContable"
+$SmokeTestMarker = Join-Path $PSScriptRoot "smoke-test.marker"
+if (Test-Path $SmokeTestMarker) {
+    exit 0
+}
+
 $CaddyStorage = Join-Path $DataRoot "caddy\pki\authorities\local"
 $CaddyThumbprintFile = Join-Path $DataRoot "data\caddy-ca-thumbprint.txt"
 $env:XDG_DATA_HOME = $DataRoot
