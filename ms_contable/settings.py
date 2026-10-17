@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    "core",
     "base_imponible",
     "categoria_laboral",
     "concepto",
