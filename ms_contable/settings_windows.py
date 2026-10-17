@@ -46,6 +46,9 @@ SECRET_KEY = _load_or_create_secret_key(
     DATA_DIR.parent / "config" / "django-secret-key"
 )
 
+DATABASES["default"]["ENGINE"] = "ms_contable.backends.sqlcipher"
+DATABASE_KEY_FILE = DATA_DIR.parent / "config" / "database-key.dpapi"
+
 ALLOWED_HOSTS = [*ALLOWED_HOSTS, "mscontable"]
 CSRF_TRUSTED_ORIGINS = ["https://mscontable"]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

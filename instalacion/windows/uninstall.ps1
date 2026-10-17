@@ -11,19 +11,28 @@ if (Test-Path $CaddyThumbprintFile) {
     try {
         $thumbprint = (Get-Content $CaddyThumbprintFile -Raw).Trim()
         $store = [System.Security.Cryptography.X509Certificates.X509Store]::new("Root", "CurrentUser")
-        $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+        $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadOnly)
         try {
             $matches = $store.Certificates.Find(
                 [System.Security.Cryptography.X509Certificates.X509FindType]::FindByThumbprint,
                 $thumbprint,
                 $false
             )
-            foreach ($match in $matches) {
-                $store.Remove($match)
-            }
         }
         finally {
             $store.Close()
+        }
+        if ($matches.Count -gt 0) {
+            $certutil = Join-Path $env:SystemRoot "System32\certutil.exe"
+            $process = Start-Process `
+                -FilePath $certutil `
+                -ArgumentList @("-delstore", "-f", "-user", "Root", $thumbprint) `
+                -WindowStyle Hidden `
+                -PassThru `
+                -Wait
+            if ($process.ExitCode -ne 0) {
+                throw "Windows no pudo quitar silenciosamente el certificado de MS Contable."
+            }
         }
     }
     catch {

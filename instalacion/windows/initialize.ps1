@@ -4,8 +4,9 @@ Add-Type -AssemblyName System.Windows.Forms
 $InstallDir = Split-Path -Parent $PSScriptRoot
 $Python = Join-Path $InstallDir "python\python.exe"
 $AppDir = $InstallDir
-$DataDir = Join-Path $env:LOCALAPPDATA "MSContable\data"
-$LogsDir = Join-Path $env:LOCALAPPDATA "MSContable\logs"
+$DataRoot = Join-Path $env:LOCALAPPDATA "MSContable"
+$DataDir = if ($env:MSCONTABLE_DATA_DIR) { $env:MSCONTABLE_DATA_DIR } else { Join-Path $DataRoot "data" }
+$LogsDir = if ($env:MSCONTABLE_LOG_DIR) { $env:MSCONTABLE_LOG_DIR } else { Join-Path $DataRoot "logs" }
 $Database = Join-Path $DataDir "db.sqlite3"
 $Backup1 = Join-Path $DataDir "db.sqlite3.1.bak"
 $Backup2 = Join-Path $DataDir "db.sqlite3.2.bak"
@@ -91,9 +92,13 @@ try {
         throw "No se pudieron detener los servicios anteriores de MS Contable."
     }
 
-    if (-not (Test-Path $Database)) {
+    if (-not (Test-Path $Database) -and $env:MSCONTABLE_SKIP_DATABASE_IMPORT -ne "1") {
         Select-LegacyDatabase
     }
+
+    Invoke-ManageCommand `
+        -Arguments @("manage.py", "prepare_encrypted_database") `
+        -Operation "Preparar la base cifrada"
 
     if (Test-Path $Database) {
         if (Test-Path $Backup1) {

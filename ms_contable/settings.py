@@ -5,7 +5,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 APP_NAME = "MS Contable"
-APP_VERSION = "0.1.3"
+APP_VERSION = "0.1.4"
 
 DEVELOPER = "Schulz, Matias"
 DEVELOPER_URL = "https://github.com/SMati000/ms_contable"

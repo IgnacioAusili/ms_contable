@@ -113,6 +113,15 @@ foreach ($relativePath in $trackedFiles) {
     Copy-Item -LiteralPath $sourceFile -Destination $destinationFile
 }
 
+$sqlcipherLicense = Get-ChildItem (Join-Path $SitePackages "sqlcipher3-*.dist-info\licenses\LICENSE") -File |
+    Select-Object -First 1
+if (-not $sqlcipherLicense) {
+    throw "No se encontró la licencia de SQLCipher para incluirla en el instalador."
+}
+$LicenseDir = Join-Path $AppPayload "licenses"
+New-Item -ItemType Directory -Force -Path $LicenseDir | Out-Null
+Copy-Item -LiteralPath $sqlcipherLicense.FullName -Destination (Join-Path $LicenseDir "SQLCipher-LICENSE.txt")
+
 $AppWindows = Join-Path $AppPayload "windows"
 New-Item -ItemType Directory -Force -Path $AppWindows | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "launch.ps1") $AppWindows
