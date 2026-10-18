@@ -11,6 +11,15 @@ def page_not_found(request, exception):
     )
 
 
+def server_error(request):
+    return render(
+        request,
+        "500.html",
+        {"nearest_section_url": _nearest_section_url(request.path_info)},
+        status=500,
+    )
+
+
 def _nearest_section_url(path):
     segments = [segment for segment in path.split("/") if segment]
     for depth in range(len(segments) - 1, 1, -1):

@@ -157,6 +157,34 @@ class MSContableAdminSite(AdminSite):
                 self._missing_object_404_view(callback, model_admin)
             )
 
+        if (
+            model_admin is not None
+            and model_admin.model._meta.label_lower
+            == "grupo_concepto.grupoconcepto"
+        ):
+            localized_route = route_slugs.get(route, route)
+            prefixed_route = self._prefix_group_object_id(localized_route)
+            if prefixed_route is not None:
+                canonical_url = path(
+                    prefixed_route,
+                    callback,
+                    url.default_args,
+                    name=url.name,
+                )
+                if url.name is None:
+                    return [canonical_url, path(route, callback)]
+
+                redirect = RedirectView.as_view(
+                    pattern_name=f"{self.name}:{url.name}",
+                    permanent=False,
+                    query_string=True,
+                )
+                aliases = []
+                for alias_route in dict.fromkeys((localized_route, route)):
+                    if alias_route != prefixed_route:
+                        aliases.append(path(alias_route, redirect))
+                return [canonical_url, *aliases]
+
         if route == "<path:object_id>/" and url.name is None:
             if model_admin is not None:
                 return [path(route, callback)]
@@ -181,12 +209,19 @@ class MSContableAdminSite(AdminSite):
         )
         return [localized_url, legacy_url]
 
+    def _prefix_group_object_id(self, route):
+        object_id_route = "<path:object_id>"
+        if not route.startswith(object_id_route):
+            return None
+        return f"grupo-<int:object_id>{route[len(object_id_route):]}"
+
     def _missing_object_404_view(self, view, model_admin):
         def show_not_found(request, object_id, *args, **kwargs):
+            object_id = unquote(str(object_id))
             if (
                 model_admin.has_view_or_change_permission(request)
                 or model_admin.has_delete_permission(request)
-            ) and model_admin.get_object(request, unquote(object_id)) is None:
+            ) and model_admin.get_object(request, object_id) is None:
                 raise Http404
             return view(request, object_id, *args, **kwargs)
 

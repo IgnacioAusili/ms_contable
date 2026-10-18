@@ -20,6 +20,9 @@
         <h1 id="page-error-title">{% block error_heading %}{% endblock %}</h1>
         <p class="page-error__description">{% block error_description %}{% endblock %}</p>
         <div class="page-error__actions">
+            {% if nearest_section_url %}
+                <a class="button" href="{{ nearest_section_url }}">Volver al sector anterior</a>
+            {% endif %}
             <a class="button default" href="{% url 'admin:index' %}">Volver al inicio</a>
         </div>
     </main>

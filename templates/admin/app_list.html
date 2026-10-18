@@ -4,13 +4,7 @@
   {% for app in app_list %}
     <div class="app-{{ app.app_label }} module{% if app.app_url in request.path|urlencode %} current-app{% endif %}">
       <table>
-        <caption>
-          {% if request.resolver_match.url_name == "index" %}
-            {{ app.name }}
-          {% else %}
-            <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">{{ app.name }}</a>
-          {% endif %}
-        </caption>
+        <caption>{{ app.name }}</caption>
         <thead class="visually-hidden">
           <tr>
             <th scope="col">{% translate 'Model name' %}</th>
