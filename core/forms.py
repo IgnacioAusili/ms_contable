@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.admin.forms import AdminAuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
-from decimal import Decimal
+from core.utils import format_decimal_trimmed
 
 
 class DecimalInputField(forms.DecimalField):
@@ -19,15 +19,10 @@ class DecimalInputField(forms.DecimalField):
         if value is None:
             return value
 
-        precision = max(self.decimal_places or 0, 2)
-        formatted = f"{Decimal(value):.{precision}f}"
-
-        integer, decimals = formatted.split(".")
-
-        while len(decimals) > 2 and decimals.endswith("0"):
-            decimals = decimals[:-1]
-
-        return f"{integer}.{decimals}"
+        return format_decimal_trimmed(
+            value,
+            max_places=self.decimal_places or 2,
+        )
 
 
 class FirstAdminAccountForm(UserCreationForm):

@@ -1,6 +1,3 @@
-from django.db.models import Prefetch
-
-from base_imponible.models import ResultadoBaseImponible
 from liquidacion.choices import TipoEnvio
 from liquidacion.lsd.registro01 import GeneradorRegistro01
 from liquidacion.lsd.registro02 import GeneradorRegistro02
@@ -10,7 +7,7 @@ from liquidacion.lsd.registro06 import GeneradorRegistro06
 from liquidacion.lsd.mappers import (Registro01Mapper, Registro02Mapper, Registro03Mapper,
                                      Registro04Mapper, Registro06Mapper)
 from liquidacion.lsd.exceptions import ErroresGeneracionLsd
-from liquidacion.models import Liquidacion, LiquidacionEmpleado, DetalleLiquidacion
+from liquidacion.lsd.queries import obtener_liquidacion_para_exportar
 
 
 class LsdTxtArcaService:
@@ -33,9 +30,9 @@ class LsdTxtArcaService:
     def __init__(self, liquidacion_pk: str):
         self.liquidacion_pk = liquidacion_pk
 
-    def generar(self):  # TODO - registro 05 para trabajadores eventuales
+    def generar(self):
         try:
-            liquidacion = self._cargar_datos()
+            liquidacion = obtener_liquidacion_para_exportar(self.liquidacion_pk)
         except Exception as error:
             raise ErroresGeneracionLsd([
                 f"No se pudieron cargar los datos de la liquidación: {self._detalle_error(error)}"
@@ -147,42 +144,3 @@ class LsdTxtArcaService:
         ):
             return f"{error.args[0]} Longitud generada: {error.args[1]} caracteres."
         return str(error)
-
-    def _cargar_datos(self):  # TODO - desacoplar la carga de datos de los mappers.
-        return (
-            Liquidacion.objects
-            .select_related("empresa")
-            .prefetch_related(
-                Prefetch(
-                    "empleados",
-                    queryset=(
-                        LiquidacionEmpleado.objects
-                        .select_related(
-                            "empleado",
-                            "version_empleado",
-                        )
-                        .prefetch_related(
-                            "situaciones_revista",
-                            Prefetch(
-                                "detalles",
-                                queryset=(
-                                    DetalleLiquidacion.objects
-                                    .select_related(
-                                        "concepto",
-                                        "concepto__grupo",
-                                    )
-                                ),
-                            ),
-                            Prefetch(
-                                "resultados_bases_imponibles",
-                                queryset=(
-                                    ResultadoBaseImponible.objects
-                                    .select_related("base_imponible")
-                                ),
-                            ),
-                        )
-                    ),
-                )
-            )
-            .get(pk=self.liquidacion_pk)
-        )

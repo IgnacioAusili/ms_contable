@@ -1,5 +1,6 @@
-from decimal import Decimal, InvalidOperation
 import xml.etree.ElementTree as ET
+
+from core.utils import quantize_decimal
 
 
 SVG_NS = "http://www.w3.org/2000/svg"
@@ -317,8 +318,8 @@ class ReciboSueldoSvgRenderer:
         if valor in (None, ""):
             return ""
         try:
-            return f"{Decimal(str(valor)):,.2f}"
-        except (InvalidOperation, ValueError):
+            return f"{quantize_decimal(valor, 2):,.2f}"
+        except ValueError:
             return str(valor)
 
     @staticmethod

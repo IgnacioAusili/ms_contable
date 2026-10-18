@@ -3,7 +3,6 @@ from liquidacion.lsd.registro01 import DatosRegistro01
 from liquidacion.lsd.registro02 import DatosRegistro02
 from liquidacion.lsd.registro03 import DatosRegistro03
 from liquidacion.lsd.registro04 import DatosRegistro04
-from liquidacion.lsd.registro05 import DatosRegistro05
 from liquidacion.lsd.registro06 import DatosRegistro06
 from liquidacion.models import Liquidacion
 
@@ -22,6 +21,8 @@ Consideraciones generales:
 
 
 class Registro01Mapper:
+    liquidacion_select_related = ("empresa",)
+
     @staticmethod
     def obtener_datos(liquidacion: Liquidacion) -> DatosRegistro01:
         return DatosRegistro01(
@@ -35,6 +36,8 @@ class Registro01Mapper:
 
 
 class Registro02Mapper:
+    empleado_select_related = ("empleado", "version_empleado")
+
     @staticmethod
     def obtener_datos(liquidacion: Liquidacion) -> list[DatosRegistro02]:
         registros = []
@@ -57,6 +60,9 @@ class Registro02Mapper:
 
 
 class Registro03Mapper:
+    empleado_select_related = ("empleado",)
+    detalle_select_related = ("concepto", "concepto__grupo")
+
     @staticmethod
     def obtener_datos(liquidacion: Liquidacion) -> list[DatosRegistro03]:
         registros = {}
@@ -111,6 +117,10 @@ class Registro03Mapper:
 
 
 class Registro04Mapper:
+    empleado_select_related = ("empleado", "version_empleado")
+    empleado_prefetch_related = ("situaciones_revista",)
+    resultado_select_related = ("base_imponible",)
+
     @staticmethod
     def obtener_datos(liquidacion: Liquidacion) -> list[DatosRegistro04]:
         registros = []
@@ -134,7 +144,10 @@ class Registro04Mapper:
                     f"{', '.join(bases_faltantes)}."
                 )
 
-            tramos = list(le.situaciones_revista.order_by("dia_inicio"))
+            tramos = sorted(
+                le.situaciones_revista.all(),
+                key=lambda tramo: tramo.dia_inicio,
+            )
 
             tramo_1 = tramos[0] if len(tramos) > 0 else None
             tramo_2 = tramos[1] if len(tramos) > 1 else None
@@ -235,10 +248,9 @@ class Registro04Mapper:
         return registros
 
 
-# TODO - registro 05 para trabajadores eventuales
-
-
 class Registro06Mapper:
+    empleado_select_related = ("empleado",)
+
     @staticmethod
     def obtener_datos(liquidacion: Liquidacion) -> list[DatosRegistro06]:
         registros = []

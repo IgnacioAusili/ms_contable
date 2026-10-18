@@ -6,6 +6,7 @@
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'liquidacion/admin/detalle_liquidacion_empleado.css' %}">
     <link rel="stylesheet" href="{% static 'liquidacion/admin/detalle_liquidacion_empleado_form.css' %}">
+    <link rel="stylesheet" href="{% static 'liquidacion/admin/liquidacion_empleado_wizard.css' %}">
 {% endblock %}
 
 {% block extrahead %}
@@ -20,10 +21,10 @@
         {% include "admin/includes/help_dialog.html" with help_title="Ayuda de liquidación" help_content_template="admin/includes/help/liquidacion_empleado.html" %}
 
         {% if liq_editable %}
-        <div class="module">
+        <div class="module liquidacion-plantilla" id="liquidacion-plantilla">
             <h2>Aplicar plantilla de liquidación</h2>
 
-            <div style="display: flex; gap: 8px; align-items: center;">
+            <div class="liquidacion-plantilla__controls">
                 <select id="plantilla-select">
                     <option value="">---------</option>
 
@@ -43,6 +44,7 @@
                     Aplicar
                 </button>
             </div>
+            <p id="plantilla-feedback" role="status" aria-live="polite" hidden></p>
         </div>
         {% endif %}
 
@@ -52,6 +54,14 @@
 
 {% block submit_buttons_bottom %}
     <div class="submit-row">
+    {% if liquidacion_empleado %}
+        <span
+            class="liquidacion-wizard-status"
+            id="liquidacion-form-status"
+            role="status"
+            aria-live="polite"
+        ></span>
+    {% endif %}
     {% if liq_editable %}
         <input
             type="submit"
