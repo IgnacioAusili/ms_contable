@@ -231,7 +231,7 @@ class MSContableAdminSite(AdminSite):
         object_id_route = "<path:object_id>"
         if not route.startswith(object_id_route):
             return None
-        return f"{prefix}-<int:object_id>{route[len(object_id_route):]}"
+        return f"{prefix}-<str:object_id>{route[len(object_id_route):]}"
 
     def _missing_object_404_view(self, view, model_admin):
         def show_not_found(request, object_id, *args, **kwargs):
