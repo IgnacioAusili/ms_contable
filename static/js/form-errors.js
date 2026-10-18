@@ -27,14 +27,18 @@
         }
 
         const placeholder = summaryNote || document.createElement("div");
+        const breadcrumbs = document.querySelector(".breadcrumbs");
         const formErrors = [];
         let tooltipIndex = 0;
 
         placeholder.classList.add("error-summary-placeholder");
         placeholder.setAttribute("aria-hidden", "true");
 
-        if (!summaryNote) {
-            form.prepend(placeholder);
+        if (breadcrumbs) {
+            breadcrumbs.after(placeholder);
+        } else {
+            const heading = form.closest("#content")?.querySelector("h1");
+            (heading || form).before(placeholder);
         }
 
         function getFieldLabel(errorList) {
@@ -64,7 +68,10 @@
             const button = document.createElement("button");
             button.type = "button";
             button.className = "error-tooltip__trigger";
-            button.textContent = "!";
+            const icon = document.createElement("span");
+            icon.className = "error-tooltip__icon";
+            icon.textContent = "!";
+            button.append(icon);
             button.setAttribute("aria-label", options.label);
             button.setAttribute("aria-expanded", "false");
 
@@ -191,11 +198,10 @@
         closeButton.textContent = "×";
 
         summary.append(message, allErrorsTooltip, closeButton);
-        document.body.append(summary);
+        placeholder.replaceWith(summary);
         document.body.classList.add("error-summary-active");
 
         const header = document.getElementById("header");
-        const breadcrumbs = document.querySelector(".breadcrumbs");
         const updateStickyOffsets = () => {
             const headerHeight = header?.getBoundingClientRect().height || 0;
             const breadcrumbsHeight = breadcrumbs?.getBoundingClientRect().height || 0;
@@ -215,7 +221,6 @@
 
         closeButton.addEventListener("click", () => {
             summary.remove();
-            placeholder.remove();
             document.body.classList.remove("error-summary-active");
             window.removeEventListener("resize", updateStickyOffsets);
             resizeHandler = null;

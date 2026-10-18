@@ -26,7 +26,7 @@ El proceso prepara el runtime, copia el código sin incluir las carpetas locales
 instalacion/windows/dist/MSContable-Setup-version.exe
 ```
 
-La versión del instalador se toma de `APP_VERSION` en `ms_contable/settings.py`.
+La aplicación usa la variable de entorno `APP_VERSION` cuando contiene una versión concreta. Si no está definida o vale `latest`, usa `DEFAULT_APP_VERSION` en `ms_contable/settings.py`.
 
 En cada push o pull request, GitHub Actions instala las dependencias en Windows, valida Python y Django, corre los tests, revisa la sintaxis de PowerShell, construye el `.exe` y lo instala en modo silencioso para probar migraciones, Waitress, la bienvenida inicial y los archivos estáticos. Si todo pasa, publica el instalador como artefacto descargable durante 14 días. Para reconstruirlo localmente después de un cambio, ejecutá otra vez `build.ps1`.
 

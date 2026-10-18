@@ -307,6 +307,22 @@ html[data-theme="light"] .dashboard #content h1 {
     flex-basis: calc(23px + var(--admin-sidebar-width));
 }
 
+#main > .content {
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+#content-main,
+#content-main form,
+.inline-group {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.inline-group {
+    overflow-x: auto;
+}
+
 #toggle-nav-sidebar {
     position: fixed;
     inset-inline-start: 0;
@@ -330,5 +346,11 @@ html[data-theme="light"] .dashboard #content h1 {
 @media (max-width: 767px) {
     #main::before {
         display: none;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 979px) {
+    #container {
+        min-width: 0;
     }
 }

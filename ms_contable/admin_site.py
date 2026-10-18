@@ -50,6 +50,18 @@ class MSContableAdminSite(AdminSite):
         ("liquidacion", "liquidacionempleado"): "liquidaciones-por-empleado",
         ("plantilla_liquidacion", "plantillaliquidacion"): "plantillas-de-liquidacion",
     }
+    model_object_id_prefixes = {
+        "admin.logentry": "registro",
+        "base_imponible.baseimponible": "base-imponible",
+        "categoria_laboral.categorialaboral": "categoria-laboral",
+        "concepto.concepto": "concepto",
+        "empleado.empleado": "empleado",
+        "empresa.empresa": "empresa",
+        "grupo_concepto.grupoconcepto": "grupo",
+        "liquidacion.liquidacion": "liquidacion",
+        "liquidacion.liquidacionempleado": "liquidacion-empleado",
+        "plantilla_liquidacion.plantillaliquidacion": "plantilla-liquidacion",
+    }
 
     def app_index(self, request, app_label, extra_context=None):
         if app_label == "admin":
@@ -157,13 +169,19 @@ class MSContableAdminSite(AdminSite):
                 self._missing_object_404_view(callback, model_admin)
             )
 
-        if (
-            model_admin is not None
-            and model_admin.model._meta.label_lower
-            == "grupo_concepto.grupoconcepto"
-        ):
+        if model_admin is not None:
+            object_id_prefix = self.model_object_id_prefixes.get(
+                model_admin.model._meta.label_lower
+            )
+        else:
+            object_id_prefix = None
+
+        if object_id_prefix is not None:
             localized_route = route_slugs.get(route, route)
-            prefixed_route = self._prefix_group_object_id(localized_route)
+            prefixed_route = self._prefix_model_object_id(
+                localized_route,
+                object_id_prefix,
+            )
             if prefixed_route is not None:
                 canonical_url = path(
                     prefixed_route,
@@ -209,11 +227,11 @@ class MSContableAdminSite(AdminSite):
         )
         return [localized_url, legacy_url]
 
-    def _prefix_group_object_id(self, route):
+    def _prefix_model_object_id(self, route, prefix):
         object_id_route = "<path:object_id>"
         if not route.startswith(object_id_route):
             return None
-        return f"grupo-<int:object_id>{route[len(object_id_route):]}"
+        return f"{prefix}-<int:object_id>{route[len(object_id_route):]}"
 
     def _missing_object_404_view(self, view, model_admin):
         def show_not_found(request, object_id, *args, **kwargs):

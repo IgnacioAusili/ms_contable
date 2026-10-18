@@ -6,7 +6,10 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 APP_NAME = "MS Contable"
-APP_VERSION = "0.1.1"
+DEFAULT_APP_VERSION = "0.1.1"
+APP_VERSION = os.environ.get("APP_VERSION", "").strip()
+if not APP_VERSION or APP_VERSION.lower() == "latest":
+    APP_VERSION = DEFAULT_APP_VERSION
 
 DEVELOPER = "Schulz, Matias"
 DEVELOPER_URL = "https://github.com/SMati000/ms_contable"
@@ -19,7 +22,7 @@ if not SECRET_KEY:
     raise ImproperlyConfigured("La variable de entorno DJANGO_SECRET_KEY es obligatoria.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get("DJANGO_DEBUG", "").lower() in {"1", "true", "yes"}
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 

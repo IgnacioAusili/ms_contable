@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{% static 'css/form-errors.css' %}">
     <link rel="stylesheet" href="{% static 'css/date-input-segments.css' %}">
     <link rel="stylesheet" href="{% static 'css/help-dialog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/version-check.css' %}">
 {% endblock %}
 
 {% block extrahead %}
@@ -20,6 +21,7 @@
     <script src="{% static 'js/help-dialog.js' %}" defer></script>
     <script src="{% static 'js/admin-messages.js' %}" defer></script>
     <script src="{% static 'js/form-errors.js' %}" defer></script>
+    <script defer src="{% static 'js/version-check.js' %}"></script>
 {% endblock %}
 
 {% block welcome-msg %}
@@ -52,7 +54,7 @@
     <div class="footer-content">
 
         <div class="footer-info">
-            <span>{{ app_name }} (v{{ app_version }})</span>
+            <span>{{ app_name }} ({{ app_version_tag }})</span>
             <span class="footer-separator">·</span>
             <span>
                 Desarrollador:
@@ -62,6 +64,16 @@
 
         <div class="footer-help">
             <span class="footer-help-title">Ayudas:</span>
+
+            <a href="{{ developer_url }}/releases/tag/{{ app_version_tag }}"
+               target="_blank" rel="noopener noreferrer">
+                Notas de {{ app_version_tag }}
+            </a>
+
+            <a href="{{ developer_url }}/blob/{{ app_version_tag }}/docs/specs_internas/manual_usuario.md"
+               target="_blank" rel="noopener noreferrer">
+                Manual de {{ app_version_tag }}
+            </a>
 
             <a href="{% static 'docs/mapeo-conceptos-arca.html' %}"
                target="_blank">
@@ -79,6 +91,20 @@
             </a>
         </div>
 
+    </div>
+    <div
+        id="version-update-notice"
+        class="version-update-notice"
+        data-check-url="{% url 'check-app-update' %}"
+        data-interval-ms="{{ version_check_interval_ms }}"
+        role="status"
+        aria-live="polite"
+        hidden
+    >
+        <span>Hay una versión más reciente disponible: <strong data-latest-version></strong>.</span>
+        <a data-release-link href="#" target="_blank" rel="noopener noreferrer">
+            Ver cambios y descarga
+        </a>
     </div>
 </div>
 {% endblock %}

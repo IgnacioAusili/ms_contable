@@ -1,5 +1,9 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import Resolver404, resolve
+from django.views.decorators.http import require_GET
+
+from core.services.version_checker import get_update_info
 
 
 def page_not_found(request, exception):
@@ -18,6 +22,11 @@ def server_error(request):
         {"nearest_section_url": _nearest_section_url(request.path_info)},
         status=500,
     )
+
+
+@require_GET
+def check_for_app_update(request):
+    return JsonResponse(get_update_info())
 
 
 def _nearest_section_url(path):
