@@ -377,3 +377,17 @@ html[data-theme="light"] .dashboard #content h1 {
         min-width: 0;
     }
 }
+
+body.login #site-name > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.login #site-name > span::before {
+    content: "";
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: url("../images/logo-160.svg") center / contain no-repeat;
+}

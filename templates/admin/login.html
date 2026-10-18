@@ -7,6 +7,10 @@
 {% endblock %}
 
 {% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block branding %}
+<div id="site-name"><span>{{ site_header }}</span></div>
+{% include "admin/color_theme_toggle.html" %}
+{% endblock %}
 {% block usertools %}{% endblock %}
 {% block nav-global %}{% endblock %}
 {% block nav-sidebar %}{% endblock %}
