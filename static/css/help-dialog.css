@@ -1,22 +1,28 @@
+:root {
+    --help-button-bg: #8a6500;
+    --help-button-hover-bg: #745500;
+}
+
 .help-trigger {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    margin: 0 0 1rem auto;
+    margin: 0.5rem 0 1rem auto;
     padding: 0.35rem 0.75rem;
     color: var(--button-fg);
-    background: var(--default-button-bg);
-    border: 1px solid var(--default-button-bg);
+    background: var(--help-button-bg);
+    border: 1px solid var(--help-button-bg);
     border-radius: 4px;
     font: inherit;
     font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 150ms ease, transform 100ms ease;
+    transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
 }
 
 .help-trigger:hover {
-    background: var(--default-button-hover-bg);
+    background: var(--help-button-hover-bg);
+    border-color: var(--help-button-hover-bg);
 }
 
 .help-trigger:active {
