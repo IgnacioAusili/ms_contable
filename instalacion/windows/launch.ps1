@@ -86,6 +86,26 @@ function Test-RootCertificateTrusted {
     }
 }
 
+function Repair-RootCertificateTrust {
+    $preparationScript = Join-Path $PSScriptRoot "prepare-https.ps1"
+    if (-not (Test-Path $preparationScript)) {
+        throw "No se encontró la rutina para reparar HTTPS de MS Contable. Reinstalá la aplicación."
+    }
+
+    Stop-ManagedProcess -PidFile $CaddyPidFile -Executable $Caddy -CommandMarker $Caddyfile
+
+    $repairLog = Join-Path $LogsDir "https-repair.log"
+    $powerShell = Join-Path $PSHOME "powershell.exe"
+    & $powerShell -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File $preparationScript -NoUI *> $repairLog
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudo reparar automáticamente el certificado HTTPS. Revisá los registros en $LogsDir."
+    }
+
+    if (-not (Test-RootCertificateTrusted)) {
+        throw "Windows no confirmó la confianza del certificado HTTPS de MS Contable. Revisá los registros en $LogsDir."
+    }
+}
+
 function Wait-ForCaddyCertificate {
     param([System.Diagnostics.Process] $CaddyProcess)
 
@@ -151,8 +171,15 @@ try {
     }
 
     New-Item -ItemType Directory -Force -Path $DataDir, $LogsDir, $CaddyStorage | Out-Null
-    if (-not (Test-RootCertificateTrusted)) {
-        throw "No se encontró el certificado HTTPS de MS Contable. Volvé a ejecutar el instalador para reparar la configuración."
+    $certificateTrusted = $false
+    try {
+        $certificateTrusted = Test-RootCertificateTrusted
+    }
+    catch {
+        $certificateTrusted = $false
+    }
+    if (-not $certificateTrusted) {
+        Repair-RootCertificateTrust
     }
 
     $env:MSCONTABLE_DATA_DIR = $DataDir
