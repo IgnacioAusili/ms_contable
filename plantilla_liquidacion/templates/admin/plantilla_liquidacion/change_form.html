@@ -5,6 +5,7 @@
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'plantilla_liquidacion/admin/detalle_plantilla_liquidacion.css' %}">
+    <link rel="stylesheet" href="{% static 'plantilla_liquidacion/admin/submit-actions.css' %}">
 {% endblock %}
 
 {% block after_field_sets %}
@@ -39,14 +40,14 @@
         <input
             type="submit"
             value="Guardar"
-            class="default"
+            class="default save-button"
             name="_continue"
         >
 
         <input
             type="submit"
             value="Agregar todos los conceptos de la empresa"
-            class="default"
+            class="default agregar-conceptos-button"
             name="_agregar_todos"
         >
 

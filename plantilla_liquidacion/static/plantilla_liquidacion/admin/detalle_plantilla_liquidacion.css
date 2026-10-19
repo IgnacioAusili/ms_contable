@@ -358,25 +358,3 @@
 #modal-ayuda-liquidacion::backdrop {
     background: rgb(0 0 0 / 50%);
 }
-
-/* ============================================= */
-
-/* Barra de acciones fija abajo */
-#content-main form .submit-row {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    width: fit-content;
-    max-width: 100%;
-    margin: 1.5rem 0 0 auto;
-    padding: 0;
-    overflow: visible;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-}

@@ -145,6 +145,16 @@ body.login.first-run #content {
     background: var(--button-hover-bg);
 }
 
+#content-main .submit-row input.default.save-button {
+    background: var(--button-bg);
+}
+
+#content-main .submit-row input.default.save-button:hover,
+#content-main .submit-row input.default.save-button:focus,
+#content-main .submit-row input.default.save-button:active {
+    background: var(--button-hover-bg);
+}
+
 #content-main .submit-row input[name="_addanother"] {
     background: #2f855a;
 }
