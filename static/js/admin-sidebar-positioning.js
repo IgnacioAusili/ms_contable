@@ -32,6 +32,7 @@
         );
 
         sidebar.style.top = `${contentTop + availableHeight / 2}px`;
+        sidebar.style.height = `${maxHeight}px`;
         sidebar.style.maxHeight = `${maxHeight}px`;
 
         if (toggle) {

@@ -4,6 +4,7 @@
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/form-errors.css' %}">
     <link rel="stylesheet" href="{% static 'css/date-input-segments.css' %}">
     <link rel="stylesheet" href="{% static 'css/help-dialog.css' %}">
@@ -16,6 +17,7 @@
     <script defer src="{% static 'js/admin_login.js' %}"></script>
     <script defer src="{% static 'js/calendar-wheel-navigation.js' %}"></script>
     <script defer src="{% static 'js/admin-sidebar-positioning.js' %}"></script>
+    <script defer src="{% static 'js/admin-sidebar-filter.js' %}"></script>
     <script defer src="{% static 'js/date-input-mask.js' %}"></script>
     <link rel="icon" href="{% static 'images/favicon.ico' %}">
     <script src="{% static 'js/help-dialog.js' %}" defer></script>
