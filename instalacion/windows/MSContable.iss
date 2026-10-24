@@ -39,14 +39,20 @@ UninstallDisplayName=MS Contable
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Files]
-Source: "{#PayloadDir}\app\*"; DestDir: "{app}"; Excludes: "windows\launch.ps1,windows\launch-hidden.vbs,windows\initialize.ps1"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#PayloadDir}\app\*"; DestDir: "{app}"; Excludes: "windows\launch.ps1,windows\launch-splash.ps1,windows\launch-hidden.vbs,windows\initialize.ps1"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#PayloadDir}\python\*"; DestDir: "{app}\python"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#CaddyExePath}"; DestDir: "{app}\caddy"; DestName: "caddy.exe"; Flags: ignoreversion
 Source: "{#CaddyLicensePath}"; DestDir: "{app}\licenses"; DestName: "Caddy-LICENSE.txt"; Flags: ignoreversion
 Source: "Caddyfile"; DestDir: "{app}\caddy"; Flags: ignoreversion
 Source: "launch.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
+Source: "launch-splash.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
+Source: "launch-support.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
+Source: "session-monitor.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
 Source: "launch-hidden.vbs"; DestDir: "{app}\windows"; Flags: ignoreversion
 Source: "initialize.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
+Source: "bootstrap.py"; DestDir: "{app}\windows"; Flags: ignoreversion
+Source: "bootstrap-page.html"; DestDir: "{app}\windows"; Flags: ignoreversion
+Source: "protect-data.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
 Source: "prepare-https.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
 Source: "configure-hosts.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
 Source: "uninstall.ps1"; DestDir: "{app}\windows"; Flags: ignoreversion
@@ -71,6 +77,60 @@ Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile
 [Code]
 var
   KeepUserData: Boolean;
+  SqlCipherDataAction: String;
+  SqlCipherDataPage: TInputOptionWizardPage;
+  SqlCipherDataDetected: Boolean;
+  SqlCipherDatabaseUnreadable: Boolean;
+
+function HasIncompatibleDatabase: Boolean;
+var
+  DatabasePath: String;
+  DatabaseKeyPath: String;
+  DatabaseContents: AnsiString;
+begin
+  Result := False;
+  DatabasePath := ExpandConstant('{localappdata}\MSContable\data\db.sqlite3');
+  DatabaseKeyPath := ExpandConstant('{localappdata}\MSContable\config\database-key.dpapi');
+  if not FileExists(DatabasePath) then
+    Exit;
+
+  if FileExists(DatabaseKeyPath) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  if LoadStringFromFile(DatabasePath, DatabaseContents) then
+    Result := Copy(DatabaseContents, 1, 16) <> 'SQLite format 3'#0
+  else
+    SqlCipherDatabaseUnreadable := True;
+end;
+
+procedure InitializeWizard;
+begin
+  SqlCipherDataPage := CreateInputOptionPage(
+    wpSelectTasks,
+    'Base de datos cifrada incompatible',
+    'La base existente está cifrada con SQLCipher y esta versión no puede abrirla.',
+    'Conservar archiva la base, sus copias y la clave en %LOCALAPPDATA%\MSContable\datos-anteriores y permite instalar con una base nueva. Para recuperar esos datos hace falta una versión compatible. Eliminar los borra permanentemente.',
+    True,
+    False);
+  SqlCipherDataPage.Add('Conservar los datos y continuar (recomendado)');
+  SqlCipherDataPage.Add('Eliminar los datos y continuar');
+  SqlCipherDataPage.Values[0] := True;
+  SqlCipherDatabaseUnreadable := False;
+  SqlCipherDataDetected := False;
+  if ExpandConstant('{param:SMOKETEST|0}') <> '1' then
+    SqlCipherDataDetected := HasIncompatibleDatabase;
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := False;
+  if PageID = SqlCipherDataPage.ID then
+    Result := not SqlCipherDataDetected or WizardSilent or
+      (ExpandConstant('{param:SMOKETEST|0}') = '1');
+end;
 
 function InitializeUninstall: Boolean;
 var
@@ -177,10 +237,11 @@ function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   DatabasePath: String;
   DatabaseKeyPath: String;
-  DatabaseContents: AnsiString;
+  IncompatibleDatabase: Boolean;
 begin
   Result := '';
   NeedsRestart := False;
+  SqlCipherDataAction := '';
 
   if ExpandConstant('{param:SMOKETEST|0}') = '1' then
     Exit;
@@ -190,20 +251,20 @@ begin
   if not FileExists(DatabasePath) then
     Exit;
 
-  if FileExists(DatabaseKeyPath) then
-  begin
-    Result := 'La base existente está cifrada con SQLCipher y contiene datos que esta versión del instalador no puede abrir. No se modificó la base. Usá una versión de MS Contable compatible con SQLCipher para conservar esos datos.';
-    Exit;
-  end;
-
-  if not LoadStringFromFile(DatabasePath, DatabaseContents) then
+  IncompatibleDatabase := FileExists(DatabaseKeyPath) or SqlCipherDataDetected;
+  if not IncompatibleDatabase and SqlCipherDatabaseUnreadable then
   begin
     Result := 'No se pudo comprobar la base existente. Cerrá MS Contable y volvé a ejecutar el instalador.';
     Exit;
   end;
 
-  if Copy(DatabaseContents, 1, 16) <> 'SQLite format 3'#0 then
-    Result := 'La base existente no es SQLite estándar o está cifrada. Esta versión no puede abrirla; se canceló la instalación para proteger tus datos. Usá una versión compatible con el formato de esa base.';
+  if IncompatibleDatabase then
+  begin
+    if WizardSilent or SqlCipherDataPage.Values[0] then
+      SqlCipherDataAction := 'preserve'
+    else
+      SqlCipherDataAction := 'delete';
+  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -229,8 +290,10 @@ begin
 
     ScriptPath := ExpandConstant('{app}\windows\initialize.ps1');
     Parameters := '-NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + ScriptPath + '"';
+    if SqlCipherDataAction <> '' then
+      Parameters := Parameters + ' -IncompatibleDataAction ' + SqlCipherDataAction;
     if not ExecAsOriginalUser(PowerShellPath, Parameters, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then
-      RaiseException('No se pudo inicializar MS Contable. Revisá los datos ingresados y ejecutá nuevamente el instalador.');
+      RaiseException('No se pudo inicializar MS Contable. Revisá el archivo de registro ' + ExpandConstant('{localappdata}\MSContable\logs\initialize-failure.log') + ' para ver el motivo y ejecutá nuevamente el instalador.');
 
     WizardForm.StatusLabel.Caption := 'Configurando el acceso local...';
     WizardForm.StatusLabel.Update;

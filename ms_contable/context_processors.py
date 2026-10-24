@@ -7,4 +7,5 @@ def app_info(request):
         "app_version": settings.APP_VERSION,
         "developer": settings.DEVELOPER,
         "developer_url": settings.DEVELOPER_URL,
+        "session_heartbeat_token": getattr(settings, "SESSION_HEARTBEAT_TOKEN", ""),
     }

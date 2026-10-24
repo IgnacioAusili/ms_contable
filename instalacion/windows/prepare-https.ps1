@@ -1,6 +1,7 @@
 ﻿$ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Windows.Forms
 $NoUI = $args -contains "-NoUI"
+$TrustExistingCertificateOnly = $args -contains "-TrustExistingCertificateOnly"
 
 $InstallDir = Split-Path -Parent $PSScriptRoot
 $DataRoot = Join-Path $env:LOCALAPPDATA "MSContable"
@@ -8,10 +9,18 @@ $DataDir = Join-Path $DataRoot "data"
 $LogsDir = Join-Path $DataRoot "logs"
 $Caddy = Join-Path $InstallDir "caddy\caddy.exe"
 $Caddyfile = Join-Path $InstallDir "caddy\Caddyfile"
+$RuntimeCaddyfile = Join-Path $DataRoot "config\runtime.Caddyfile"
 $CaddyStorage = Join-Path $DataRoot "caddy"
 $RootCertificate = Join-Path $CaddyStorage "pki\authorities\local\root.crt"
 $ThumbprintFile = Join-Path $DataDir "caddy-ca-thumbprint.txt"
+$BackendPort = 8000
+$HttpsPort = 0
+$SiteHost = "mscontable"
 $CaddyProcess = $null
+$StartupClock = [System.Diagnostics.Stopwatch]::StartNew()
+$StartupLog = Join-Path $LogsDir "startup.log"
+
+. (Join-Path $PSScriptRoot "launch-support.ps1")
 
 function Show-Message {
     param(
@@ -102,53 +111,21 @@ function Add-RootCertificateToCurrentUser {
     Set-Content -Path $ThumbprintFile -Value $certificate.Thumbprint -Encoding ASCII
 }
 
-function Wait-ForCaddyCertificate {
-    param([System.Diagnostics.Process] $Process)
-
-    $callback = [System.Net.Security.RemoteCertificateValidationCallback] {
-        param($sender, $certificate, $chain, $errors)
-        return $true
-    }
-
-    for ($attempt = 0; $attempt -lt 30; $attempt++) {
-        if ($Process.HasExited) {
-            throw "Caddy se cerró durante la preparación de HTTPS. Revisá los registros en $LogsDir."
-        }
-
-        $client = [System.Net.Sockets.TcpClient]::new()
-        $stream = $null
-        try {
-            $client.Connect([System.Net.IPAddress]::Loopback, 443)
-            $stream = [System.Net.Security.SslStream]::new($client.GetStream(), $false, $callback)
-            $stream.AuthenticateAsClient("mscontable")
-            $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($stream.RemoteCertificate)
-            if ($certificate.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsName, $false) -ne "mscontable") {
-                throw "Caddy presentó un certificado para otro nombre."
-            }
-            if (Test-Path $RootCertificate) {
-                return
-            }
-        }
-        catch {
-            Start-Sleep -Seconds 1
-        }
-        finally {
-            if ($stream) {
-                $stream.Dispose()
-            }
-            $client.Dispose()
-        }
-    }
-
-    throw "Caddy no pudo preparar el certificado HTTPS. Revisá los registros en $LogsDir."
-}
-
 try {
-    New-Item -ItemType Directory -Force -Path $DataDir, $LogsDir, $CaddyStorage | Out-Null
+    New-Item -ItemType Directory -Force -Path $DataDir, $LogsDir, $CaddyStorage, (Split-Path -Parent $RuntimeCaddyfile) | Out-Null
     $env:XDG_DATA_HOME = $DataRoot
     $env:XDG_CONFIG_HOME = $DataRoot
 
     if (Test-RootCertificateTrusted) {
+        Add-RootCertificateToCurrentUser
+        exit 0
+    }
+
+    if ($TrustExistingCertificateOnly) {
+        if (-not (Test-Path $RootCertificate -PathType Leaf)) {
+            throw "Caddy todavía no generó el certificado HTTPS local de MS Contable."
+        }
+
         Add-RootCertificateToCurrentUser
         exit 0
     }
@@ -159,17 +136,21 @@ try {
 
     $caddyStdout = Join-Path $LogsDir "caddy-install.out.log"
     $caddyStderr = Join-Path $LogsDir "caddy-install.err.log"
+    $HttpsPort = Get-RandomLocalPort
+    Write-RuntimeCaddyfile -Path $RuntimeCaddyfile -HttpsPort $HttpsPort -BackendPort $BackendPort
     $CaddyProcess = Start-Process `
         -FilePath $Caddy `
-        -ArgumentList @("run", "--config", "`"$Caddyfile`"", "--adapter", "caddyfile") `
+        -ArgumentList @("run", "--config", "`"$RuntimeCaddyfile`"", "--adapter", "caddyfile") `
         -WorkingDirectory (Split-Path -Parent $Caddy) `
         -WindowStyle Hidden `
         -PassThru `
         -RedirectStandardOutput $caddyStdout `
         -RedirectStandardError $caddyStderr
 
-    Wait-ForCaddyCertificate -Process $CaddyProcess
+    Wait-ForCaddyCertificate -CaddyProcess $CaddyProcess -Port $HttpsPort -TimeoutSeconds 15
     Add-RootCertificateToCurrentUser
+    Set-Content -Path (Join-Path $DataDir "caddy.port") -Value $HttpsPort -Encoding ASCII
+    Write-StartupLog -Message "Certificado local preparado en el puerto HTTPS aleatorio $HttpsPort"
 }
 catch {
     if (-not $NoUI) {

@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="/brand.svg" type="image/svg+xml">
+  <title>Abriendo MS Contable</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Segoe UI", system-ui, Arial, sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --primary: #264b5d;
+      --secondary: #417690;
+      --body-fg: #eee;
+      --body-bg: #121212;
+      --body-quiet-color: #d0d0d0;
+      --header-bg: #264b5d;
+      --header-color: #ffc;
+      --link-fg: #81d4fa;
+      --link-hover-color: #4ac1f7;
+      --hairline-color: #272727;
+      --border-color: #353535;
+      --darkened-bg: #212121;
+      --error-fg: #e35f5f;
+      --message-error-bg: #570808;
+      --progress-track: #292929;
+      --spinner-track: #456878;
+    }
+    html[data-theme="light"] {
+      color-scheme: light;
+      --primary: #79aec8;
+      --secondary: #417690;
+      --body-fg: #333;
+      --body-bg: #fff;
+      --body-quiet-color: #666;
+      --header-bg: #417690;
+      --header-color: #ffc;
+      --link-fg: #417893;
+      --link-hover-color: #036;
+      --hairline-color: #e8e8e8;
+      --border-color: #ccc;
+      --darkened-bg: #f8f8f8;
+      --error-fg: #ba2121;
+      --message-error-bg: #ffefef;
+      --progress-track: #e8e8e8;
+      --spinner-track: #a8c5d1;
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body.login {
+      min-height: 100vh; margin: 0; padding: 16px; display: flex; flex-direction: column;
+      align-items: center; color: var(--body-fg); background: var(--darkened-bg);
+      font-size: 14px;
+    }
+    #container {
+      box-sizing: border-box; width: 28em; max-width: 100%; min-width: 0; margin: auto;
+      min-height: 390px; display: flex; flex-direction: column;
+      overflow: hidden; background: var(--body-bg); border: 1px solid var(--hairline-color);
+      border-radius: 4px;
+    }
+    #header {
+      position: relative; display: flex; justify-content: center; align-items: center;
+      min-height: 56px; padding: 15px 16px; background: var(--header-bg);
+    }
+    .theme-toggle {
+      position: absolute; top: 50%; right: 0; width: 42px; height: 42px; padding: 0;
+      transform: translateY(-50%); border: 0; color: var(--header-color); background: transparent;
+      cursor: pointer;
+    }
+    .theme-toggle svg { display: none; width: 30px; height: 30px; fill: currentColor; }
+    html[data-theme="dark"] .theme-icon-when-dark,
+    html[data-theme="light"] .theme-icon-when-light { display: inline; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    #site-name {
+      position: relative; margin: 0; color: #f5dd5d; font-size: 1.9rem;
+      font-weight: 600; line-height: 1.2; text-align: center;
+    }
+    .login-brand-icon {
+      position: absolute; top: 50%; right: calc(100% + 10px); width: 48px; height: 48px;
+      transform: translateY(-50%); object-fit: contain;
+    }
+    #content { display: flex; flex: 1; align-items: center; justify-content: center; padding: 20px; }
+    .loading-content { text-align: center; }
+    #title { margin: 0 0 8px; color: var(--body-fg); font-size: 18px; font-weight: 600; }
+    #message { min-height: 22px; margin: 0; color: var(--body-quiet-color); line-height: 1.55; }
+    .loading-indicator {
+      display: flex; justify-content: center; align-items: center; gap: 9px; margin: 17px 0 13px;
+      color: var(--link-fg); font-size: 13px;
+    }
+    .spinner {
+      width: 18px; height: 18px; flex: 0 0 18px; border: 2px solid var(--spinner-track);
+      border-top-color: var(--link-fg); border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    .progress {
+      height: 4px; margin: 0; overflow: hidden; background: var(--progress-track);
+    }
+    .progress span {
+      display: block; width: 32%; height: 100%; background: var(--secondary);
+      animation: progress 1.45s ease-in-out infinite;
+    }
+    #error {
+      display: none; margin: 17px 0 0; padding: 11px 12px; color: var(--error-fg);
+      background: var(--message-error-bg); border-left: 3px solid var(--error-fg);
+      font-size: 13px; line-height: 1.5; text-align: left; white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    #technical-details { display: none; margin-top: 12px; color: var(--body-quiet-color); font-size: 12px; text-align: left; }
+    #technical-details summary { width: fit-content; color: var(--link-fg); cursor: pointer; }
+    #technical-details pre {
+      max-height: 170px; margin: 9px 0 0; padding: 10px; overflow: auto;
+      color: var(--body-fg); background: var(--darkened-bg); border: 1px solid var(--border-color);
+      font: 11px/1.45 Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+    .actions { display: none; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .actions a, .actions button {
+      min-height: 34px; padding: 7px 13px; border: 1px solid var(--border-color);
+      border-radius: 4px; color: var(--body-fg); background: var(--darkened-bg);
+      font: inherit; font-size: 13px; text-decoration: none; cursor: pointer;
+    }
+    .actions a { color: #fff; background: var(--secondary); border-color: var(--secondary); }
+    .actions a:hover, .actions a:focus-visible { color: #fff; background: #315f75; }
+    .actions button:hover, .actions button:focus-visible { background: #292929; }
+    #footer {
+      padding: 12px 20px; border-top: 1px solid var(--hairline-color);
+      color: var(--body-quiet-color); text-align: center;
+    }
+    .footer-content { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; }
+    .footer-info { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; }
+    .footer-separator { color: #888; }
+    .footer-info a, .footer-help a { color: var(--link-fg); text-decoration: none; }
+    .footer-info a:hover, .footer-help a:hover, .footer-info a:focus-visible, .footer-help a:focus-visible {
+      color: var(--link-hover-color); text-decoration: underline;
+    }
+    .footer-help { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
+    .footer-help-title { color: var(--body-quiet-color); }
+    .has-error .loading-indicator, .has-error .progress { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes progress { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
+    @media (max-width: 520px) {
+      body.login { padding: 12px; }
+      #site-name { font-size: 1.45rem; }
+      .login-brand-icon { right: calc(100% + 7px); width: 38px; height: 38px; }
+      #content { padding: 18px; }
+      #footer { padding: 11px 14px; }
+      .footer-help { gap: 8px 11px; }
+    }
+    @media (max-height: 480px) {
+      body.login { padding-top: 8px; padding-bottom: 8px; }
+      #container { min-height: 0; }
+      #content { padding-top: 14px; padding-bottom: 14px; }
+      #footer { padding-top: 8px; padding-bottom: 8px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body class="login">
+  <main id="container">
+    <header id="header">
+      <h1 id="site-name">
+        <img class="login-brand-icon" src="/brand.svg" alt="">
+        <span>MS Contable</span>
+      </h1>
+      <button class="theme-toggle" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <span class="visually-hidden">Cambiar tema</span>
+        <svg aria-hidden="true" class="theme-icon-when-dark" viewBox="0 0 24 24"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></svg>
+        <svg aria-hidden="true" class="theme-icon-when-light" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></svg>
+      </button>
+    </header>
+    <section id="content">
+      <div id="status-card" class="loading-content" aria-live="polite">
+        <h2 id="title">Preparando el programa</h2>
+        <p id="message">La aplicación se abrirá en unos instantes.</p>
+        <div class="loading-indicator" aria-hidden="true">
+          <span class="spinner"></span><span>Iniciando…</span>
+        </div>
+        <div class="progress" aria-label="Cargando"><span></span></div>
+        <p id="error" role="alert"></p>
+        <details id="technical-details">
+          <summary>Ver detalles técnicos</summary>
+          <pre id="details-text"></pre>
+        </details>
+        <div id="actions" class="actions">
+          <a id="login-link" href="https://mscontable/admin/login/">Abrir MS Contable</a>
+          <button type="button" onclick="window.close()">Cerrar</button>
+        </div>
+      </div>
+    </section>
+    <footer id="footer">
+      <div class="footer-content">
+        <div class="footer-info">
+          <span>MS Contable (v0.1.3)</span>
+          <span class="footer-separator">·</span>
+          <span>Desarrollador: <a href="https://github.com/SMati000/ms_contable" target="_blank" rel="noopener noreferrer">Schulz, Matias</a></span>
+        </div>
+        <div class="footer-help">
+          <span class="footer-help-title">Ayudas:</span>
+          <a data-static-path="/static/docs/mapeo-conceptos-arca.html" href="#">Conceptos y códigos ARCA</a>
+          <a data-static-path="/static/docs/mapeo-codigos-arca_1.html" href="#">Tablas</a>
+          <a data-static-path="/static/docs/mapeo-codigos-arca.html" href="#">Anexo</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+  <script>
+    const title = document.getElementById('title');
+    const message = document.getElementById('message');
+    const error = document.getElementById('error');
+    const statusCard = document.getElementById('status-card');
+    const details = document.getElementById('technical-details');
+    const loginLink = document.getElementById('login-link');
+    const startedAt = Date.now();
+    const themePreference = 'ms-contable-theme';
+    document.documentElement.dataset.theme = localStorage.getItem(themePreference) === 'light' ? 'light' : 'dark';
+    document.querySelector('.theme-toggle').addEventListener('click', () => {
+      const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = nextTheme;
+      localStorage.setItem(themePreference, nextTheme);
+    });
+
+    function setStaticLinks(loginUrl) {
+      if (!loginUrl) return;
+      document.querySelectorAll('[data-static-path]').forEach((link) => {
+        link.href = new URL(link.dataset.staticPath, loginUrl).href;
+      });
+    }
+
+    async function refreshStatus() {
+      if (Date.now() - startedAt > 150000) {
+        title.textContent = 'El inicio está tardando más de lo esperado';
+        message.textContent = 'Revisá los registros locales o intentá abrir MS Contable nuevamente.';
+        error.textContent = 'El servidor local no confirmó el inicio dentro del tiempo esperado.';
+        error.style.display = 'block';
+        document.getElementById('details-text').textContent = 'El inicio superó el tiempo límite. Consultá los registros locales de MS Contable.';
+        details.style.display = 'block';
+        loginLink.hidden = true;
+        statusCard.classList.add('has-error');
+        document.getElementById('actions').style.display = 'flex';
+        return;
+      }
+
+      try {
+        const response = await fetch('/status', { cache: 'no-store' });
+        if (!response.ok) throw new Error('status');
+        const state = await response.json();
+        title.textContent = state.title || 'Preparando el programa';
+        message.textContent = state.message || 'La aplicación se abrirá en unos instantes.';
+        if (state.login_url) {
+          loginLink.href = state.login_url;
+          setStaticLinks(state.login_url);
+        }
+        if (state.state === 'ready') {
+          title.textContent = 'MS Contable está listo';
+          message.textContent = 'Abriendo la página de acceso…';
+          window.location.replace(state.login_url || loginLink.href);
+          return;
+        }
+        if (state.state === 'error') {
+          error.textContent = state.error || 'No se pudo iniciar MS Contable.';
+          error.style.display = 'block';
+          document.getElementById('details-text').textContent = state.details || state.message || 'Consultá los registros locales de MS Contable.';
+          details.style.display = 'block';
+          loginLink.hidden = !state.login_url;
+          statusCard.classList.add('has-error');
+          document.getElementById('actions').style.display = 'flex';
+          return;
+        }
+      } catch (_) {
+        message.textContent = 'Conectando con el inicio local…';
+      }
+      window.setTimeout(refreshStatus, 500);
+    }
+
+    refreshStatus();
+  </script>
+</body>
+</html>

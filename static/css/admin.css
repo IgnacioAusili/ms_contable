@@ -83,9 +83,12 @@ body.login {
 
 body.login #container {
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
     width: 28em;
     max-width: 100%;
     min-width: 0;
+    min-height: 390px;
     margin: auto;
 }
 
@@ -126,6 +129,98 @@ body.login.first-run #content {
     box-sizing: border-box;
     width: 100%;
     padding: 7px 9px;
+}
+
+#first-account-form .first-run-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+#first-account-form .first-run-input-wrap > input {
+    flex: 1 1 auto;
+    width: 0;
+    min-width: 0;
+}
+
+#first-account-form .first-run-input-wrap.has-errors > input {
+    border-color: #ba2121;
+}
+
+#first-account-form .error-tooltip {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+#first-account-form .error-tooltip__trigger {
+    display: inline-flex;
+    box-sizing: border-box;
+    width: 1.35rem;
+    height: 1.35rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid #ba2121;
+    border-radius: 50%;
+    color: #ba2121;
+    background: var(--body-bg);
+    cursor: help;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+#first-account-form .error-tooltip__icon {
+    display: block;
+    line-height: 1;
+}
+
+#first-account-form .error-tooltip__trigger:focus-visible {
+    outline: 2px solid var(--link-fg);
+    outline-offset: 2px;
+}
+
+#first-account-form .error-tooltip__content {
+    position: absolute;
+    z-index: 1000;
+    inset-block-start: calc(100% + 0.4rem);
+    inset-inline-start: 0;
+    display: none;
+    box-sizing: border-box;
+    width: max-content;
+    min-width: 12rem;
+    max-width: min(24rem, calc(100vw - 2rem));
+    max-height: min(18rem, calc(100vh - 2rem));
+    overflow: auto;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--hairline-color);
+    border-radius: 4px;
+    color: var(--body-fg);
+    background: var(--body-bg);
+    box-shadow: 0 4px 14px rgb(0 0 0 / 20%);
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: start;
+    white-space: normal;
+}
+
+#first-account-form .error-tooltip__content ul {
+    margin: 0.4rem 0 0;
+    padding-inline-start: 1.2rem;
+}
+
+#first-account-form .error-tooltip__content li + li {
+    margin-block-start: 0.25rem;
+}
+
+#first-account-form .error-tooltip:hover .error-tooltip__content,
+#first-account-form .error-tooltip:focus-within .error-tooltip__content {
+    display: block;
 }
 
 #first-account-form .form-row input[type="checkbox"] {

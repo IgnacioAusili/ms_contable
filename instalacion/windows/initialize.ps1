@@ -1,9 +1,16 @@
-﻿$ErrorActionPreference = "Stop"
+﻿param(
+    [ValidateSet("", "preserve", "delete")]
+    [string] $IncompatibleDataAction = ""
+)
+
+$ErrorActionPreference = "Stop"
+
 Add-Type -AssemblyName System.Windows.Forms
 
 $InstallDir = Split-Path -Parent $PSScriptRoot
 $Python = Join-Path $InstallDir "python\python.exe"
 $AppDir = $InstallDir
+$DataRoot = Join-Path $env:LOCALAPPDATA "MSContable"
 $DataDir = Join-Path $env:LOCALAPPDATA "MSContable\data"
 $LogsDir = Join-Path $env:LOCALAPPDATA "MSContable\logs"
 $Database = Join-Path $DataDir "db.sqlite3"
@@ -76,12 +83,56 @@ function Invoke-ManageCommand {
     }
 }
 
+function Resolve-IncompatibleDatabase {
+    if (-not $IncompatibleDataAction) {
+        return
+    }
+
+    $databaseKey = Join-Path $DataRoot "config\database-key.dpapi"
+    if ($IncompatibleDataAction -eq "preserve") {
+        $archiveRoot = Join-Path $DataRoot "datos-anteriores"
+        $archiveName = "sqlcipher-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        $archivePath = Join-Path $archiveRoot $archiveName
+        $suffix = 1
+        while (Test-Path -LiteralPath $archivePath) {
+            $archivePath = Join-Path $archiveRoot "$archiveName-$suffix"
+            $suffix++
+        }
+
+        New-Item -ItemType Directory -Force -Path $archiveRoot | Out-Null
+        New-Item -ItemType Directory -Force -Path $archivePath | Out-Null
+        if (Test-Path -LiteralPath $DataDir) {
+            Move-Item -LiteralPath $DataDir -Destination (Join-Path $archivePath "data")
+        }
+        if (Test-Path -LiteralPath $databaseKey) {
+            $archiveConfig = Join-Path $archivePath "config"
+            New-Item -ItemType Directory -Force -Path $archiveConfig | Out-Null
+            Move-Item -LiteralPath $databaseKey -Destination $archiveConfig
+        }
+        New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
+        Add-Content -Path $SetupLog -Value "$(Get-Date -Format o) Se conservaron los datos cifrados en $archivePath."
+        return
+    }
+
+    if (Test-Path -LiteralPath $DataDir) {
+        Remove-Item -LiteralPath $DataDir -Recurse -Force
+    }
+    if (Test-Path -LiteralPath $databaseKey) {
+        Remove-Item -LiteralPath $databaseKey -Force
+    }
+    New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
+    Add-Content -Path $SetupLog -Value "$(Get-Date -Format o) Se eliminaron los datos cifrados incompatibles por elección del usuario."
+}
+
 try {
     if (-not (Test-Path $Python) -or -not (Test-Path (Join-Path $AppDir "manage.py"))) {
         throw "Faltan archivos de MS Contable. Volvé a ejecutar el instalador."
     }
 
     New-Item -ItemType Directory -Force -Path $DataDir, $LogsDir | Out-Null
+    . (Join-Path $PSScriptRoot "protect-data.ps1")
+    Protect-MSContableDataDirectory -Path $DataRoot | Out-Null
+
     $env:MSCONTABLE_DATA_DIR = $DataDir
     $env:MSCONTABLE_LOG_DIR = $LogsDir
     $env:DJANGO_SETTINGS_MODULE = "ms_contable.settings_windows"
@@ -91,7 +142,9 @@ try {
         throw "No se pudieron detener los servicios anteriores de MS Contable."
     }
 
-    if (-not (Test-Path $Database)) {
+    Resolve-IncompatibleDatabase
+
+    if (-not (Test-Path $Database) -and -not $IncompatibleDataAction) {
         Select-LegacyDatabase
     }
 
@@ -109,7 +162,21 @@ try {
 }
 catch {
     New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null
-    Add-Content -Path $SetupLog -Value "$(Get-Date -Format o) $($_.Exception.Message)"
+    $errorDetails = "$(Get-Date -Format o)`r`n$($_.Exception.ToString())"
+    try {
+        [System.IO.File]::WriteAllText(
+            (Join-Path $LogsDir "initialize-failure.log"),
+            $errorDetails,
+            [System.Text.UTF8Encoding]::new($false)
+        )
+    }
+    catch {
+    }
+    try {
+        Add-Content -Path $SetupLog -Value $errorDetails
+    }
+    catch {
+    }
     exit 1
 }
 finally {

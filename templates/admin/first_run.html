@@ -1,6 +1,6 @@
 {% extends "admin/login.html" %}
 
-{% block title %}Crear primera cuenta | {{ app_name }}{% endblock %}
+{% block title %}Crear cuenta | {{ app_name }}{% endblock %}
 {% block bodyclass %}{{ block.super }} first-run{% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
         <p class="first-run-eyebrow">PRIMER INICIO</p>
         <h1>Bienvenido a {{ app_name }}</h1>
         <p class="first-run-lead">
-            Parece que todavía no tenés una cuenta para gestionar MS Contable. Creá la cuenta administradora y empezá a cargar empresas, empleados y liquidaciones.
+            Crea una cuenta administradora.
         </p>
         <p class="first-run-note">
             Guardá estos datos: los vas a necesitar cada vez que ingreses. Al crear la cuenta, entrarás directamente al programa.
@@ -23,16 +23,32 @@
         {% endif %}
         {% for field in form %}
             <div class="form-row{% if field.name == 'remember_session' %} remember-session-row{% endif %}">
-                {{ field.errors }}
                 {% if field.name == "remember_session" %}
                     {{ field }}
                     {{ field.label_tag }}
                 {% else %}
                     {{ field.label_tag }}
-                    {{ field }}
+                    <div class="first-run-input-wrap{% if field.errors %} has-errors{% endif %}">
+                        {% if field.errors %}
+                            <span class="error-tooltip error-tooltip--field">
+                                <button type="button" class="error-tooltip__trigger" aria-label="Ver errores de {{ field.label }}" aria-describedby="first-run-error-{{ field.name }}">
+                                    <span class="error-tooltip__icon">!</span>
+                                </button>
+                                <span class="error-tooltip__content" id="first-run-error-{{ field.name }}" role="tooltip">
+                                    <strong>{{ field.label }}</strong>
+                                    <ul>
+                                        {% for error in field.errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </span>
+                            </span>
+                        {% endif %}
+                        {{ field }}
+                    </div>
                 {% endif %}
                 {% if field.help_text %}
-                    <p class="help">{{ field.help_text }}</p>
+                    <p class="help" id="first-run-help-{{ field.name }}">{{ field.help_text }}</p>
                 {% endif %}
             </div>
         {% endfor %}

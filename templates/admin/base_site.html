@@ -10,6 +10,8 @@
     {{ block.super }}
     <script src="{% static 'js/admin_theme.js' %}"></script>
     <script defer src="{% static 'js/admin_login.js' %}"></script>
+    <meta name="mscontable-session-token" content="{{ session_heartbeat_token }}">
+    <script defer src="{% static 'js/session_heartbeat.js' %}"></script>
     <link rel="icon" href="{% static 'images/favicon.ico' %}">
 {% endblock %}
 

@@ -1,5 +1,6 @@
 import os
 import time
+from pathlib import Path
 
 from django.core.management.utils import get_random_secret_key
 
@@ -48,6 +49,13 @@ SECRET_KEY = _load_or_create_secret_key(
 
 ALLOWED_HOSTS = [*ALLOWED_HOSTS, "mscontable"]
 CSRF_TRUSTED_ORIGINS = ["https://mscontable"]
+SESSION_HEARTBEAT_TOKEN = os.environ.get("MSCONTABLE_SESSION_TOKEN", "")
+SESSION_HEARTBEAT_DIR = Path(
+    os.environ.get("MSCONTABLE_HEARTBEAT_DIR", DATA_DIR / "browser-sessions")
+).expanduser()
+https_port = os.environ.get("MSCONTABLE_HTTPS_PORT", "")
+if https_port.isdecimal() and 1 <= int(https_port) <= 65535:
+    CSRF_TRUSTED_ORIGINS.append(f"https://mscontable:{int(https_port)}")
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True

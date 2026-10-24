@@ -4,7 +4,7 @@ from django.urls import path
 from django.views.generic.base import RedirectView
 
 from core.forms import RememberSessionAdminAuthenticationForm
-from core.views import admin_login, first_run
+from core.views import admin_login, first_run, local_session_heartbeat
 
 
 admin.site.site_header = settings.APP_NAME
@@ -14,6 +14,7 @@ admin.site.login_form = RememberSessionAdminAuthenticationForm
 
 
 urlpatterns = [
+    path("_local/session-heartbeat/", local_session_heartbeat, name="local-session-heartbeat"),
     path("", RedirectView.as_view(pattern_name="first-run", permanent=False)),
     path("create/", first_run, name="first-run"),
     path("admin/login/", admin_login, name="admin-login"),

@@ -77,7 +77,7 @@ Set-Content -Path $pythonPathFile -Encoding ASCII -Value @(
     "import site"
 )
 
-& $Python -m pip install --disable-pip-version-check --no-compile --target $SitePackages -r (Join-Path $ProjectRoot "requirements-windows.txt")
+& $Python -m pip install --disable-pip-version-check --target $SitePackages -r (Join-Path $ProjectRoot "requirements-windows.txt")
 if ($LASTEXITCODE -ne 0) {
     throw "No se pudieron instalar las dependencias de Windows en el runtime del instalador."
 }
@@ -116,8 +116,14 @@ foreach ($relativePath in $trackedFiles) {
 $AppWindows = Join-Path $AppPayload "windows"
 New-Item -ItemType Directory -Force -Path $AppWindows | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "launch.ps1") $AppWindows
+Copy-Item (Join-Path $PSScriptRoot "launch-splash.ps1") $AppWindows
+Copy-Item (Join-Path $PSScriptRoot "launch-support.ps1") $AppWindows
+Copy-Item (Join-Path $PSScriptRoot "session-monitor.ps1") $AppWindows
 Copy-Item (Join-Path $PSScriptRoot "launch-hidden.vbs") $AppWindows
 Copy-Item (Join-Path $PSScriptRoot "initialize.ps1") $AppWindows
+Copy-Item (Join-Path $PSScriptRoot "bootstrap.py") $AppWindows
+Copy-Item (Join-Path $PSScriptRoot "bootstrap-page.html") $AppWindows
+Copy-Item (Join-Path $PSScriptRoot "protect-data.ps1") $AppWindows
 
 $previousDataDir = $env:MSCONTABLE_DATA_DIR
 $previousLogDir = $env:MSCONTABLE_LOG_DIR
@@ -129,6 +135,11 @@ try {
     & (Join-Path $Runtime "python.exe") manage.py collectstatic --noinput
     if ($LASTEXITCODE -ne 0) {
         throw "No se pudieron preparar los archivos estáticos."
+    }
+
+    & (Join-Path $Runtime "python.exe") -m compileall -q -s $AppPayload $AppPayload
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudo preparar el bytecode de Python para el runtime instalado."
     }
 }
 finally {
