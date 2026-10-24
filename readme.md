@@ -21,6 +21,8 @@ Entre sus principales funcionalidades se encuentran:
 
 El sistema está orientado a su utilización por parte de un contador para la gestión de las liquidaciones de una o más empresas.
 
+Ver [Manual de Usuario](./docs/specs_internas/manual_usuario.md).
+
 ## Alcance
 
 El sistema contempla la gestión de empresas, empleados, conceptos de liquidación, categorías laborales y plantillas, así como la realización de liquidaciones y la generación de sus documentos asociados.
@@ -71,20 +73,20 @@ A grandes rasgos, el funcionamiento del sistema sigue el siguiente flujo:
 ```text
 Empresa
    │
-   ├────────────── Categorías
-   │                   ↓
-   ├── Empleados ── Versiones │
-   │                          │ ───
-   └── Conceptos ── Versiones │    │
-                                   │
-                                   ▼
-                            Generar liquidación
-                                   │
-                                   ▼
-                            Liquidar empleados → Recibo PDF
-                                   │
-                                   ▼
-                            Cerrar liquidación → TXT LSD
+   ├── Categorías Laborales
+   │       ↓
+   ├── Empleados │
+   │             │ ─── (Plantilla de Liquidación)
+   └── Conceptos │    │
+                      │
+                      ▼
+             Generar Liquidación
+                      │
+                      ▼
+       Liquidar empleados → Recibo PDF
+                      │
+                      ▼
+       Cerrar liquidación → TXT LSD
 ```
 
 ## Conformidad con Normativa Legal y Sistemas Externos
